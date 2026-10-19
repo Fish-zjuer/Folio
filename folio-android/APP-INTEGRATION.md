@@ -1,3 +1,5 @@
+> **公开测试发布（Fish于2026-10-20明确授权）**：[v0.9-test](https://github.com/Fish-zjuer/Folio/releases/tag/v0.9-test) 已公开，附APK与校验文件；GitHub源码仓库公开。下文“仅私有/不公开”属于旧决定，已被此次授权替代。未发布校园论坛帖子。
+
 > **2026-10-20 当前交付：0.9-test**。最新设置、深色、独立横向导航/闪屏修正、折纸图标、姓氏首字母已打包。原签名、96运行文件一致；198前端+20学校+9用量离线测试通过，待真机。见 [RELEASE-0.9.md](RELEASE-0.9.md) 与 [ROADMAP.md](ROADMAP.md)。下文旧版本为历史。
 
 > **GitHub私有仓库已建（2026-10-20）**：https://github.com/Fish-zjuer/Folio 。本机 ../Folio 是精选Git快照，4194仍服务原目录；修改后需用仓库scripts/sync_workspace.py同步再提交。最新修正横向工作台→日程闪屏、新折纸图标、可设姓氏/首字母；未打新APK。见TEAM-STATE。
