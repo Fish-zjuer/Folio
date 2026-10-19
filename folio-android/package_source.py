@@ -17,14 +17,14 @@ files.extend(root.glob('qa-0.6-*.png'))
 evidence=['verification.json','build.json','app-integration-node.tap','app-integration-browser.txt','review05-mobile-692.txt','review05-range-keyboard.txt','feedback-06-node.tap','feedback-06-browser.txt','sdk-06-browser.txt']
 evidence.extend([f'verification-{version}.json',f'build-{version}.json','home-week-verification.json',f'apk-size-{version}.json',f'live-services-{version}.json'])
 files.extend(root/'dist'/name for name in evidence if (root/'dist'/name).is_file())
-for folder in [root/'src',root/'res',root/'tests']:
+for folder in [root/'src',root/'res',root/'tests',root/'branding']:
     files.extend(p for p in folder.rglob('*') if p.is_file())
 files.extend(p for p in web.iterdir() if p.is_file() and p.suffix in {'.html','.css','.js','.cjs','.md'})
 for folder in [web/'assets',web/'qa',web/'design-lab',web/'widgets']:
     files.extend(p for p in folder.rglob('*') if p.is_file() and p.suffix in {'.html','.js','.css','.svg','.txt','.woff2','.md','.ts','.cjs'})
 target.parent.mkdir(exist_ok=True)
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
-    for path in sorted(set(files)):
+    for path in sorted(p for p in set(files) if p.is_file()):
         archive.write(path,path.relative_to(root.parent).as_posix())
 with zipfile.ZipFile(target) as archive:
     bad=archive.testzip()
