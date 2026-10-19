@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+test('0.1 升级迁移保留个人待办、聊天、隐私及本地修改，并备份移除的系统示例',()=>{
+  const storage=new Map(Object.entries({'folio-homework-demo-v1':JSON.stringify({items:[{id:'h01',source:'school',title:'系统示例'},{id:'mine',source:'personal',title:'我的待办'},{id:'school-homework-123',source:'school',title:'真实作业'}],weights:[0,0,0,0,25,45,30]}),'folio-custom-exams-v1':JSON.stringify([{id:'custom-demo-quiz'},{id:'mine-exam'}]),'folio-academic-v1':JSON.stringify({cache:{grades:{data:['sample']}},hideGrades:true,overrides:{mine:{major:true}},undo:[]}), 'folio-chat-v1':'own-chat'}));
+  const context={window:{FolioAndroid:{call(){}}},document:{documentElement:{classList:{add(){}}},addEventListener(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},Map,JSON};vm.createContext(context);const code=fs.readFileSync(`${__dirname}/native-bridge.js`,'utf8');vm.runInContext(code,context);
+  assert.deepEqual(JSON.parse(storage.get('folio-homework-demo-v1')).items.map(i=>i.id),['mine','school-homework-123']);assert.equal(JSON.parse(storage.get('folio-academic-v1')).hideGrades,true);assert.deepEqual(JSON.parse(storage.get('folio-academic-v1')).overrides,{mine:{major:true}});assert.equal(storage.get('folio-chat-v1'),'own-chat');assert.ok(storage.get('folio-pre-native-backup-v1').includes('系统示例'));
+  const after=storage.get('folio-homework-demo-v1');vm.runInContext(code,context);assert.equal(storage.get('folio-homework-demo-v1'),after);
+});

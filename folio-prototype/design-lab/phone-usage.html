@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Folio · 手机时长组件</title>
+<link rel="stylesheet" href="phone-usage.css">
+<main><header><div class="eyebrow">FOLIO / WIDGET 01</div><h1>一周，和一个小伙伴。</h1><p>名称留在选择页，工作台里只放图形。以下使用示例数据，尚未读取手机统计。</p></header>
+<section class="study"><div class="preview"><div id="usage-card"></div><p class="caption">手机使用时长 · 点击柱子看当天详情</p><div class="sizes"><button data-size="260" aria-pressed="true">放大看细节</button><button data-size="180" aria-pressed="false">180px 实际大小</button></div></div><aside><h2>台灯、小鸟、小花和鲸鱼。</h2><p>四种造型随时换：台灯的光、小鸟的姿态、小花的开合，以及鲸鱼的水花。</p><fieldset><legend>小伙伴样式</legend><div class="companions"><button data-companion="lamp" aria-pressed="true"><svg viewBox="0 0 72 72" aria-hidden="true"></svg><span>台灯</span></button><button data-companion="bird" aria-pressed="false"><svg viewBox="0 0 72 72" aria-hidden="true"></svg><span>折纸小鸟</span></button><button data-companion="flower" aria-pressed="false"><svg viewBox="0 0 72 72" aria-hidden="true"></svg><span>小花</span></button><button data-companion="whale" aria-pressed="false"><svg viewBox="0 0 72 72" aria-hidden="true"></svg><span>小鲸鱼</span></button></div></fieldset><fieldset><legend>状态试样</legend><div class="moods"><button data-mood="happy" aria-pressed="true">舒展</button><button data-mood="waiting" aria-pressed="false">停滞</button><button data-mood="sad" aria-pressed="false">低落</button></div></fieldset><p class="fine">样式选择会在本浏览器记住。状态按钮只用于试样比较；评价范围与触发规则仍待确定。</p><h2>一点刻度，留在边上。</h2><p>最左侧的小钝角三角指向右，始终标记 1 小时高度，随图表比例变化。卡片内不加刻度文字，明细仍在点开后看。</p><a href="square-layouts.html">回看四宫格风格 ↗</a><br><br><a href="day-schedule.html">下一个：一日日程 ↗</a></aside></section>
+<footer>第一轮：图形、状态与点选交互。鼓励反馈的触发规则尚未确定。</footer></main>
+<dialog id="usage-detail" aria-labelledby="detail-title"><form method="dialog"><button class="close" aria-label="关闭当天详情"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></form><div class="eyebrow">示例记录</div><h2 id="detail-title"></h2><p class="total" id="detail-total"></p><div id="detail-apps"></div><p class="fine">这是组件排布演示，应用明细与时长均为示例。</p></dialog>
+<script src="companion-art.js"></script>
+<script src="phone-usage.js"></script>
+<script>
+const days=[{date:'2026-10-12',minutes:174},{date:'2026-10-13',minutes:243},{date:'2026-10-14',minutes:126},{date:'2026-10-15',minutes:285},{date:'2026-10-16',minutes:228},{date:'2026-10-17',minutes:327},{date:'2026-10-18',minutes:165}];
+const dialog=document.querySelector('#usage-detail');
+let companionStyle='lamp',previewMood='happy';
+try{const saved=localStorage.getItem('folio-companion-style-v1');if(Object.hasOwn(FolioCompanion.labels,saved))companionStyle=saved}catch{}
+function renderCompanionChoices(){document.querySelectorAll('[data-companion]').forEach(b=>{FolioCompanion.render(b.querySelector('svg'),b.dataset.companion,previewMood);b.querySelector('svg').setAttribute('aria-hidden','true');b.setAttribute('aria-pressed',String(b.dataset.companion===companionStyle))})}
+renderCompanionChoices();
+const card=FolioUsageCard.mount(document.querySelector('#usage-card'),{days,today:'2026-10-18',mood:previewMood,companionStyle,onSelect(day){document.querySelector('#detail-title').textContent=day.date.slice(5).replace('-',' 月 ')+' 日';document.querySelector('#detail-total').textContent=FolioUsageCard.duration(day.minutes);const apps=document.querySelector('#detail-apps');apps.replaceChildren();[['阅读',.38,'#8a9d8e'],['学习工具',.32,'#b8aa81'],['其他',.30,'#bd8d73']].forEach(([name,part,color],i)=>{const row=document.createElement('div');row.className='app-row';const label=document.createElement('span');label.textContent=name;const time=document.createElement('span');const minutes=i===2?day.minutes-Math.round(day.minutes*.38)-Math.round(day.minutes*.32):Math.round(day.minutes*part);time.textContent=FolioUsageCard.duration(minutes);const bar=document.createElement('i');bar.style.setProperty('--length',String(part*100)+'%');bar.style.setProperty('--color',color);row.append(label,time,bar);apps.append(row)});dialog.showModal()}});
+document.querySelectorAll('[data-mood]').forEach(b=>b.onclick=()=>{previewMood=b.dataset.mood;card.setMood(previewMood);renderCompanionChoices();document.querySelectorAll('[data-mood]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))});
+document.querySelectorAll('[data-size]').forEach(b=>b.onclick=()=>{document.querySelector('#usage-card').style.width=b.dataset.size+'px';document.querySelectorAll('[data-size]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))});
+document.querySelectorAll('[data-companion]').forEach(b=>b.onclick=()=>{companionStyle=b.dataset.companion;card.setCompanion(companionStyle);renderCompanionChoices();try{localStorage.setItem('folio-companion-style-v1',companionStyle)}catch{}});
+let closeTimer;
+function closeDetail(){if(dialog.classList.contains('is-closing'))return;if(matchMedia('(prefers-reduced-motion: reduce)').matches){dialog.close();return}dialog.classList.add('is-closing');closeTimer=setTimeout(()=>dialog.close(),220)}
+dialog.querySelector('form').addEventListener('submit',e=>{e.preventDefault();closeDetail()});
+dialog.addEventListener('cancel',e=>{e.preventDefault();closeDetail()});
+dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDetail()}});
+dialog.addEventListener('close',()=>{clearTimeout(closeTimer);dialog.classList.remove('is-closing');card.clearSelection()});
+</script><script src="widget-frame.js"></script></html>
+

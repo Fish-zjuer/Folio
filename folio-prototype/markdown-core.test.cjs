@@ -1,0 +1,3 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),M=require('./markdown-core');
+test('Markdown 正文支持强调、列表、代码、引用和表格',()=>{const html=M.render('# 标题\n\n**重点** 和 `代码`\n\n- 一\n- 二\n\n> 引用\n\n|科目|学分|\n|---|---|\n|数学|5.5|');for(const s of ['<h2>标题','<strong>重点','<code>代码','<ul>','<blockquote>','<table>','<td>5.5'])assert.ok(html.includes(s),s);});
+test('原文 HTML 与危险链接不执行，围栏代码保持原文',()=>{const html=M.render('<img src=x onerror=alert(1)>\n\n[x](javascript:alert)\n\n```html\n<script>bad()</script>\n```');assert.ok(!html.includes('<img'));assert.ok(!html.includes('href="javascript'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(M.render('[官网](https://example.org)').includes('rel="noopener noreferrer"'));});

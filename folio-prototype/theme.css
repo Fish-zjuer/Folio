@@ -1,0 +1,18 @@
+/* Warm charcoal paper, with deliberately preserved ink and paper artwork. */
+:root[data-theme="dark"]{color-scheme:dark;--bg-canvas:#242521;--bg-surface:#2F302A;--bg-subtle:#393A32;--bg-preview:#1B1C19;--bg-primary-btn:#DED5C4;--text-primary:#E7E2D7;--text-secondary:#B7B5A8;--text-muted:#939487;--text-on-dark:#242521;--accent-brand:#D59173;--accent-link:#B4ABEB;--accent-destructive:#E29B83;--border-subtle:#44463C;--shadow-prompt:0 4px 0 #1C1D19}
+.theme-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 10px}.theme-option{display:flex;flex-direction:column;align-items:center;gap:12px;border:1px solid var(--border-subtle);border-radius:13px;padding:16px 8px;background:var(--bg-surface);font-size:12px}.theme-option[aria-pressed=true]{border:2px solid #B88D6C;padding:15px 7px}.theme-swatch{display:block;width:44px;height:48px;border-radius:7px;background:#F4F0E6;border:1px solid #C9C2B1;box-shadow:3px 3px 0 #C7BC9F}.theme-swatch.dark{background:#33362D;border-color:#5C6251;box-shadow:3px 3px 0 #1B1D18}.theme-swatch.system{background:linear-gradient(90deg,#F4F0E6 50%,#33362D 50%);box-shadow:3px 3px 0 #9D9B88}
+[data-theme="dark"] :is(.academic-plan-switch button[aria-pressed=true],.setting-segment.is-selected,.setting-segment[aria-pressed=true],.folio-choice-option[aria-selected=true]){background:var(--bg-surface);color:var(--text-primary)}
+[data-theme="dark"] :is(.academic-busy,.homework-busy){background:rgb(36 37 33 / 85%)}
+[data-theme="dark"] :is(.demo-toast,.chat-user-bubble,.chat-proposal-banner,.chat-reasoning,.chat-deck-card,.workbench-picker-card,.workbench-reading-card,.workbench-edit-tools,.workbench-trash,.goal-missing-credits,.goal-allocation-card.is-dragging){background:var(--bg-surface);color:var(--text-primary);border-color:var(--border-subtle)}
+[data-theme="dark"] :is(.chat-message pre,.chat-message code,.markdown-body pre,.markdown-body code){background:var(--bg-subtle);color:var(--text-primary)}
+[data-theme="dark"] :is(input,textarea,select){color:var(--text-primary)}
+[data-theme="dark"] :is(.schedule-month,.schedule-agenda,.timetable-panel,.course-card,.exam-card,.task-card,.homework-card){color:var(--text-primary)}
+[data-theme="dark"] :is(.schedule-date.is-selected,.schedule-date[aria-selected=true]){background:var(--bg-subtle)}
+[data-theme="dark"] :is(.timetable-course-block,.home-week-event){color:#302E27;filter:brightness(.8) saturate(.75)}
+[data-theme="dark"] :is(.workbench-board,.workbench-widget,.extended-widget,.workbench-stat-widget,.workbench-overview-widget){filter:brightness(.78) saturate(.78)}
+[data-theme="dark"] :is(.workbench-slot,.workbench-add){border-color:#777B69;color:#A5AA94}
+[data-theme="dark"] :is(.academic-settings-option+.academic-settings-option,.practice-group,.course-row,.grade-row){border-color:var(--border-subtle)}
+[data-theme="dark"] :is(.chat-layer,.folio-choice-shade,#homework-shade,#sheet-shade,.workbench-shade,.workbench-reading-shade){background:rgb(5 6 4 / 38%)}
+[data-theme="dark"] .weather-city-form input{background:var(--bg-surface);border-color:var(--border-subtle)}
+[data-theme="dark"] :is(.weather-detail-head,.weather-detail-head strong,.weather-detail-values span,.weather-city-option){color:var(--text-primary)}
+[data-theme="dark"] .home-week{background:#20221D}

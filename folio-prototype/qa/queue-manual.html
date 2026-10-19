@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>便签改期隔离验收</title>
+<link rel="stylesheet" href="../styles.css"><main style="max-width:390px;padding:20px;margin:auto"><h1>便签改期隔离验收</h1><div id="controls"></div><p id="result" role="status"></p></main>
+<script src="../homework-queue-core.js?v=manual-policy-2"></script><script>
+const homeworkState={today:'2026-10-14',weights:[0,0,0,0,25,45,30],weekendLimit:3,items:[
+ {id:'a',title:'测试作业 A',kind:'homework',queued:true,mountDate:'2026-10-16',deadline:'2026-10-30'},
+ {id:'b',title:'测试作业 B',kind:'homework',queued:true,mountDate:'2026-10-17',deadline:'2026-10-30'}]};
+function make(tag,cls,text){const n=document.createElement(tag);n.className=cls;if(text!=null)n.textContent=text;return n;}
+function field(label,type,value){const wrapper=make('label','queue-field'),input=make('input','');input.type=type;input.value=value;wrapper.append(make('span','',label),input);return {label:wrapper,input,setValue(value){input.value=value;}};}
+function closeHomeworkSheet(){}
+function commit(message){document.getElementById('result').textContent=message+' · A:'+homeworkState.items[0].mountDate+' · B:'+homeworkState.items[1].mountDate;}
+</script><script src="../queue-move-ui.js?v=1"></script><script>document.getElementById('controls').append(createQueueMoveControls(homeworkState.items[0]).element);</script></html>

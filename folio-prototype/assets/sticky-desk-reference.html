@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>便签书桌</title>
+<style>
+html,body{margin:0;height:100%;background:#EDE6D6}
+body{display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+svg{width:100%;max-width:420px;display:block;border-radius:14px}
+.note:focus-visible{outline:2px solid #D97757;outline-offset:4px}
+@media (prefers-reduced-motion:reduce){.note{transition:none!important}}
+</style>
+</head>
+<body>
+<svg viewBox="0 0 380 420" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="书桌与便签">
+<rect x="0" y="0" width="380" height="420" fill="#E8DDC6"/>
+<rect x="12" y="12" width="356" height="396" rx="18" fill="#F4EEDF"/>
+<g>
+<circle cx="318" cy="62" r="24" fill="#D97757"/>
+<circle cx="318" cy="62" r="17" fill="#F3E9D6"/>
+<circle cx="318" cy="62" r="13" fill="#6B4A3A"/>
+<path d="M341 54 h8 a8 8 0 0 1 0 16 h-8" fill="none" stroke="#D97757" stroke-width="5" stroke-linecap="round"/>
+<g id="steam" style="display:none" fill="none" stroke="#B9AE95" stroke-width="3" stroke-linecap="round">
+<path d="M308 34 q-5 -5 0 -10 q5 -5 0 -10"/>
+<path d="M318 32 q-5 -5 0 -10 q5 -5 0 -10"/>
+<path d="M328 34 q-5 -5 0 -10 q5 -5 0 -10"/>
+</g>
+</g>
+<g transform="translate(150 380) rotate(-8)">
+<rect x="-38" y="-6" width="64" height="12" rx="2" fill="#E5B567"/>
+<rect x="-48" y="-6" width="12" height="12" rx="3" fill="#D97757"/>
+<rect x="-36" y="-6" width="4" height="12" fill="#B9AE95"/>
+<path d="M26 -6 L44 0 L26 6 Z" fill="#F3DFB8"/>
+<path d="M38 -2 L44 0 L38 2 Z" fill="#141413"/>
+</g>
+<g transform="translate(46 370)">
+<ellipse cx="0" cy="-13" rx="6" ry="13" fill="#788C5D"/>
+<ellipse cx="0" cy="-13" rx="6" ry="13" fill="#8DA06F" transform="rotate(72)"/>
+<ellipse cx="0" cy="-13" rx="6" ry="13" fill="#788C5D" transform="rotate(144)"/>
+<ellipse cx="0" cy="-13" rx="6" ry="13" fill="#8DA06F" transform="rotate(216)"/>
+<ellipse cx="0" cy="-13" rx="6" ry="13" fill="#788C5D" transform="rotate(288)"/>
+<circle r="14" fill="#C4694A"/>
+<circle r="9" fill="#7A4A36"/>
+<g id="flower" style="display:none"><circle r="7" fill="#C46686"/><circle r="3" fill="#F3DFB8"/></g>
+</g>
+<rect x="256" y="322" width="104" height="78" rx="10" fill="#DCCDAF"/>
+<rect x="262" y="328" width="92" height="66" rx="6" fill="#CDBC9A"/>
+<g id="notes"></g>
+<path d="M256 366 H360 V390 a10 10 0 0 1 -10 10 H266 a10 10 0 0 1 -10 -10 Z" fill="#E7DABF" pointer-events="none"/>
+<rect x="256" y="366" width="104" height="4" fill="#F1E7CF" pointer-events="none"/>
+</svg>
+<script>
+var P={
+ clay:['#F4C3AC','#E19A7B','#F8D5C5'],
+ sky:['#BDD3EA','#8DB1D8','#D3E3F3'],
+ olive:['#D2DEBF','#A9BE8E','#E1EAD2'],
+ mustard:['#F3DDA0','#DDB85E','#F8EBC4'],
+ pink:['#EBC0CF','#D494AB','#F3D6DF']
+};
+var data=[
+ {x:24,y:32,w:88,h:96,r:-4,k:'clay'},
+ {x:124,y:26,w:70,h:72,r:3,k:'mustard'},
+ {x:206,y:34,w:76,h:84,r:-2,k:'sky'},
+ {x:28,y:142,w:72,h:66,r:2,k:'olive'},
+ {x:118,y:112,w:96,h:104,r:-3,k:'clay'},
+ {x:232,y:132,w:84,h:88,r:4,k:'sky'},
+ {x:28,y:224,w:78,h:80,r:-2,k:'pink'},
+ {x:122,y:236,w:64,h:60,r:3,k:'olive'},
+ {x:198,y:236,w:76,h:72,r:-3,k:'clay'}
+];
+var slots=[[-26,4],[0,2],[26,4],[-13,-6],[13,-6],[-26,-8],[0,-10],[26,-8],[0,-16]];
+var html='';
+data.forEach(function(d,i){
+ var c=P[d.k],fo=Math.min(20,d.w*0.2),cx=d.w/2,cy=d.h/2;
+ var body='M0 0H'+d.w+'V'+(d.h-fo)+'L'+(d.w-fo)+' '+d.h+'H0Z';
+ html+='<g class="note" data-i="'+i+'" tabindex="0" role="button" aria-label="便签，点击标记完成" style="cursor:pointer">'
+ +'<rect x="3" y="4" width="'+d.w+'" height="'+d.h+'" rx="2" fill="#D6C9AB"/>'
+ +'<path d="'+body+'" fill="'+c[0]+'"/>'
+ +'<rect x="0" y="0" width="'+d.w+'" height="16" fill="'+c[2]+'"/>'
+ +'<path d="M'+d.w+' '+(d.h-fo)+'L'+(d.w-fo)+' '+d.h+'L'+(d.w-fo)+' '+(d.h-fo)+'Z" fill="'+c[1]+'"/>'
+ +'<rect x="'+(cx-18)+'" y="-7" width="36" height="14" fill="#FFFFFF" fill-opacity=".6" transform="rotate(-3 '+cx+' 0)"/>'
+ +'<g class="done" style="display:none">'
+ +'<circle cx="'+cx+'" cy="'+cy+'" r="24" fill="none" stroke="#D97757" stroke-width="4" stroke-linecap="round" stroke-dasharray="142 9" transform="rotate(-30 '+cx+' '+cy+')"/>'
+ +'<path d="M'+(cx-11)+' '+(cy+1)+'L'+(cx-3)+' '+(cy+10)+'L'+(cx+12)+' '+(cy-10)+'" fill="none" stroke="#D97757" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></g>'
+ +'</g>';
+});
+var layer=document.getElementById('notes');
+layer.innerHTML=html;
+var els=Array.prototype.slice.call(layer.querySelectorAll('.note'));
+var doneList=[];
+function tf(i){
+ var d=data[i],cx=d.w/2,cy=d.h/2,k=doneList.indexOf(i);
+ if(k<0) return 'translate('+(d.x+cx)+'px,'+(d.y+cy)+'px) scale(1) rotate('+d.r+'deg) translate('+(-cx)+'px,'+(-cy)+'px)';
+ var o=slots[k%slots.length];
+ return 'translate('+(308+o[0])+'px,'+(352+o[1])+'px) scale(0.5) rotate('+(d.r*1.5)+'deg) translate('+(-cx)+'px,'+(-cy)+'px)';
+}
+function render(){
+ els.forEach(function(el,i){
+  el.style.transform=tf(i);
+  el.querySelector('.done').style.display=doneList.indexOf(i)<0?'none':'inline';
+ });
+ var all=doneList.length===data.length;
+ document.getElementById('steam').style.display=all?'inline':'none';
+ document.getElementById('flower').style.display=all?'inline':'none';
+}
+els.forEach(function(el,i){
+ el.style.transformOrigin='0 0';
+ el.style.transform=tf(i);
+ setTimeout(function(){el.style.transition='transform .55s cubic-bezier(.3,.9,.3,1)';},50);
+ function toggle(){
+  var k=doneList.indexOf(i);
+  if(k<0)doneList.push(i);else doneList.splice(k,1);
+  render();
+ }
+ el.addEventListener('click',toggle);
+ el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
+});
+</script>
+</body>
+</html>

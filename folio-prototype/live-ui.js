@@ -1,0 +1,79 @@
+/* Android 实测配置入口。沿用现有表单与弹层，不改浏览器示例模式。 */
+(function(){
+  "use strict";
+  if(!window.FolioApp?.native)return;
+  const el=(tag,cls,text)=>{const n=document.createElement(tag);n.className=cls||"";if(text!=null)n.textContent=text;return n;};
+  const button=(label,fn,cls="chat-secondary")=>{const b=el("button",cls,label);b.type="button";b.addEventListener("click",fn);return b;};
+  function field(parent,label,value,type="text"){const wrap=el("label","chat-field",label),input=el(type==="textarea"?"textarea":"input");if(type!=="textarea")input.type=type;input.value=value??"";input.setAttribute("aria-label",label);wrap.append(input);parent.append(wrap);return input;}
+  function panel(title){const box=FolioChatUI.openPanel(title);box.style.height="76dvh";box.style.maxHeight="84%";return box;}
+  async function openProvider(){
+    const box=panel("模型与 Agent"),note=el("p","chat-panel-note","兼容 Chat Completions 接口。模型需支持工具调用；图片/PDF还需要相应的视觉能力。按指令读取的数据会发送到你填写的模型地址。"),error=el("p","chat-form-error");box.append(note);
+    let config;try{config=await FolioNative.call("config.get");}catch(err){error.textContent=err.message;box.append(error);return;}
+    if(!box.isConnected)return;
+    const base=field(box,"base_url",config.baseUrl||""),key=field(box,config.hasKey?"API Key（留空保留已有密钥）":"API Key","","password"),models=field(box,"models（每行一个模型名）",(config.models||[]).join("\n"),"textarea");
+    base.placeholder="https://你的接口地址/v1";base.autocapitalize="none";key.autocomplete="off";models.autocapitalize="none";
+    const selectedWrap=el("label","chat-field","当前模型"),selected=el("select");selected.setAttribute("aria-label","当前模型");selectedWrap.append(selected);box.append(selectedWrap);
+    const reasoningWrap=el("label","chat-field","思考强度"),reasoning=el("select");for(const [v,label] of [["auto","自动（不发送强度参数）"],["low","轻量"],["medium","标准"],["high","深入"]]){const o=el("option","",label);o.value=v;reasoning.append(o);}reasoning.value=FolioChatUI.state().settings.reasoning||config.reasoning||"auto";reasoningWrap.append(reasoning);box.append(reasoningWrap);
+    function updateOptions(){const old=selected.value||config.model,list=[...new Set(models.value.split(/[\n,，]+/).map(v=>v.trim()).filter(Boolean))].slice(0,200);selected.replaceChildren();for(const name of list){const o=el("option","",name);o.value=name;selected.append(o);}if(list.includes(old))selected.value=old;return list;}
+    updateOptions();models.addEventListener("input",updateOptions);
+    const details=el("details"),title=el("summary","chat-panel-note","额外指令（可选）");details.append(title);const prompt=field(details,"补充提示词",config.prompt||"","textarea");box.append(details,error);
+    async function save(){const list=updateOptions();if(!base.value.trim()||!list.length)throw new Error("请填写地址和至少一个模型名");const input={baseUrl:base.value.trim(),models:list,model:selected.value,reasoning:reasoning.value,prompt:prompt.value};if(key.value.trim())input.apiKey=key.value.trim();config=await FolioNative.call("config.save",input);key.value="";const state=FolioChatUI.state();state.settings={provider:"compatible",model:config.model,reasoning:config.reasoning};FolioChatUI.persist();FolioChatUI.render();return config;}
+    const actions=el("div","chat-panel-actions"),fetch=button("读取模型列表",async()=>{fetch.disabled=true;error.textContent="";try{
+      // 列表读取不要求预先填写模型名。
+      const input={baseUrl:base.value.trim(),models:updateOptions(),model:selected.value,reasoning:reasoning.value,prompt:prompt.value};if(key.value.trim())input.apiKey=key.value.trim();config=await FolioNative.call("config.save",input);key.value="";
+      const response=await FolioNative.call("provider",{path:"models"}),data=JSON.parse(response.body);if(response.status!==200||!Array.isArray(data.data))throw new Error(data.error?.message||"接口没有返回模型列表，可手动填写");models.value=data.data.map(m=>m.id).filter(v=>typeof v==="string").join("\n");updateOptions();
+    }catch(err){error.textContent=err.message;}finally{fetch.disabled=false;}}),saveButton=button("保存",async()=>{saveButton.disabled=true;error.textContent="";try{await save();FolioChatUI.closePanel();announce("模型配置已保存");}catch(err){error.textContent=err.message;}finally{saveButton.disabled=false;}},"chat-primary");actions.append(fetch,saveButton);box.append(actions);
+  }
+  async function openSchool(){
+    const box=panel("教务连接");box.classList.add("school-connect-panel");
+    const error=el("p","chat-form-error school-connect-error");error.setAttribute("role","status");
+    let account;try{account=await FolioNative.call("school.account.get");}catch(err){box.append(el("p","chat-form-error",err.message));return;}if(!box.isConnected)return;
+    const overview=el("div","school-connect-overview"),accountCopy=el("div"),accountTitle=el("strong","",account.username?"学校账号已保存":"连接学校账号"),accountHint=el("p","chat-panel-note",account.hasPassword?"直接更新，登录过期会自动重连":"登录后自动更新课表、成绩和作业");accountCopy.append(accountTitle,accountHint);
+    const edit=button(account.username?"更换账号":"填写账号",()=>{credentials.open=!credentials.open;});overview.append(accountCopy,edit);box.append(overview);
+    const credentials=el("details","school-account-fields");credentials.open=!account.hasPassword;const credentialTitle=el("summary","school-account-summary","账号与密码");credentials.append(credentialTitle);box.append(credentials);
+    const inputs=el("div","school-credential-grid"),username=field(inputs,"学号",account.username),password=field(inputs,account.hasPassword?"密码 · 留空沿用":"密码","","password");username.autocapitalize="none";username.autocomplete="username";password.autocomplete="current-password";credentials.append(inputs,el("p","chat-panel-note","账号密码加密留在本机，供自动重连使用。"));
+    const term=FolioCourses.semesters[0],termRow=el("div","school-term-compact"),termLabel=el("span","",term.label||term.id),termEdit=button("切换学期",()=>{advanced.open=true;termSettings.open=true;termSettings.scrollIntoView({block:"nearest",behavior:"smooth"});});termRow.append(termLabel,termEdit);box.append(termRow);
+    const sync=button(account.hasPassword?"一键更新":"登录并同步",async()=>{
+      sync.disabled=true;error.textContent="";sync.textContent="连接并更新中…";
+      try{
+        if(!account.hasPassword||password.value||username.value.trim()!==account.username){
+          const input={username:username.value.trim(),login:false};if(password.value)input.password=password.value;
+          const saved=await FolioNative.call("school.account.save",input);password.value="";
+          if(FolioSchool.bindAccount({...saved,initialSync:true}))return;account=saved;credentials.open=false;accountTitle.textContent="学校账号已保存";accountHint.textContent="登录过期会自动重连";
+        }
+        await FolioSchool.sync();status();const warnings=Object.values(FolioSchool.cache().modules).filter(m=>m.warning);
+        error.textContent=warnings.length?"部分模块未更新，可点下方对应模块重试。已有数据保留。":"已更新";
+      }catch(err){error.textContent=err.message;credentials.open=!account.hasPassword;}
+      finally{sync.disabled=false;sync.textContent=account.hasPassword?"一键更新":"登录并同步";}
+    },"chat-primary school-connect-submit");box.append(sync,error);password.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sync.click();}});
+    if(FolioSchool.cache().lastLoginWarning)error.textContent=FolioSchool.cache().lastLoginWarning;
+    const rows=el("div","school-sync-grid");box.append(rows);
+    function status(){rows.replaceChildren();for(const [module,label]of [["grades","成绩"],["major","主修"],["courses","课表"],["exams","考试"],["homework","作业"],["practice","实践"]]){
+      const key=module==="courses"?`courses:${FolioCourses.semesters[0].id}`:module,data=FolioSchool.cache().modules[key],extra=FolioSchool.cache().modules[module==="courses"?`calendar:${FolioCourses.semesters[0].id}`:module==="practice"?"practiceSummary":""]?.warning,warning=data?.warning||extra;
+      const row=button("",async()=>{row.disabled=true;row.classList.add("is-updating");error.textContent="";try{const target=module==="major"?"grades":module;const reply=target==="exams"?await FolioSchool.refresh(target):await FolioAcademicUI.refresh(target);if(reply?.error)throw Error(reply.error);}catch(err){error.textContent=err.message;}finally{status();}} ,"school-module-button"+(warning?" has-warning":""));
+      row.setAttribute("aria-label",`${label}，${warning?'更新未完成':data?.updatedAt?'已更新':'尚未同步'}，点击更新`);row.append(el("strong","",label),el("span","",warning?"待重试":data?.updatedAt?new Date(data.updatedAt).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}):"未同步"));rows.append(row);
+    }}status();
+    const updateStatus=()=>{if(!box.isConnected){document.removeEventListener("folio-school-change",updateStatus);return;}status();};document.addEventListener("folio-school-change",updateStatus);
+    const fallback=el("details","school-web-login"),fallbackTitle=el("summary","chat-panel-note","需要验证码？使用官方网页登录"),loginActions=el("div","chat-panel-actions");for(const [site,label]of [["academic","教务网"],["homework","学在浙大"],["practice","素质拓展"]])loginActions.append(button(label,async()=>{try{await FolioSchool.login(site);}catch(err){error.textContent=err.message;}}));fallback.append(fallbackTitle,loginActions);box.append(fallback);
+    const advanced=el("details","school-advanced"),advancedTitle=el("summary","chat-panel-note","更多连接选项");advanced.append(advancedTitle);box.append(advanced);
+    const termSettings=el("details"),termHeading=el("summary","chat-panel-note","目标学期");termSettings.append(termHeading);advanced.append(termSettings);
+    const year=field(termSettings,"学年开始年份",term.id.slice(0,4),"number"),seasonWrap=el("label","chat-field","学期"),season=el("select");for(const [v,label]of [["1","秋冬"],["2","春夏"]]){const o=el("option","",label);o.value=v;season.append(o);}season.value=term.id.endsWith("2")?"2":"1";seasonWrap.append(season);termSettings.append(seasonWrap,button("保存学期",async()=>{try{const y=Number(year.value);if(!Number.isInteger(y)||y<2000||y>2100)throw Error("请填写有效学年");await FolioSchool.setTerm(`${y}-${y+1}-${season.value}`);}catch(err){error.textContent=err.message;}}));
+    advanced.append(button("删除本机账号密码",async()=>{try{await FolioNative.call("school.account.forget");account={};username.value=password.value="";credentials.open=true;accountTitle.textContent="连接学校账号";accountHint.textContent="缓存仍保留，可重新连接";sync.textContent="登录并同步";}catch(err){error.textContent=err.message;}},"chat-secondary danger"));
+    const captcha=el("details"),captchaTitle=el("summary","chat-panel-note","课表验证码（提示需要时）"),image=el("img");image.alt="教务网验证码";image.hidden=true;image.style="display:block;max-width:180px;margin:12px 0";captcha.append(captchaTitle,image);const code=field(captcha,"验证码",""),reloadCode=button("获取／换一张",async()=>{try{const reply=await FolioNative.call("school",{module:"captcha"});if(reply.status!==200||!reply.image?.startsWith("data:image/"))throw new Error("未能取得验证码，请先重新登录教务网");image.src=reply.image;image.hidden=false;}catch(err){error.textContent=err.message;}});captcha.append(reloadCode,button("使用验证码并刷新课表",async()=>{FolioSchool.setCaptcha(code.value);await FolioAcademicUI.refresh("courses");status();}));advanced.append(captcha);
+    const diagnostic=el("details","school-diagnostics"),diagnosticTitle=el("summary","chat-panel-note","连接诊断"),diagnosticText=el("pre","school-diagnostic-text"),diagnosticActions=el("div","chat-panel-actions");diagnostic.append(diagnosticTitle,diagnosticText,diagnosticActions);let report="";
+    const loadDiagnostic=async()=>{try{const data=await FolioNative.call("school.diagnostics");report=(data.lines||[]).join("\n");diagnosticText.textContent=report||"当前进程还没有连接记录。";}catch(e){diagnosticText.textContent=e.message;}};diagnostic.addEventListener("toggle",()=>{if(diagnostic.open)loadDiagnostic();});diagnosticActions.append(button("更新记录",loadDiagnostic),button("复制诊断",async()=>{try{await loadDiagnostic();await navigator.clipboard.writeText(report);announce("脱敏连接记录已复制");}catch(e){error.textContent=e.message;}}));diagnostic.append(el("p","chat-panel-note","仅记录站点、路径、状态码与 Cookie 名称；不包含账号、密码、Cookie 值或跳转参数。"));advanced.append(diagnostic);
+    const cal=el("details"),heading=el("summary","chat-panel-note","校历校对（远程不可用时）");cal.append(heading);const parts=term.calendar?.periods||[],dates=[field(cal,"上半学期开始",parts[0]?.start,"date"),field(cal,"上半学期结束",parts[0]?.end,"date"),field(cal,"下半学期开始",parts[1]?.start,"date"),field(cal,"下半学期结束",parts[1]?.end,"date")];
+    cal.append(el("p","chat-panel-note","校历服务由原项目提供。若读取失败，可以按学校校历填写日期；不会把推算日期当成官方校历。节次暂沿用原版默认时间。"),button("保存本地校历",()=>{try{FolioSchool.setCalendar(dates.map(d=>d.value));announce("本地校历已保存");}catch(err){error.textContent=err.message;}}));advanced.append(cal);
+  }
+  window.FolioLiveUI={openProvider,openSchool};
+  const group=el("section","settings-section"),title=el("h2","settings-section-title","连接与模型"),list=el("ul","settings-group");for(const [label,fn] of [["模型与 Agent",openProvider]]){const item=el("li"),b=button(label,fn,"setting-row");item.append(b);list.append(item);}group.append(title,list);document.getElementById("settings-groups").prepend(group);
+  const login=document.getElementById("preview-login"),realLogin=login.cloneNode(true);login.replaceWith(realLogin);realLogin.disabled=false;realLogin.setAttribute("aria-label","连接学校账号");realLogin.textContent="连接学校账号";realLogin.addEventListener("click",openSchool);
+  document.querySelectorAll(".course-sample").forEach(n=>{n.hidden=true;});
+  const examAi=document.getElementById("exam-ai-add");examAi.disabled=false;examAi.textContent="AI 添加";examAi.title="到对话中发送考试信息";examAi.addEventListener("click",()=>{showPreviewScreen("home");const input=document.querySelector(".chat-input");input.value="请帮我添加一场自定义考试，先给我确认：";input.dispatchEvent(new Event("input",{bubbles:true}));input.focus();});
+  const clock=document.querySelector(".demo-clock");clock.querySelector("span").textContent="今天";clock.querySelector("button").disabled=true;
+  for(const entry of document.querySelectorAll('.settings-section')){if(entry.textContent.includes("诊断与测试"))entry.hidden=true;}
+  window.addEventListener("focus",()=>{const day=FolioBackend.today();if(homeworkState.today!==day){homeworkState.today=day;commit();}});
+  // 首页空白态的下一节课条使用共享课表；无课或校历未知时显示明确状态。
+  function nextClass(){const strip=document.querySelector(".course-strip"),time=strip.querySelector(".course-time"),room=strip.querySelector(".course-room");let upcoming=null;const now=Date.now();for(let i=0;i<7&&!upcoming;i++){const day=FolioTodo.addDays(FolioBackend.today(),i);upcoming=FolioCourses.onDate(FolioCourses.semesters[0],day).find(c=>Date.parse(c.startAt+":00+08:00")>now);}if(upcoming){const minutes=Math.ceil((Date.parse(upcoming.startAt+":00+08:00")-now)/60000);time.textContent=minutes<60?`下一节课：${minutes} 分钟后`:`下一节课：${upcoming.date===FolioBackend.today()?"":upcoming.date.slice(5)+" "}${upcoming.start}`;room.textContent=upcoming.room;}else{time.textContent=FolioCourses.semesters[0].calendar?"暂无课程":"先连接并同步课表";room.textContent="";}strip.setAttribute("aria-label",`${time.textContent} ${room.textContent}`);}
+  document.addEventListener("folio-data-change",nextClass);document.addEventListener("preview-screen-change",nextClass);nextClass();
+})();

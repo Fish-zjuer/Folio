@@ -1,0 +1,2 @@
+/* Runs before paint; stores only the appearance preference. */
+(()=>{'use strict';let mode='system';try{mode=localStorage.getItem('folio-color-mode')||'system';}catch{}if(!['system','light','dark'].includes(mode))mode='system';const dark=mode==='dark'||mode==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.dataset.colorMode=mode;})();

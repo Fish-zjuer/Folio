@@ -1,0 +1,35 @@
+/* 月历由自身管理两个轴；外层保留日程列表的原生纵向滚动。 */
+.schedule-pager { touch-action: pan-y; }
+.schedule-month { touch-action: none; }
+.schedule-month.is-month-dragging .schedule-month-window { transition: none; }
+.schedule-month.is-month-dragging #schedule-month-grid { transition: none; }
+.timetable-panel { padding-top: 5px; }
+.timetable-tools { min-height: 40px; }
+.timetable-tools h2,.native-app #timetable-range { font-size: 16px; }
+.timetable-days { flex-basis: 47px; }
+.timetable-scroll { overflow: hidden; }
+.timetable-grid { margin-top: 0; }
+.timetable-period { gap: 0; padding-top: 0; line-height: 13px; }
+.timetable-period strong { font-size: 12px; }
+.timetable-period span { font-size: 8px; line-height: 10px; }
+.timetable-course-block { padding: 4px 3px; gap: 2px; }
+.timetable-course-name { font-size: 11px; line-height: 14px; }
+.timetable-course-rule { font-size: 8px; line-height: 10px; }
+.timetable-course-room { font-size: 8px; line-height: 10px; }
+.timetable-panel #timetable-more { display: none; }
+.timetable-scroll.is-tight .timetable-period span { display: none; }
+.timetable-scroll.is-tight .timetable-course-block { padding-block: 3px; }
+.timetable-scroll.is-tight .timetable-course-name { line-height: 13px; font-size: 10px; }
+.timetable-scroll.is-tight .timetable-course-rule { display: none; }
+.home-screen.is-page-dragging,.workbench-screen.is-page-dragging { will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .home-screen.is-page-dragging,.workbench-screen.is-page-dragging { transition: none !important; } }
+.schedule-month-window { position:relative; }
+.calendar-neighbor { position:absolute;top:0;left:0;right:0;pointer-events:none; }
+.calendar-neighbor[data-weeks="6"] .schedule-date { height:48px;gap:2px; }
+.timetable-course-name { flex:1;min-height:0; }
+.timetable-course-room,.timetable-course-rule { flex-shrink:0; }
+.timetable-course-block { padding:4px 3px;gap:2px; }
+.timetable-course-block .timetable-course-name,.timetable-scroll.is-tight .timetable-course-name { flex:0 1 auto;width:3em;max-width:100%;font-size:clamp(11px,calc((100vw - 110px)/21),13px);line-height:1.2;word-break:break-all; }
+.timetable-course-block .timetable-course-room { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin-top:auto;white-space:normal;font-size:9px;line-height:11px; }
+
+@media(max-height:740px) { .calendar-neighbor[data-weeks="6"] .schedule-date,.calendar-neighbor .schedule-date { height:46px;gap:2px; } }

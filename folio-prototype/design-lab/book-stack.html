@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Folio · 学期课本堆</title>
+<link rel="stylesheet" href="phone-usage.css"><link rel="stylesheet" href="book-stack.css">
+<main><header><div class="eyebrow">FOLIO / WIDGET 09</div><h1>一学期，一摞书。</h1><p>用剩余上课时间让书堆逐渐变矮。当前是示例课表，不把未知的作业量算成完成进度。</p></header>
+<section class="study"><div class="preview"><button id="books-card" aria-label="查看本学期剩余课时"></button><p class="caption">学期课本堆 · 点开看各门课</p><div class="sizes"><button data-size="260" aria-pressed="true">放大看细节</button><button data-size="180" aria-pressed="false">180px 实际大小</button></div></div><aside><h2>书会一本一本，慢慢放下。</h2><p>厚薄保持不变，数量随剩余课时减少。先以每 24 课时一本作演示，不足一本也保留；颜色仅是装饰，点开再看各科。</p><label class="week-control" for="week">演示学期进度 <output id="week-label">第 6 / 16 周</output><input id="week" type="range" min="0" max="16" step="1" value="5"></label><p class="fine">卡片只保留剩余课时数字。完成待办不会让书凭空消失；这里表示课程负担，不代表掌握了多少知识。</p><a href="pixel-mountain.html">另一种造型：像素挖山 ↗</a><br><br><a href="news.html">上一个：资讯 ↗</a></aside></section><footer>第九个组件粗样。颜色和书脊细节沿用纸片风格，尚未接入实际课表或正式工作台。</footer></main>
+<dialog id="books-detail" aria-labelledby="books-title"><form method="dialog"><button class="close" aria-label="关闭课时明细"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></form><div class="eyebrow">示例课表</div><h2 id="books-title">还在书桌上的课</h2><p class="detail-total" id="detail-total"></p><div id="course-list"></div><p class="fine">以每周示例课时计算。正式接入后需按实际教学周、停课及调课逐节汇总，不能只用日期比例。</p></dialog>
+<script src="book-stack.js"></script><script src="widget-frame.js"></script></html>
+
+
+

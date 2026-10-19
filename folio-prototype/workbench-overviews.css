@@ -1,0 +1,25 @@
+/* One sheet, four useful regions. Container units keep the same composition in a phone square. */
+.overview-widget{container-type:inline-size;width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:32% 39% 29%;padding:5%;box-sizing:border-box;position:relative;overflow:hidden;color:#645e48;background:#eee8d8;font-family:var(--font-serif,Georgia,'Songti SC',SimSun,serif);isolation:isolate}
+.overview-widget:after{content:"";position:absolute;width:13%;height:5%;right:2%;top:1%;transform:rotate(-24deg);background:repeating-linear-gradient(90deg,transparent 0 6px,#a697752a 6px 8px);pointer-events:none;z-index:-1}
+.overview-affairs{background:#e4e9de;color:#536954}
+.overview-region{position:relative;min-width:0;min-height:0;background:none;color:inherit;border:0;border-radius:0;padding:5% 4%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-align:left;font:inherit;cursor:pointer;overflow:hidden;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:pan-y}
+.overview-region:focus-visible{outline:2px solid currentColor;outline-offset:-2px}.overview-region:active{background:#fff4}
+.overview-grades,.overview-calendar{grid-column:1/-1;border-bottom:1px solid #b3a58370;flex-direction:row;align-items:center;justify-content:space-between;padding:2% 2% 7%;gap:4%}
+.overview-affairs .overview-region{border-color:#9ca78b80}
+.overview-courses,.overview-homework{border-right:1px solid #b3a58370;padding-left:3%}
+.overview-goals,.overview-exams{padding-left:13%}
+.overview-practice,.overview-notes{grid-column:1/-1;border-top:1px solid #b3a58370;flex-direction:row;align-items:center;justify-content:space-between;gap:8%;padding:5% 3% 1%}
+.overview-metric{min-width:0;display:flex;flex-direction:column;gap:1cqw;white-space:nowrap}
+.overview-label{font-size:clamp(8px,5.4cqw,11px);font-weight:700;line-height:1.3;color:#9a8865;letter-spacing:.02em}
+.overview-number{font-family:Georgia,'Times New Roman',serif;font-size:14cqw;font-weight:400;line-height:1.08;letter-spacing:-.04em;font-variant-numeric:lining-nums tabular-nums}
+.overview-grades .overview-number{font-size:13.3cqw}.overview-grades .overview-metric{flex:1}.overview-grades .overview-metric:last-child{color:#b58160}
+.overview-unit{font-size:5cqw;margin-left:1cqw;letter-spacing:0}.overview-sub{font-size:clamp(8px,5.5cqw,11px);line-height:1.45;display:block;max-width:100%;color:#99896b;margin-top:1.5cqw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.overview-affairs .overview-label,.overview-affairs .overview-sub{color:#88967e}
+.overview-gap{position:absolute;bottom:8%;right:5%;font-size:5cqw;color:#7c9069}.overview-sub.is-short{color:#b47658}
+.overview-practice-parts{display:flex;flex:1;gap:8%;justify-content:flex-end}.overview-practice-parts .overview-number{font-size:8.5cqw}.overview-practice-parts .overview-label{font-size:clamp(7px,4.6cqw,10px)}.overview-practice>.overview-metric .overview-number{font-size:11cqw}
+.overview-calendar>.overview-metric{flex:0 0 33%}.overview-calendar .overview-number{font-size:10.5cqw}.overview-calendar .overview-label{font-size:clamp(8px,4.8cqw,10px)}
+.overview-course-copy{flex:1;min-width:0}.overview-course-title{font-weight:700;color:#62735a!important;font-size:clamp(8px,5.7cqw,12px);line-height:1.4;margin:0}
+.overview-course-count{position:absolute;right:2%;bottom:3%;font-size:clamp(7px,4.5cqw,10px);margin:0}
+.overview-notes>.overview-metric .overview-number{font-size:11cqw}.overview-bag{display:flex;align-items:center;gap:1cqw;min-width:0}.overview-bag svg{width:18cqw;flex:0 0 18cqw}.overview-bag .overview-sub{font-size:clamp(8px,5.5cqw,11px)}
+/* Transparent semantic hit areas allow long-press reorder without adding a visible handle. */
+.overview-widget [role=button]{cursor:pointer}

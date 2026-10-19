@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Folio · 每日压力</title>
+<link rel="stylesheet" href="phone-usage.css"><link rel="stylesheet" href="daily-pressure.css">
+<main><header><div class="eyebrow">FOLIO / WIDGET 10</div><h1>把一个月，摊开看看。</h1><p>沿用最初的热力图模板。中间是色块，今日块内放箭头，下方是由低到高的图例。</p></header>
+<section class="study"><div class="preview"><div id="pressure-card"></div><p class="caption">每日压力 · 点一天看安排</p><div class="sizes"><button data-size="260" aria-pressed="true">放大看细节</button><button data-size="180" aria-pressed="false">180px 实际大小</button></div></div><aside><h2>轻重一眼看，细节点开看。</h2><p>只看色块深浅，点开再看日期和安排。卡片不放年月、星期、日期数字或状态词，装饰留在网格外。</p><div class="pressure-months"><button id="prev-month" aria-label="查看上个月">←</button><output id="month-label"></output><button id="next-month" aria-label="查看下个月">→</button></div><button id="finish-example">演示：提前完成 19 日报告</button><p id="demo-status" class="fine" aria-live="polite"></p><p class="fine">块内箭头标记示例今天 10 月 19 日，前后月淡化。下方图例从小到大、从浅到深。未估时事项仍在明细里保留，正式压力规则之后再定。</p><a href="widget-picker.html">下一页：组件选择 ↗</a><br><br><a href="pixel-mountain.html">上一个：像素挖山 ↗</a></aside></section><footer>第十个组件粗样。当前为 2026 年 10 月的示例数据，未接真实课程、待办或正式工作台。</footer></main>
+<dialog id="pressure-detail" aria-labelledby="pressure-title"><form method="dialog"><button class="close" aria-label="关闭当天安排"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></form><div class="eyebrow">示例安排</div><h2 id="pressure-title"></h2><p id="pressure-total" class="pressure-total"></p><div id="pressure-items"></div><p class="fine">颜色依据当天已排时长。到期事项在这里列出，不把截止日期换算成虚构工时。</p></dialog>
+<script src="daily-pressure-core.js"></script><script src="daily-pressure.js"></script><script src="widget-frame.js"></script></html>
+
+
+

@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工作台便签密度验收 · 隔离数据</title>
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../workbench.css?v=14">
+<main class="preview"><section class="phone"><section id="qa-home" hidden></section><div id="qa-layer" hidden></div></section></main>
+<script src="../homework-queue-core.js?v=manual-policy-2"></script>
+<script>
+// 只用于视觉验收：禁用此页面的存储访问，不读取或写入主原型的用户数据。
+Object.defineProperty(window, "localStorage", { get() { throw new Error("QA storage disabled"); } });
+const homeworkLayer = document.getElementById("qa-layer");
+const previewScreens = { home: document.getElementById("qa-home") }, screenNames = {}, screenFocusTargets = {};
+let currentScreen = "workbench";
+const homeworkState = { today: "2026-10-14", items: Array.from({length: 24}, (_, index) => ({ id: `density-${index}`, title: `隔离测试 ${index + 1}`, source: "school", kind: "homework", queued: true, completed: false, mountedOn: "2026-10-09", deadline: index < 5 ? "2026-10-15" : "2026-10-22" })) };
+homeworkState.items[0].description = '隔离验收正文\n第二段内容。<script>这段必须保持普通文字，不可执行。<\/script>';
+homeworkState.items[0].attachments = [{name:'验收附件.pdf',url:'https://example.com/assignment.pdf'},{name:'不应显示',url:'javascript:alert(1)'}];
+homeworkState.items.push(...Array.from({length:8},(_,index)=>({id:`upcoming-${index}`,title:`袋内验收 ${index+1}`,course:'隔离课程',kind:'homework',source:'school',queued:true,completed:false,mountedOn:null,mountDate:'2026-10-16',deadline:'2026-11-20'})));
+function showPreviewScreen(screen) {
+  Object.entries(previewScreens).forEach(([key, page]) => { page.hidden = key !== screen; });
+  currentScreen = screen; document.dispatchEvent(new CustomEvent("preview-screen-change", {detail:{screen}}));
+}
+function openItem(item) { document.title = `已点开：${item.title}`; }
+</script>
+<script src="../workbench-ui.js?v=app-20261019-1"></script>
+<script>showPreviewScreen("workbench");</script>

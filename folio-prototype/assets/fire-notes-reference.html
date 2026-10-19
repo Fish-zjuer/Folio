@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>火焰与着火便签</title>
+<style>
+html,body{margin:0;height:100%;background:#EDE6D6}
+body{display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+svg{width:100%;max-width:420px;display:block;border-radius:14px}
+.l{transform-box:fill-box;transform-origin:50% 100%;animation:fl 1.2s ease-in-out infinite}
+@keyframes fl{0%,100%{transform:scale(1,1) skewX(0deg)}50%{transform:scale(.94,1.08) skewX(3deg)}}
+.sp{opacity:0;animation:sp 2.4s ease-out infinite}
+@keyframes sp{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),-34px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.l,.sp{animation:none}}
+</style>
+</head>
+<body>
+<svg id="s" viewBox="0 0 380 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="火焰参考与着火便签"></svg>
+<script>
+var D='M50 2C54 22 62 30 72 44C82 58 88 70 86 88C84 108 70 124 50 124C30 124 16 108 14 88C12 72 20 62 28 52C32 62 36 64 40 62C36 44 42 20 50 2Z';
+function L(t,fill,dur,del){return '<g class="l" style="animation-duration:'+dur+'s;animation-delay:'+del+'s"><path d="'+D+'" fill="'+fill+'" transform="'+t+'"/></g>';}
+function flame(x,y,s,del){
+ return '<g transform="translate('+x+' '+y+') scale('+s+')">'
+ +L('translate(-50 -124)','#E5532D',1.25,del)
+ +L('translate(1 0) scale(.66) translate(-50 -124)','#F28C38',1.05,del+0.15)
+ +L('translate(-1 0) scale(.4) translate(-50 -124)','#F8CF5A',0.9,del+0.3)
+ +L('scale(.2) translate(-50 -124)','#FFF3D1',0.8,del+0.1)
+ +'</g>';
+}
+function spark(x,y,dx,del){return '<circle class="sp" cx="'+x+'" cy="'+y+'" r="2.4" fill="#F8CF5A" style="--dx:'+dx+'px;animation-delay:'+del+'s"/>';}
+function edge(w,dep){var n=dep.length-1,st=w/n,p='M0 0H'+w+'V'+dep[0];for(var j=1;j<=n;j++){p+='L'+(w-j*st)+' '+dep[j];}return p+'Z';}
+var P={clay:['#F4C3AC','#E19A7B','#F8D5C5'],sky:['#BDD3EA','#8DB1D8','#D3E3F3'],olive:['#D2DEBF','#A9BE8E','#E1EAD2']};
+var h='';
+h+='<rect width="380" height="430" fill="#E8DDC6"/>';
+h+='<rect width="190" height="190" fill="#F4EEDF"/><rect x="190" width="190" height="190" fill="#2E2924"/>';
+h+=flame(95,166,1.12,0)+spark(70,80,-10,0)+spark(122,70,12,.8)+spark(96,48,4,1.5);
+h+=flame(232,166,.5,.2)+flame(282,166,.78,.5)+flame(338,166,1.02,0.8);
+h+=spark(338,70,8,.3)+spark(296,92,-8,1.1);
+h+='<rect x="12" y="202" width="356" height="216" rx="18" fill="#F4EEDF"/>';
+var notes=[
+ {x:30,y:296,w:84,h:96,r:-3,k:'clay',lv:1},
+ {x:148,y:296,w:84,h:96,r:2,k:'sky',lv:2},
+ {x:266,y:296,w:84,h:96,r:-2,k:'olive',lv:3}
+];
+notes.forEach(function(d){
+ var c=P[d.k],fo=18,w=d.w,hh=d.h,cx=w/2,cy=hh/2;
+ var body='M0 0H'+w+'V'+(hh-fo)+'L'+(w-fo)+' '+hh+'H0Z';
+ var s='<g transform="translate('+d.x+' '+d.y+') rotate('+d.r+' '+cx+' '+cy+')">'
+ +'<rect x="3" y="4" width="'+w+'" height="'+hh+'" rx="2" fill="#D6C9AB"/>'
+ +'<path d="'+body+'" fill="'+c[0]+'"/>'
+ +'<rect width="'+w+'" height="16" fill="'+c[2]+'"/>'
+ +'<path d="M'+w+' '+(hh-fo)+'L'+(w-fo)+' '+hh+'L'+(w-fo)+' '+(hh-fo)+'Z" fill="'+c[1]+'"/>';
+ if(d.lv===1){
+  s+='<rect x="'+(cx-30)+'" y="-7" width="36" height="14" fill="#FFFFFF" fill-opacity=".6" transform="rotate(-3 '+cx+' 0)"/>';
+  s+='<path d="'+edge(w,[14,17,9,0,0,0,0])+'" fill="#A8683F"/><path d="'+edge(w,[8,11,4,0,0,0,0])+'" fill="#3B2A22"/>';
+  s+=flame(w-24,9,.34,0.1)+spark(w-30,-10,-6,.4);
+ }
+ if(d.lv===2){
+  s+='<path d="'+edge(w,[20,14,24,16,22,13,18])+'" fill="#A8683F"/><path d="'+edge(w,[13,7,17,9,15,6,11])+'" fill="#3B2A22"/>';
+  s+='<circle cx="'+(w*0.35)+'" cy="30" r="1.8" fill="#E5532D"/><circle cx="'+(w*0.78)+'" cy="34" r="1.6" fill="#F28C38"/>';
+  s+=flame(w*0.28,14,.44,0)+flame(w*0.68,10,.6,.35)+spark(w*0.5,-14,6,.2);
+ }
+ if(d.lv===3){
+  s+='<path d="'+edge(w,[34,28,38,30,36,26,32])+'" fill="#A8683F"/><path d="'+edge(w,[26,20,30,22,28,18,24])+'" fill="#3B2A22"/>';
+  s+='<ellipse cx="'+(w*0.3)+'" cy="46" rx="3.2" ry="2" fill="#3B2A22"/><ellipse cx="'+(w*0.72)+'" cy="54" rx="2.4" ry="1.6" fill="#3B2A22"/><ellipse cx="'+(w*0.5)+'" cy="64" rx="2" ry="1.4" fill="#3B2A22"/>';
+  s+='<circle cx="'+(w*0.18)+'" cy="42" r="1.8" fill="#E5532D"/><circle cx="'+(w*0.84)+'" cy="46" r="1.8" fill="#F28C38"/><circle cx="'+(w*0.58)+'" cy="50" r="1.5" fill="#F8CF5A"/>';
+  s+=flame(w*0.2,28,.5,0)+flame(w*0.5,24,.8,.3)+flame(w*0.82,28,.56,.6);
+  s+=spark(w*0.35,-30,-10,0)+spark(w*0.6,-44,12,.9)+spark(w*0.8,-20,6,1.6);
+ }
+ s+='</g>';
+ h+=s;
+});
+document.getElementById('s').innerHTML=h;
+</script>
+</body>
+</html>

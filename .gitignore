@@ -1,0 +1,25 @@
+# Private credentials, signing material, local state
+**/signing/
+**/build/
+**/dist/
+**/__pycache__/
+*.pyc
+*.jks
+*.keystore
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+**/node_modules/
+**/user-data/
+**/userdata/
+**/cookies*
+**/*session-store*
+**/hosts.yml
+**/secrets*
+*.log
+*.apk
+*.zip
+.DS_Store
+Thumbs.db

@@ -1,0 +1,4 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),F=require('./focus-core.js');
+test('manual pause excludes the pause; duplicate start cannot reset a running session',()=>{const s=F.clean();F.start(s,1000);F.start(s,2000);F.pause(s,61000);F.resume(s,121000);F.finish(s,181000);assert.equal(s.sessions[0].segments.reduce((n,x)=>n+x.end-x.start,0),120000);assert.equal(s.active,null)});
+test('restore a running timer after reload; finishing cannot save twice',()=>{const s=F.clean();F.start(s,1000);const restored=F.restore(JSON.parse(JSON.stringify(s)));assert.equal(F.elapsed(restored,121000),120000);F.finish(restored,121000);F.finish(restored,130000);assert.equal(restored.sessions.length,1)});
+test('split a focus interval at Shanghai midnight',()=>{const s=F.clean();F.start(s,Date.parse('2026-10-19T15:30:00Z'));F.finish(s,Date.parse('2026-10-19T16:30:00Z'));assert.deepEqual(F.totalsByDay(s,0),{'2026-10-19':1800000,'2026-10-20':1800000})});

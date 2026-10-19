@@ -1,0 +1,171 @@
+.academic-header { grid-template-columns:40px 1fr 40px; }
+.academic-header-button { display:grid;place-items:center;border:0;background:none;width:40px;height:40px;padding:8px;cursor:pointer; }
+.academic-header-button svg { width:23px;height:23px; }
+.academic-scroll { padding:4px 16px 28px; }
+.academic-term { display:flex;justify-content:space-between;align-items:center;gap:8px;margin:5px 0 9px; }
+.academic-term-button { min-width:0;border:0;background:none;padding:4px 0;text-align:left;font:600 19px/1.5 var(--font-serif);cursor:pointer; }
+.academic-term-button::after { content:"";display:inline-block;width:5px;height:5px;margin:0 0 4px 10px;border-right:1px solid #A6A298;border-bottom:1px solid #A6A298;transform:rotate(45deg); }
+.academic-demo-button { border:0;padding:5px 0;background:none;color:var(--text-muted);font-size:11px;cursor:pointer;white-space:nowrap; }
+.academic-toolbar { display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin-bottom:11px; }
+.academic-plan-switch { display:flex;gap:3px;background:var(--bg-subtle);border-radius:999px;padding:3px; }
+.academic-plan-switch button { padding:5px 10px;border:0;border-radius:999px;background:none;font-size:12px;cursor:pointer; }
+.academic-plan-switch button[aria-pressed=true] { background:white; }
+.academic-clear { border:0;background:none;padding:5px 0;color:#AD6255;font-size:12px;cursor:pointer; }
+.academic-toolbar-actions { display:flex;align-items:center;gap:10px; }
+.academic-adjust-button { display:grid;place-items:center;width:36px;height:36px;border:0;background:none;border-radius:50%;padding:8px;color:var(--text-secondary);cursor:pointer; }
+.academic-adjust-button svg { width:20px;height:20px; }
+.academic-adjust-button:hover { background:var(--bg-subtle); }
+.academic-adjust-button:focus-visible { outline:2px solid var(--text-secondary);outline-offset:1px; }
+.academic-settings-list { border:1px solid var(--border-subtle);background:var(--bg-surface);border-radius:16px;overflow:hidden;margin:8px 0 14px; }
+.academic-settings-option { display:flex;align-items:center;gap:15px;width:100%;border:0;background:none;padding:17px 16px;text-align:left;cursor:pointer; }
+.academic-settings-option+.academic-settings-option { border-top:1px solid #F2F0E8; }
+.academic-settings-option svg { width:21px;height:21px;flex:none;color:var(--text-secondary); }
+.academic-settings-name { display:block;font:400 15px/1.5 var(--font-sans); }
+.academic-settings-description { display:block;font:12px/1.5 var(--font-sans);color:var(--text-muted);margin-top:4px; }
+.academic-card { position:relative;margin:0 0 14px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:18px;overflow:hidden; }
+#scholar-screen .academic-card :is(.academic-card-header,.academic-card-footer,.academic-scope,.academic-hero,.academic-metrics,.academic-course-counts,.academic-term-heading,.academic-unknown-note,.practice-summary) { padding-inline:19px; }
+#scholar-screen .academic-card :is(.academic-hours,.academic-summary-covered,.practice-categories,.practice-group,.practice-passed,.practice-disclosure,.practice-total-note) { margin-inline:19px; }
+#scholar-screen .academic-card .practice-summary { padding-inline-start:49px; }
+.academic-card-header { display:flex;align-items:center;gap:8px;padding:13px 15px 4px; }
+.academic-card-title { border:0;background:none;font:500 17px var(--font-sans);text-align:left;padding:0;cursor:pointer; }
+.academic-card-subtitle { font-size:11px;color:var(--text-muted);margin-left:auto; }
+.academic-status { position:relative;flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;border:0;background:none;padding:4px;cursor:pointer; }
+.academic-status svg { width:19px;height:19px; }
+.academic-status.success { color:#788C5D;animation:academic-success 1.5s both; }
+.academic-status.error svg { fill:#B84A39;stroke:white;stroke-width:1.8; }
+.academic-status.error .warning-shape { stroke:#B84A39; }
+.academic-status.is-popping { animation:academic-pop .28s ease-out forwards;pointer-events:none; }
+.academic-burst { position:absolute;inset:0;pointer-events:none; }
+.academic-burst i { position:absolute;left:50%;top:50%;width:3px;height:3px;border-radius:50%;background:#C97963;animation:academic-burst .3s ease-out forwards; }
+.academic-busy { position:absolute;inset:0;z-index:3;display:grid;place-items:center;background:rgb(255 255 255 / 74%);border-radius:inherit; }
+.academic-busy .sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap; }
+.academic-spinner { width:31px;height:31px;border:2px solid #E8E2D8;border-top-color:#B89070;border-radius:50%;animation:academic-spin .8s linear infinite; }
+.academic-scope { display:flex;align-items:center;gap:6px;padding:4px 15px 0; }
+.academic-scope button { padding:3px 0;border:0;background:none;color:var(--text-muted);font-size:11px;cursor:pointer; }
+.academic-scope button[aria-pressed=true] { color:var(--text-primary); }
+.academic-scope button+button::before { content:"/";color:#D5D2C8;margin-right:6px; }
+.academic-hero { display:flex;align-items:baseline;gap:11px;padding:4px 15px 10px; }
+.academic-hero strong { font:600 37px/1.2 var(--font-serif);font-variant-numeric:lining-nums tabular-nums; }
+.academic-hero span { font-size:12px;color:var(--text-secondary); }
+.academic-plan-note { font-size:11px;color:#AD6C4E;margin-left:auto; }
+.academic-metrics { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 8px;padding:6px 15px 14px; }
+.academic-metric strong { display:block;font:600 19px/1.2 var(--font-serif);font-variant-numeric:lining-nums tabular-nums; }
+.academic-metric small { font-size:11px;font-family:var(--font-sans);font-weight:400;color:var(--text-muted); }
+.academic-metric.is-weighted small { font:500 16px/1.2 var(--font-serif);color:var(--text-primary); }
+.academic-metric span { display:block;margin-top:5px;color:var(--text-secondary);font-size:11px; }
+.academic-card-footer { display:flex;justify-content:space-between;align-items:center;gap:7px;padding:9px 15px;border-top:1px solid #F3F1EB;color:var(--text-muted);font-size:10px; }
+.academic-link { border:0;background:none;padding:0;color:var(--text-secondary);font-size:12px;cursor:pointer; }
+.academic-course-counts { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 15px 16px; }
+.academic-course-counts button { border:0;background:none;text-align:left;padding:0;cursor:pointer; }
+.academic-course-counts strong { display:block;font:600 24px/1.2 var(--font-serif); }
+.academic-course-counts span { display:block;margin-top:5px;color:var(--text-secondary);font-size:11px; }
+.academic-hours { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 15px 13px; }
+.academic-hours div { border-radius:11px;background:#F7F5F0;padding:9px 10px; }
+.academic-hours strong { font:600 17px var(--font-serif); }
+.academic-hours span { display:block;margin-bottom:5px;font-size:11px;color:var(--text-secondary); }
+.academic-hours small { font-size:10px;color:var(--text-muted); }
+.practice-categories { display:flex;gap:3px;margin:12px 15px 0;padding:3px;border:0;border-radius:12px;background:var(--bg-subtle); }
+#scholar-screen .academic-card .practice-categories { width:min(288px,calc(100% - 38px));margin-inline:auto; }
+.practice-category { position:relative;flex:1;min-width:0;border:0;border-radius:9px;background:none;padding:8px 4px;font:13px/1.5 var(--font-sans);color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:background-color .18s ease,color .18s ease; }
+.practice-category[aria-pressed=true] { color:var(--text-primary);background:var(--bg-surface); }
+.practice-category:focus-visible,.practice-project-row:focus-visible { outline:2px solid #B8986B;outline-offset:-2px; }
+.practice-summary { display:flex;align-items:baseline;gap:10px;padding:17px 15px 12px; }
+.practice-summary strong { font:500 38px/1.15 var(--font-serif);font-variant-numeric:lining-nums tabular-nums; }
+.practice-summary span { font:12px var(--font-sans);color:var(--text-secondary); }
+.practice-disclosure { display:flex;align-items:center;gap:8px;padding:12px 0;margin:0 15px;border-top:1px solid #F1EEE7;font:13px/1.6 var(--font-sans);list-style:none;cursor:pointer; }
+.practice-disclosure::-webkit-details-marker { display:none; }
+.practice-disclosure-count { color:var(--text-muted);font-size:11px; }
+.practice-disclosure-action { margin-left:auto;font-size:12px;color:var(--text-secondary); }
+.practice-disclosure::after { content:"";width:5px;height:5px;margin:0 3px 3px 3px;border-right:1px solid var(--text-muted);border-bottom:1px solid var(--text-muted);transform:rotate(45deg); }
+.practice-projects[open]>.practice-disclosure::after { transform:rotate(225deg);margin-bottom:-2px; }
+.practice-disclosure:focus-visible { outline:2px solid #B8986B;outline-offset:3px; }
+.practice-group { margin:0 15px; }
+.practice-group+.practice-group { margin-top:13px; }
+.practice-group-title { display:flex;align-items:center;gap:8px;margin:0;padding:6px 0 1px;font:400 11px/1.6 var(--font-sans);color:var(--text-muted); }
+.practice-group-title span { font-variant-numeric:tabular-nums;color:#B5B0A4; }
+.practice-project-list { list-style:none;padding:0;margin:0; }
+.practice-project-list li+li { border-top:1px solid #F4F2ED; }
+.practice-project-row { display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;border:0;background:none;text-align:left;padding:13px 0;cursor:pointer; }
+.practice-project-copy { min-width:0; }
+.practice-project-name { display:block;font:500 15px/1.5 var(--font-sans);color:var(--text-primary);overflow-wrap:anywhere; }
+.practice-project-meta { display:block;font:11px/1.6 var(--font-sans);color:var(--text-muted);margin-top:5px; }
+.practice-project-value { flex:0 0 56px;text-align:right; }
+.practice-project-value strong { display:block;font:500 23px/1.2 var(--font-serif);font-variant-numeric:lining-nums tabular-nums; }
+.practice-project-value span { display:block;margin-top:5px;font:10px/1.5 var(--font-sans);color:var(--text-muted); }
+.practice-project-value span.is-review { color:#AA7A50; }
+.practice-passed { display:grid;grid-template-columns:auto 1fr auto 1fr;gap:8px;margin:17px 15px 14px;padding-top:12px;border-top:1px solid #F1EEE7;font:11px/1.6 var(--font-sans);color:var(--text-secondary); }
+.practice-passed span:nth-child(even) { color:var(--text-muted); }
+.practice-empty,.practice-total-note { margin:10px 15px 15px;font:12px/1.7 var(--font-sans);color:var(--text-muted); }
+.practice-group .practice-empty { margin:10px 0 14px; }
+.practice-detail-category { margin:0;color:var(--text-muted);font:12px/1.6 var(--font-sans); }
+.practice-detail-score { display:flex;align-items:baseline;gap:9px;margin:22px 0; }
+.practice-detail-score strong { font:500 42px/1.2 var(--font-serif);font-variant-numeric:lining-nums tabular-nums; }
+.practice-detail-score>span { font:12px var(--font-sans);color:var(--text-muted); }
+.practice-detail-score .practice-detail-status { margin-left:auto;color:#AA7A50; }
+.practice-detail-score .practice-detail-status.is-counted { color:#788C5D; }
+.practice-detail-facts { margin:0;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:14px;padding:0 14px; }
+.practice-detail-facts>div { display:flex;align-items:baseline;gap:18px;justify-content:space-between;padding:12px 0;font:13px/1.6 var(--font-sans); }
+.practice-detail-facts>div+div { border-top:1px solid #F4F2ED; }
+.practice-detail-facts dt { color:var(--text-muted);flex:none; }
+.practice-detail-facts dd { margin:0;text-align:right;overflow-wrap:anywhere; }
+.practice-detail-label { font:400 12px/1.6 var(--font-sans);color:var(--text-muted);margin:21px 0 8px; }
+.practice-detail-remark { font:14px/1.8 var(--font-sans);margin:0 0 18px;overflow-wrap:anywhere;white-space:pre-wrap; }
+.academic-grades-tools { display:flex;gap:8px;align-items:center;margin:0 0 13px; }
+.academic-search { width:100%;border:1px solid var(--border-subtle);border-radius:12px;padding:11px 12px;background:var(--bg-surface);font:14px var(--font-sans);color:var(--text-primary); }
+.academic-grade-list { list-style:none;padding:0;margin:0;border:1px solid var(--border-subtle);border-radius:16px;overflow:hidden;background:white; }
+.academic-grade-list li+li { border-top:1px solid #F4F2EC; }
+.academic-grade-row { display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:none;text-align:left;padding:14px 15px;cursor:pointer; }
+.academic-grade-copy { min-width:0; }
+.academic-grade-name { display:block;font-size:16px;font-weight:500;line-height:1.5; }
+.academic-grade-meta { display:block;font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.6; }
+.academic-grade-score { white-space:nowrap;font:600 24px var(--font-serif); }
+.academic-grade-score.is-pending { font:13px var(--font-sans);color:var(--text-muted); }
+.academic-grade-score.is-qualitative { font-size:18px; }
+.academic-grade-score.is-passed { color:#788C5D; }
+.academic-grade-score.is-failed { color:#B84A39; }
+.academic-grade-value { flex:0 0 76px;min-height:34px;display:grid;place-items:center;text-align:center; }
+.academic-grade-score.is-hidden { font:13px var(--font-sans);color:var(--text-muted); }
+.academic-unknown-note { margin:0;padding:0 15px 12px;color:var(--text-muted);font-size:10px; }
+.academic-grade-tags { display:flex;flex-wrap:wrap;gap:4px 9px;margin-top:5px;color:#A46549;font-size:10px; }
+.academic-intro { font-size:12px;color:var(--text-secondary);line-height:1.7;margin-bottom:13px; }
+.academic-editor-check { display:flex;gap:9px;align-items:center;font-size:15px;line-height:1.6;margin:18px 0 9px; }
+.academic-editor-check input { accent-color:#AD6C4E;width:17px;height:17px; }
+.academic-editor-label { display:grid;gap:9px;font-size:13px;color:var(--text-secondary);margin:19px 0; }
+.academic-editor-label select { width:100%;min-width:0;padding:11px;background:white;border:1px solid var(--border-subtle);border-radius:10px;font:14px var(--font-sans);color:var(--text-primary); }
+.academic-editor-actions { display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px; }
+.academic-form-error { color:var(--accent-destructive);font-size:12px;line-height:1.6; }
+.academic-demo-row { display:flex;align-items:center;gap:12px;padding:13px 0;font-size:14px; }
+.academic-demo-row input { accent-color:#AD6C4E; }
+.academic-refresh-explanation { margin-top:13px;font-size:12px;color:var(--text-muted);line-height:1.7; }
+.academic-term-heading { margin:0;padding:12px 15px 0;font:500 15px/1.5 var(--font-serif);color:var(--text-secondary); }
+.academic-course-semester+.academic-course-semester { border-top:1px solid #F1EEE6; }
+.academic-grade-list.is-grouped { border:0;background:none;border-radius:0;overflow:visible; }
+.academic-grade-list.is-grouped>li+li { border:0; }
+.academic-grade-semester { margin-bottom:22px; }
+.academic-grade-semester>.academic-term-heading { padding:0 2px 9px; }
+.academic-term-rows { list-style:none;padding:0;margin:0;border:1px solid var(--border-subtle);border-radius:16px;background:var(--bg-surface);overflow:hidden; }
+.academic-tape { position:relative;display:inline-grid;place-items:center;flex:none;border:0;border-radius:0;color:#79674D;background-color:#E8D8B7;background-image:repeating-linear-gradient(103deg,transparent 0 3px,rgba(129,104,59,.035) 3px 4px),linear-gradient(180deg,rgba(255,255,255,.2),transparent 35%,rgba(174,143,91,.06));clip-path:polygon(2% 0,98% 1%,97% 13%,100% 22%,98% 35%,100% 48%,98% 61%,99% 75%,97% 89%,98% 100%,1% 98%,2% 86%,0 74%,2% 60%,0 46%,2% 33%,0 20%,2% 11%);transform:rotate(-2deg);font:12px/1.4 var(--font-sans);letter-spacing:.08em;cursor:pointer; }
+.academic-tape-row { min-width:67px;min-height:30px;padding:6px 13px; }
+.academic-tape:focus-visible { outline:none;background-color:#DCC393; }
+.academic-grade-row:focus-visible { outline:2px solid #B8986B;outline-offset:-3px; }
+.academic-tape.is-peeling { animation:academic-tape-peel .24s cubic-bezier(.22,.61,.36,1) both;pointer-events:none; }
+.academic-summary-covered { display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin:22px 15px 18px; }
+.academic-tape-summary { min-height:44px;padding:10px 22px;font-size:14px;transform:rotate(-1.5deg); }
+.academic-summary-note { font-size:11px;color:var(--text-muted); }
+.academic-reveal-term { margin:0 0 15px;font:13px var(--font-serif);color:var(--text-muted); }
+.academic-reveal-stage { display:grid;place-items:center;min-height:180px;margin:6px 0 20px;overflow:hidden; }
+.academic-tape-detail,.academic-reveal-result { grid-area:1 / 1; }
+.academic-tape-detail { min-width:186px;min-height:58px;padding:14px 24px;font:400 18px/1.4 var(--font-serif); }
+.academic-reveal-result { text-align:center;animation:academic-reveal .22s .22s ease-out both;outline:none; }
+.academic-grade-score.is-revealed { animation:academic-reveal .2s ease-out both; }
+.academic-reveal-score { display:block;font:500 54px/1.3 var(--font-serif);font-variant-numeric:lining-nums; }
+.academic-reveal-detail { color:var(--text-secondary);font-size:12px;margin-top:13px; }
+.academic-reveal-actions { display:flex;justify-content:space-between;align-items:center;gap:16px; }
+@keyframes academic-tape-peel { 35% { transform:perspective(400px) rotateY(-12deg) rotate(-5deg) translate(3px,-2px); } to { opacity:0;transform:perspective(400px) rotateY(-32deg) rotate(-9deg) translate(22px,-12px); } }
+@keyframes academic-reveal { from { opacity:0;transform:translateY(8px); } to { opacity:1;transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) { .academic-tape.is-peeling { opacity:0;animation:none; }.academic-reveal-result,.academic-grade-score.is-revealed { animation:none; } }
+@keyframes academic-spin { to { transform:rotate(360deg); } }
+@keyframes academic-success { 0%{opacity:0;transform:scale(.8)}15%,75%{opacity:1;transform:scale(1)}100%{opacity:0} }
+@keyframes academic-pop { 40%{transform:scale(1.4)}100%{transform:scale(0);opacity:0} }
+@keyframes academic-burst { to { transform:translate(var(--x),var(--y));opacity:0; } }
+@media(prefers-reduced-motion:reduce) { .academic-status.success,.academic-status.is-popping,.academic-burst i { animation:none; }.academic-spinner { animation-duration:2s; } }

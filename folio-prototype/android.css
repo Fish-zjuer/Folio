@@ -1,0 +1,40 @@
+/* Android 原生窗口已避开状态栏，不再重复预留浏览器模拟状态栏。 */
+:root.native-app { --app-top-inset: 12px; }
+.native-app .preview { padding: 0; min-height: 100vh; min-height: 100dvh; }
+.native-app .phone { width: 100%; max-width: none; height: 100vh; height: 100dvh; min-height: 0; border: 0; border-radius: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a, summary, [role="button"] { -webkit-tap-highlight-color: transparent; }
+button, summary { -webkit-user-select: none; user-select: none; }
+html.pointer-input button:focus { outline: none; }
+.home-screen { touch-action: pan-y; }
+.native-app .gesture-indicator { display: none; }
+.native-app .brand { font-size: 22px; }
+.native-app .greeting { font-size: 38px; }
+.native-app .settings-page-title { font-size: 20px; }
+.native-app .chat-input { font-size: 18px; }
+.native-app .course-list-name { font-size: 16px; }
+.native-app #timetable-range { font-size: 19px; }
+.native-app .course-meeting svg { display: block; flex-shrink: 0; align-self: center; margin-top: 0; }
+.exam-term-picker { border: 0; background: none; padding: 0; text-align: left; font: 600 20px/1.5 var(--font-serif); cursor: pointer; }
+.sheet-layer { z-index: 25; }
+.preview-sheet { animation: folio-sheet-in 220ms cubic-bezier(.22,1,.36,1); }
+@keyframes folio-sheet-in { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-layer.is-closing .preview-sheet { animation: folio-sheet-out 180ms ease-in forwards; }
+.sheet-layer.is-closing .sheet-shade { opacity: 0; transition: opacity 180ms ease-in; }
+.chat-layer.is-closing .chat-panel { animation: folio-sheet-out 180ms ease-in forwards; }
+.chat-layer.is-closing { background-color: transparent; transition: background-color 180ms ease-in; }
+.workbench-picker-card { animation: folio-sheet-in 220ms cubic-bezier(.22,1,.36,1); }
+.workbench-picker.is-closing .workbench-picker-card { animation: folio-sheet-out 180ms ease-in forwards; }
+@keyframes folio-sheet-out { from { transform: none; opacity: 1; } to { transform: translateY(28px); opacity: 0; } }
+@media(prefers-reduced-motion:reduce){ .preview-sheet,.sheet-layer.is-closing .preview-sheet,.chat-layer.is-closing .chat-panel,.workbench-picker-card,.workbench-picker.is-closing .workbench-picker-card { animation: none; } }
+* { -webkit-tap-highlight-color:transparent; }
+button,summary,[role="button"],.school-sync-row { -webkit-user-select:none;user-select:none; }
+.school-sync-row { cursor:default;gap:16px; }
+.school-sync-row>div { flex:1;min-width:0; }
+.school-sync-row>div p { display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;margin:4px 0 0; }
+.school-sync-row>button { flex:0 0 70px;min-width:70px;margin-left:auto;white-space:nowrap; }
+.school-web-login { margin-top:22px;margin-bottom:24px; }
+.school-term-actions { gap:12px;flex-wrap:wrap;justify-content:flex-start; }
+.school-term-actions>button { white-space:nowrap; }
+
+.school-diagnostics { margin-top:24px; }.school-diagnostic-text { white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.7 monospace;max-height:230px;overflow:auto; }
