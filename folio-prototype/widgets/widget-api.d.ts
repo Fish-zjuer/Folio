@@ -1,5 +1,5 @@
 /** Folio Widget API v1 — trusted, reviewed, bundled JavaScript only. */
-type FolioDataset = 'courses' | 'tasks' | 'exams' | 'academic' | 'focus';
+type FolioDataset = 'courses' | 'tasks' | 'exams' | 'academic' | 'focus' | 'study';
 type FolioDestination = 'home' | 'workbench' | 'calendar' | 'courses' | 'homework' | 'todos' | 'goals' | 'grades' | 'scholar' | 'focus';
 interface FolioWidgetContext {
  readonly apiVersion: 1; readonly id: string; readonly preview: boolean;

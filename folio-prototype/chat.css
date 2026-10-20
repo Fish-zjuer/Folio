@@ -46,9 +46,15 @@
 @keyframes reply-enter { from { opacity:.35;transform:translateY(4px); } to { opacity:1;transform:translateY(0); } }
 @media(prefers-reduced-motion:reduce) { .chat-action-slot .tool-circle { transition:none; }.chat-markdown { animation:none; } }
 .composer-tools button { cursor:pointer; }
-.composer-tools .model-pill { display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;padding:0 13px;font-size:14px;min-width:92px;max-width:160px;height:42px; }
-.model-pill span { max-width:100%;overflow:hidden;text-overflow:ellipsis; }
-.model-pill small { font-size:10px;color:var(--text-secondary); }
+.composer-tools .model-pill { display:flex;flex:0 1 auto;flex-direction:row;justify-content:flex-start;align-items:center;gap:8px;padding:0 14px;font-size:14px;min-width:0;max-width:calc(100% - 152px);width:max-content;height:42px;white-space:nowrap; }
+.model-pill .model-name { min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:500;letter-spacing:-.15px; }
+.model-pill .model-effort { flex:none;font-size:14px;line-height:1;color:#B57556;font-weight:600;letter-spacing:.15px; }
+.model-pill[data-effort="max"] .model-effort { color:#7770B5; }
+:root[data-theme="dark"] .model-pill .model-effort { color:#D59A77; }
+:root[data-theme="dark"] .model-pill[data-effort="max"] .model-effort { color:#B0A6E0; }
+.composer-tools > .tool-circle:first-child { flex:none;width:40px;height:40px;background:var(--bg-subtle); }
+.composer-tools > .tool-circle:first-child svg { width:23px;height:23px;stroke-width:1.5; }
+.composer-tools .toolbar-space { min-width:0; }
 .chat-attachments { display:flex;gap:7px;overflow:auto;padding:8px 5px 0; }
 .chat-attachment { position:relative;flex:0 0 80px;max-width:140px;border:1px solid var(--border-subtle);border-radius:10px;overflow:hidden;background:var(--bg-canvas); }
 .chat-attachment img { width:100%;height:60px;display:block;object-fit:cover; }
@@ -69,7 +75,7 @@
 .chat-storage-error { font-size:12px;color:var(--accent-destructive);padding:4px 18px; }
 /* Parallel review cards use the same canvas, typography and controls as the app. */
 .chat-layer.is-proposal-deck{align-items:center}
-.chat-panel.chat-deck{max-height:calc(100% - var(--app-bar-height) - 36px);padding:12px 0 0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden;display:flex;flex-direction:column}
+.chat-panel.chat-deck{max-height:calc(100% - var(--app-bar-height) - 36px);padding:12px 0 18px;border:1px solid var(--border-subtle);border-radius:24px 24px 0 0;background:var(--bg-canvas);box-shadow:0 -8px 36px rgb(20 20 19 / 8%);overflow:hidden;display:flex;flex-direction:column}
 .chat-deck .chat-panel-header{padding:0 26px;margin-bottom:10px;flex:none}
 .chat-deck-track{display:flex;gap:16px;overflow-x:auto;overscroll-behavior:contain;scroll-snap-type:x mandatory;scrollbar-width:none;padding:6px 26px 26px;min-height:0}
 .chat-deck-card{flex:0 0 calc(100% - 24px);min-width:0;min-height:min(58dvh,520px);max-height:72dvh;display:flex;flex-direction:column;padding:22px 18px;border:6px solid #DED7C8;border-radius:26px;background:var(--bg-canvas);box-shadow:5px 7px 0 #B8AD965C;scroll-snap-align:center;transition:opacity 180ms,transform 180ms}
@@ -112,7 +118,7 @@
 .chat-history-open small { display:block;margin-top:5px;color:var(--text-muted);font-size:11px; }
 .chat-history-badge { font-size:11px;color:#A95C42;white-space:nowrap; }
 @keyframes chat-rise { from { transform:translateY(28px);opacity:.4; } to { transform:translateY(0);opacity:1; } }
-@media(max-width:380px) { .composer-tools .model-pill { min-width:88px;padding:0 11px; }.chat-stream{padding:8px 18px 12px;}.chat-field-row { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); } }
+@media(max-width:380px) { .composer-tools .model-pill { min-width:0;padding:0 10px;gap:6px;font-size:13px; }.chat-stream{padding:8px 18px 12px;}.chat-field-row { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); } }
 @media(max-width:480px) { .phone:has(#home-screen:not([hidden])) { height:100dvh;min-height:0; } }
 @media(max-height:740px) { .home-screen .topbar{margin-top:24px;}.home-screen .composer{margin-bottom:28px;}.chat-entry{padding-top:13px;padding-bottom:10px;}.chat-input{height:45px;} }
 @media(prefers-reduced-motion:reduce) { .chat-panel{animation:none;} }
@@ -120,3 +126,4 @@
 @media(max-height:550px){.chat-deck-card{min-height:55dvh;padding:14px}.chat-deck .chat-panel-header{margin-bottom:4px}.chat-deck-track{padding-bottom:16px}}
 
 .chat-panel.chat-deck:focus{outline:none}
+.chat-panel:focus,.chat-panel:focus-visible{outline:none}

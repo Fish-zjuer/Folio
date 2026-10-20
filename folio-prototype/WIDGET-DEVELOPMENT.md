@@ -71,3 +71,6 @@ v1是**审核后随App一起打包的JS接口**，不是在线插件商店，也
 ## 课表本地排除与通用事项（0.6）
 
 `ctx.coursesOn(YYYY-MM-DD, termId?)` 要求声明 courses，返回已应用校历、调课和用户本地排除的只读当天课程；预览或销毁后的上下文不能读取。建议计算忙碌时段的组件使用此接口，而不是自行把原始 sessions 当实际排课。courses 快照也含 scheduleExclusions 供展示；排除更新会触发订阅。tasks 中 kind=event 为通用“事项”，可有 location/startAt/endAt/repeat，不应混入作业统计。
+
+## 2026-10-20：学习记录可选数据集
+新增只读`study`及`folio-study-change`，含本机明确录入的nights/coffee/cards/reviews/focusGoal/sleepGoal，缺失不推算。`focus.activeMinutes`为当前45分钟搭建内有效分钟。`academic.goal/series/courseGrades`遵从统一成绩隐藏策略。其余API v1契约不变；`ctx.open('todos')`兼容跳转到实际tasks页。26个study/*随包组件见STUDY-WIDGETS.md，原型仅用于预览，不落盘。

@@ -173,7 +173,10 @@ function renderHeatmap(container, items) {
   panel.append(heading,weeks,axis);
   const courseRegion=make("div","heatmap-course-region");
   const courses=make("div","heatmap-courses"); courses.tabIndex=0; courses.setAttribute("role","region"); courses.setAttribute("aria-label","课程列表，可上下滚动");
-  const more=action("",()=>courses.scrollBy({top:Math.max(32,courses.clientHeight-32),behavior:matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}),"heatmap-more");
+  const more=action("",()=>{
+    if(courses.classList.contains("is-expanded")){courses.classList.remove("is-expanded");courses.scrollTop=0;updateMore();return;}
+    courses.classList.add("is-expanded");updateMore();
+  },"heatmap-more");
   function row(name,entries,total=false) {
     const node=make("div",`heatmap-row${total ? " heatmap-total" : ""}`);
     let label;
@@ -228,12 +231,14 @@ function renderHeatmap(container, items) {
     });
   }
   function updateMore() {
+    const expanded=courses.classList.contains("is-expanded");
     const bottom=courses.getBoundingClientRect().bottom;
-    const unseen=[...courses.children].filter(node=>node.getBoundingClientRect().bottom>bottom+1).length;
-    more.textContent=`下方还有 ${unseen} 门课程 ↓`;
-    more.style.visibility=unseen ? "visible" : "hidden";
-    more.disabled=!unseen; more.setAttribute("aria-hidden",String(!unseen));
-    courseRegion.classList.toggle("has-more",Boolean(unseen));
+    const unseen=expanded?0:[...courses.children].filter(node=>node.getBoundingClientRect().bottom>bottom+1).length;
+    more.textContent=expanded?"收起课程 ↑":unseen?`展开全部课程（还有 ${unseen} 门）↓`:"";
+    more.style.visibility=(unseen||expanded)?"visible":"hidden";
+    more.disabled=!unseen&&!expanded; more.setAttribute("aria-hidden",String(!unseen&&!expanded));
+    courseRegion.classList.toggle("has-more",Boolean(unseen)&&!expanded);
+    courseRegion.classList.toggle("is-expanded",expanded);
   }
   courses.addEventListener("scroll",()=>{updateMore();updateCourseNames();},{passive:true});
   const observer=new ResizeObserver(()=>{if (!courses.isConnected) {observer.disconnect();return;} updateMore();updateCourseNames();}); observer.observe(courses);

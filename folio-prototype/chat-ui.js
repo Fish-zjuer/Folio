@@ -89,7 +89,7 @@
     const started=performance.now(),controller=new AbortController();running.set(c.id,controller);const sent=C.send(state,true),reply={id:C.id(),role:"assistant",text:"正在思考…",pending:true,status:"sending",replyTo:sent.id,createdAt:new Date().toISOString(),usage:null,progress:[]};
     c.messages.push(reply);persist();render(true);
     try{
-      const result=await FolioAgent.run({messages:await liveMessages(c),model,reasoning:state.settings.reasoning||config.reasoning||"auto",request:FolioAgentRuntime.provider,signal:controller.signal,system:config.prompt||"",now:new Date().toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"}),
+      const result=await FolioAgent.run({messages:await liveMessages(c),model,reasoning:FolioModelProfile.effort(config,model,state.settings.reasoning||config.reasoning||"auto"),request:FolioAgentRuntime.provider,signal:controller.signal,system:config.prompt||"",now:new Date().toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"}),
         execute:async(name,args)=>{const data=await FolioAgentRuntime.execute(name,args,c,sent.id,sent.text);if(!persist())throw new Error("草稿未能保存");return data;},
         onStep:step=>{const labels={read_context:"了解当前安排",read_module:"查看相关信息",draft_change:"整理待确认的修改"};const text=step.phase==="tool"?(labels[step.name]||"查看相关信息"):step.round>0?"整理回答":"正在思考";if(reply.progress.at(-1)!==text)reply.progress.push(text);reply.text=text+"…";if(state.activeId===c.id){const article=Array.from(stream.children).find(n=>n.dataset.messageId===reply.id);const status=article?.querySelector(".chat-progress summary");if(status)status.textContent=reply.text;const log=article?.querySelector(".chat-progress-log");if(log)log.textContent=reply.progress.join("\n");}}
       });if(!controller.signal.aborted)await new Promise(resolve=>setTimeout(resolve,Math.max(0,500-(performance.now()-started))));Object.assign(reply,result,{pending:false,status:"done"});
@@ -100,8 +100,9 @@
     if(renderedConversationId && !stream.hidden)scrollPositions.set(renderedConversationId,{top:stream.scrollTop,pinned:nearBottom()});
     revoke();const c=C.conversation(state);input.value=c.text;attachments.replaceChildren();attachments.hidden=!c.attachments.length;
     c.attachments.forEach(a=>attachments.append(attachmentNode(a,()=>{c.attachments=c.attachments.filter(x=>x.id!==a.id);persist();render();})));
-    const models={auto:"自动选择",general:"通用模型",reasoning:"推理模型"},strength={auto:"自动",low:"轻量",medium:"标准",high:"深入"};
-    modelButton.replaceChildren(el("span","",window.FolioApp?.native?(models[state.settings.model]?"选择模型":state.settings.model||"选择模型"):(models[state.settings.model]||"自动选择")),el("small","",`思考 · ${strength[state.settings.reasoning]||"自动"}`));
+    const placeholder={auto:"选择模型",general:"通用模型",reasoning:"推理模型"},config=state.settings.modelConfig||{},model=state.settings.model||config.model;
+    const name=placeholder[model]||FolioModelProfile.label(config,model),effort=FolioModelProfile.options(config,model).includes(state.settings.reasoning)?state.settings.reasoning:"auto";
+    modelButton.replaceChildren(el("span","model-name",name),el("small","model-effort",effort==='max'?'MAX':effort));modelButton.dataset.effort=effort;modelButton.title=name+" · "+effort;
     home.classList.toggle("has-conversation",c.messages.length>0);stream.hidden=!c.messages.length;conversationView.hidden=stream.hidden;stream.replaceChildren();
     c.messages.forEach(m=>{const n=el("article",`chat-message ${m.role}`);n.setAttribute("aria-label",m.role==="user"?"你":window.FolioApp?.native?"Folio":"Folio 本地预览");
       if(m.prototype)n.append(el("div","chat-local-label","前端流程预览 · 未连接模型"));
@@ -151,7 +152,7 @@
     const update=(key,value)=>{state.settings[key]=value;persist();render();};
     panel.append(selectField("模型厂商",state.settings.provider,[["unconnected","尚未连接"],["openai","OpenAI · 待连接"],["anthropic","Anthropic · 待连接"],["compatible","其他兼容接口 · 待连接"]],v=>update("provider",v)).wrap,
       selectField("模型",state.settings.model,[["auto","自动选择 · 未连接"],["general","通用模型 · 示例"],["reasoning","推理模型 · 示例"]],v=>update("model",v)).wrap,
-      selectField("思考强度",state.settings.reasoning,[["auto","自动"],["low","轻量"],["medium","标准"],["high","深入"]],v=>update("reasoning",v)).wrap,
+      selectField("思考强度",state.settings.reasoning,[["auto","auto"],["low","low"],["medium","medium"],["high","high"]],v=>update("reasoning",v)).wrap,
       el("p","chat-panel-note","真实可调项目会随模型能力变化；不支持思考强度的模型将隐藏此项。"),btn("完成",closePanel,"chat-primary"));
   }
   function openHistory(){openPanel("对话历史");panel.append(el("p","chat-panel-note","保存在当前浏览器，包含消息、附件与未确认草稿。"));
@@ -199,7 +200,7 @@
   // 侧栏提供历史入口，返回首页后也能找到任意对话与未确认修改。
   function openLiveProposal(c,p){
     const remove=p.operation.startsWith("delete_"),exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_");
-    openPanel(remove?"确认删除":create?"确认添加":"确认修改",true);
+    openPanel(remove?"确认删除":p.operation==="create_homework"?"确认添加作业":create?"确认添加":"确认修改",true);
     panel.append(el("p","chat-panel-note","尚未执行。可以修改后确认；收起、切换页面或短暂退出都会保留，只有确认或取消才结束这次修改。"));
     const form=el("form","chat-proposal-form"),f=p.fields;
     const target=(exam?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{};
@@ -210,7 +211,7 @@
       field("标题","title");field("内容","body","textarea");
       if(exam){field("日期","date","date");field("开始","start","time");field("结束","end","time");field("类型","type","text","小测");field("教室","room");field("座号","seat");field("备注","note","textarea");}
       else{
-        const kind=selectField("类型",f.kind??target.kind??"todo",[["todo","待办"],["event","事项"],["homework","自定义作业"]],v=>write("kind",v));form.append(kind.wrap);field("科目／关联课程（选填）","course");field("地点（事项选填）","location");
+        const kind=selectField("类型",f.kind??(p.operation==="create_homework"?"homework":target.kind??"todo"),[["todo","待办"],["event","事项"],["homework","自定义作业"]],v=>write("kind",v));form.append(kind.wrap);field("科目／关联课程（选填）","course");field("地点（事项选填）","location");
         const time=selectField("时间安排",f.timeMode??target.timeMode??(f.deadline?"deadline":f.startAt?"range":"none"),[["none","不设时间"],["deadline","截止时间"],["range","特定时间段"]],v=>{write("timeMode",v);day.wrap.hidden=clock.wrap.hidden=v!=="deadline";start.wrap.hidden=end.wrap.hidden=v!=="range";});form.append(time.wrap);
         const day=field("截止日期","deadline","date"),clock=field("截止时刻（选填）","clock","time",target.deadlineClock||""),start=field("开始时间","startAt","datetime-local"),end=field("结束时间","endAt","datetime-local");
         day.wrap.hidden=clock.wrap.hidden=time.input.value!=="deadline";start.wrap.hidden=end.wrap.hidden=time.input.value!=="range";
@@ -243,7 +244,7 @@
     entries.forEach(({conversation,proposal:p})=>{
       if(p.status!=="pending"||!p.operation)return;
       const target=(p.operation.endsWith("exam")?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{},f=p.fields||{},remove=p.operation.startsWith("delete_");
-      const card=el("article","chat-deck-card"),heading=el("h3","",f.title||target.title||"待确认修改"),action=el("p","chat-deck-operation",remove?"删除":p.operation.startsWith("create_")?"添加":"修改");
+      const card=el("article","chat-deck-card"),heading=el("h3","",f.title||target.title||"待确认修改"),action=el("p","chat-deck-operation",remove?"删除":p.operation==="create_homework"?"添加作业":p.operation.startsWith("create_")?"添加":"修改");
       card.append(action,heading);
       const details=el("dl","chat-deck-details");
       for(const [key,label] of Object.entries(labels)){

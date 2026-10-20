@@ -26,6 +26,14 @@ test('作业完成字段兼容 is_completed/completed/status，且不把未完�
     {id:5,is_student:true,title:'E',is_finished:'true'},
   ]});
   assert.deepEqual(records.map(r=>r.completed),[true,true,true,false,true]);
+  const submitted=B.homework({todo_list:[
+    {id:6,is_student:true,title:'F',status:'已提交（可修改）'},
+    {id:7,is_student:true,title:'G',is_completed:false,submitted:true},
+  ]});
+  assert.deepEqual(submitted.map(r=>r.completed),[true,true]);
+  assert.deepEqual(submitted.map(r=>r.schoolCompleted),[true,true]);
+  const reopen=B.mergeHomework([{...submitted[0],schoolCompleted:true}],B.homework({todo_list:[{id:6,is_student:true,title:'F',status:'未提交'}]}));
+  assert.equal(reopen[0].completed,true);assert.equal(reopen[0].schoolCompleted,true);
 });
 test('刷新漏页或空结果保留未完成作业，重复刷新不复制记录',()=>{
   const original=B.homework({todo_list:[{id:10,is_student:true,title:'A'},{id:11,is_student:true,title:'B'}]});
@@ -35,12 +43,12 @@ test('刷新漏页或空结果保留未完成作业，重复刷新不复制记�
   assert.deepEqual(B.mergeHomework(partial,[]),partial);
   assert.equal(B.mergeHomework(partial,[original[1],original[1]]).length,2);
 });
-test('明确完成状态可更新或重新打开，未知字段不推断；迁移外部 agent 的误判标记',()=>{
+test('刷新不会重新打开本地已完成作业，未知字段不推断；迁移外部 agent 的误判标记',()=>{
   const parse=fields=>B.homework({todo_list:[{id:1,is_student:true,title:'A',...fields}]});
   const old=parse({is_completed:true});
-  assert.equal(B.mergeHomework(old,parse({is_completed:'0'}))[0].completed,false);
+  assert.equal(B.mergeHomework(old,parse({is_completed:'0'}))[0].completed,true);
   assert.equal(B.mergeHomework(old,parse({}))[0].completed,true);
-  assert.equal(B.mergeHomework([{...old[0],remoteMissing:true}],[])[0].completed,false);
+  assert.equal(B.mergeHomework([{...old[0],remoteMissing:true}],[])[0].completed,true);
   for(const status of ['unsubmitted','incomplete','not_submitted','not completed'])assert.equal(parse({status})[0].completed,false);
   assert.equal(parse({status:'almost completed'})[0].completed,false);
   assert.equal(parse({is_completed:'false'})[0].completed,false);

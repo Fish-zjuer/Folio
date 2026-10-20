@@ -17,14 +17,14 @@ import java.util.concurrent.*;
 
 public final class MainActivity extends Activity {
   private static final String HOST="appassets.androidplatform.net",START="https://"+HOST+"/assets/index.html";
-  private WebView web;private Vault vault;private SchoolSession schoolSession;private final Network network=new Network();private android.animation.ValueAnimator chromeAnimator;
+  private WebView web;private Vault vault;private RecordRepository records;private SchoolSession schoolSession;private final Network network=new Network();private android.animation.ValueAnimator chromeAnimator;
   private final ExecutorService jobs=Executors.newFixedThreadPool(5);
   private volatile boolean trusted=false;private ValueCallback<Uri[]> fileCallback;private Uri cameraOutput;
   private Dialog loginDialog;private WebView loginView;private String calendarExportId,calendarExportText;
   private volatile boolean resumed=false;private boolean pageReady=false,notificationPermissionPending=false;private JSONObject pendingNotification;private String pendingGradeId="";
   private static final String GRADE_CHANNEL="folio-new-grades",GRADE_EXTRA="folio.gradeId";
   public void onCreate(Bundle state){
-    super.onCreate(state);vault=new Vault(this);schoolSession=new SchoolSession(network,vault);pendingGradeId=getIntent().getStringExtra(GRADE_EXTRA);if(pendingGradeId==null)pendingGradeId="";
+    super.onCreate(state);vault=new Vault(this);records=new RecordRepository(new RecordRepository.Storage(){public String read(String key)throws Exception{return vault.get(key);}public void write(String key,String value)throws Exception{vault.put(key,value);}public void delete(String key)throws Exception{vault.remove(key);}});schoolSession=new SchoolSession(network,vault);pendingGradeId=getIntent().getStringExtra(GRADE_EXTRA);if(pendingGradeId==null)pendingGradeId="";
     String colorMode=getPreferences(MODE_PRIVATE).getString("colorMode","system");boolean dark=colorMode.equals("dark")||colorMode.equals("system")&&(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;int canvas=dark?Color.rgb(36,37,33):Color.rgb(249,249,247);
     getWindow().setStatusBarColor(canvas);getWindow().setNavigationBarColor(canvas);getWindow().getDecorView().setBackgroundColor(canvas);if(Build.VERSION.SDK_INT>=29)getWindow().setNavigationBarContrastEnforced(false);
     getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
@@ -131,6 +131,13 @@ public final class MainActivity extends Activity {
       jobs.submit(()->{JSONObject answer=new JSONObject();try{
         JSONObject input=new JSONObject(payload),data;
         switch(operation){
+          case "records.get":{
+            RecordRepository.Snapshot snapshot=records.get(input.optString("name"));data=new JSONObject().put("revision",snapshot.revision).put("data",new JSONObject(snapshot.data));break;
+          }
+          case "records.save":{
+            JSONObject value=input.getJSONObject("data");if(!(value.opt("version") instanceof Number)||value.getDouble("version")!=1)throw new Exception("不支持的记录格式");
+            RecordRepository.Snapshot snapshot=records.save(input.optString("name"),input.getLong("expectedRevision"),value.toString());data=new JSONObject().put("revision",snapshot.revision).put("data",new JSONObject(snapshot.data));break;
+          }
           case "config.get":data=publicConfig(new JSONObject(vault.get("provider")));break;
           case "config.save":
             JSONObject previous=new JSONObject(vault.get("provider"));

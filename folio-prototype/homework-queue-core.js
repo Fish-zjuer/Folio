@@ -140,7 +140,7 @@
   function swapCandidates(items, item, date, today, options = {}) {
     const check = manualCheck(items,item,date,today,options);
     if (check.code !== "swap") return [];
-    return items.filter(other => other !== item && !other.completed && !other.repeatTemplate && other.queued && other.mountDate === date && !other.mountedOn && noticeStage(other,today,options) === "normal");
+    return items.filter(other => other !== item && !other.completed && other.schoolCompleted !== true && !other.repeatTemplate && other.queued && other.mountDate === date && !other.mountedOn && noticeStage(other,today,options) === "normal");
   }
   function manualMove(items, item, date, today, options = {}, partnerId = null) {
     const check = manualCheck(items,item,date,today,options);
@@ -154,17 +154,17 @@
     return {ok:true,swapped:true};
   }
   function rail(items) {
-    return items.filter(item => !item.repeatTemplate && item.queued && item.mountedOn && !item.completed)
+    return items.filter(item => !item.repeatTemplate && item.queued && item.mountedOn && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true)
       .sort((a,b) => a.mountedOn.localeCompare(b.mountedOn) || a.id.localeCompare(b.id));
   }
   function calendarEntries(items) {
     return items.flatMap(item => {
       if (item.repeatTemplate) return [];
       const entries = [];
-      if (item.deadline) entries.push({id: `${item.id}:deadline`, itemId: item.id, kind: "deadline", date: item.deadline, at:item.deadlineClock ? `${item.deadline}T${item.deadlineClock}` : null, title: item.title, completed: Boolean(item.completed)});
-      else if (item.startAt) entries.push({id: `${item.id}:range`,itemId:item.id,kind:"range",date:item.startAt.slice(0,10),startAt:item.startAt,endAt:item.endAt,title:item.title,completed:Boolean(item.completed)});
-      else if (item.scheduledDay) entries.push({id:`${item.id}:day`,itemId:item.id,kind:"day",date:item.scheduledDay,title:item.title,completed:Boolean(item.completed)});
-      if (item.queued && !item.completed && item.mountDate) entries.push({id: `${item.id}:mount`, itemId: item.id, kind: "mount", date: item.mountDate, title: item.title});
+      if (item.deadline) entries.push({id: `${item.id}:deadline`, itemId: item.id, kind: "deadline", date: item.deadline, at:item.deadlineClock ? `${item.deadline}T${item.deadlineClock}` : null, title: item.title, completed: Boolean(item.completed||item.schoolCompleted)});
+      else if (item.startAt) entries.push({id: `${item.id}:range`,itemId:item.id,kind:"range",date:item.startAt.slice(0,10),startAt:item.startAt,endAt:item.endAt,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
+      else if (item.scheduledDay) entries.push({id:`${item.id}:day`,itemId:item.id,kind:"day",date:item.scheduledDay,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
+      if (item.queued && !item.completed && item.schoolCompleted !== true && item.mountDate) entries.push({id: `${item.id}:mount`, itemId: item.id, kind: "mount", date: item.mountDate, title: item.title});
       return entries.map(entry=>({...entry,itemKind:item.kind||"todo",location:item.location||""}));
     });
   }
@@ -173,7 +173,7 @@
   }
   function homeworkSubject(item) { return item.source === "personal" ? "自定义" : item.course || "其他"; }
   function dateFor(item) {return item.deadline || item.startAt?.slice(0,10) || item.scheduledDay || null;}
-  function pendingOn(items, date) { return items.filter(item => !item.completed && dateFor(item) === date); }
+  function pendingOn(items, date) { return items.filter(item => !item.completed && item.schoolCompleted !== true && dateFor(item) === date); }
   const api = {dateValue, weekendFor, weekFor, normalize, quotas, plan, advance, move, complete, setQueued, urgency, important, usableDays, noticeStage, dayLoad, manualLimit, manualCheck, swapCandidates, manualMove, rail, calendarEntries, homeworkItems, homeworkSubject, pendingOn, dateFor};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FolioQueue = api;

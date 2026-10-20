@@ -37,22 +37,28 @@
   }));}
   function homeworkCompletion(g){
     // Missing from /todos is not proof of submission: pages, filters and expired
-    // sessions can all omit a record. Only explicit completion fields are evidence.
-    for(const key of ["is_completed","completed","is_finished","finished"]){
-      const value=g[key];
-      if([true,1,"1","true"].includes(value))return true;
-      if([false,0,"0","false"].includes(value))return false;
+    // sessions can all omit a record. Only explicit completion/submission fields are evidence.
+    // Submitted work may still be editable; never let an editable flag turn it back into pending.
+    const truthy=v=>[true,1,"1","true","yes","y","是"].includes(v);
+    const falsy=v=>[false,0,"0","false","no","n","否"].includes(v);
+    for(const key of ["submitted","is_submitted","isSubmit","is_submit","hasSubmitted","has_submitted","submitSuccess","submit_success"]){
+      if(truthy(g[key]))return true;
     }
-    const status=text(g.status||g.state||g.submit_status||g.submitStatus).toLowerCase().replace(/[\s_-]+/g,"");
-    if(["未完成","未提交","unfinished","incomplete","notcompleted","notsubmitted","unsubmitted","pending"].includes(status))return false;
-    if(["已完成","完成","completed","finished","submitted","已提交"].includes(status))return true;
-    for(const key of ["submitted","is_submitted"]){
-      if([true,1,"1","true"].includes(g[key]))return true;
-      if([false,0,"0","false"].includes(g[key]))return false;
+    for(const key of ["is_completed","completed","is_finished","finished"]){
+      if(truthy(g[key]))return true;
+    }
+    const status=text(g.status||g.state||g.submit_status||g.submitStatus||g.submissionStatus||g.submission_status||g.submitState||g.homeworkStatus||g.homework_status||g.progress).toLowerCase().replace(/[\s_-]+/g,"");
+    if(/已提交|已交|提交成功|待批阅|已批阅|已评分|已通过|已完成|^完成$|^submitted$|^completed$|^finished$/.test(status))return true;
+    if(/未提交|未交|未完成|待提交|待完成|未开始|notsubmitted|unsubmitted|notcompleted|incomplete|pending/.test(status))return false;
+    for(const key of ["submitted","is_submitted","isSubmit","is_submit","hasSubmitted","has_submitted","submitSuccess","submit_success"]){
+      if(falsy(g[key]))return false;
+    }
+    for(const key of ["is_completed","completed","is_finished","finished"]){
+      if(falsy(g[key]))return false;
     }
     return null;
   }
-  function homework(data){const raw=array(data,"todo_list"),student=raw.filter(g=>g.is_student===true||g.is_student===1||g.is_student==="true");return checked(student,student.filter(g=>text(g.id)).map(g=>{const due=localDateTime(g.end_time),completion=homeworkCompletion(g);return {id:`school-homework-${g.id}`,schoolId:text(g.id),title:clean(g.title)||"未命名作业",course:clean(g.course_name)||"作业",source:"school",kind:"homework",queued:true,completed:completion===true,completionKnown:completion!==null,deadline:due.day,deadlineClock:due.clock||null,important:false,urgent:false,timeMode:"deadline",repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,mountDate:null,mountedOn:null,url:typeof g.url==="string"&&/^https:\/\//.test(g.url)?g.url:"https://courses.zju.edu.cn/",description:typeof g.description==="string"?clean(g.description):""};}));}
+  function homework(data){const raw=array(data,"todo_list"),student=raw.filter(g=>g.is_student===true||g.is_student===1||g.is_student==="true");return checked(student,student.filter(g=>text(g.id)).map(g=>{const due=localDateTime(g.end_time),completion=homeworkCompletion(g);return {id:`school-homework-${g.id}`,schoolId:text(g.id),title:clean(g.title)||"未命名作业",course:clean(g.course_name)||"作业",source:"school",kind:"homework",queued:true,completed:completion===true,completionKnown:completion!==null,schoolCompleted:completion===true,deadline:due.day,deadlineClock:due.clock||null,important:false,urgent:false,timeMode:"deadline",repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,mountDate:null,mountedOn:null,url:typeof g.url==="string"&&/^https:\/\//.test(g.url)?g.url:"https://courses.zju.edu.cn/",description:typeof g.description==="string"?clean(g.description):""};}));}
   const defaultTimes=[["08:00","08:45"],["08:50","09:35"],["10:00","10:45"],["10:50","11:35"],["11:40","12:25"],["13:25","14:10"],["14:15","15:00"],["15:05","15:50"],["16:15","17:00"],["17:05","17:50"],["18:50","19:35"],["19:40","20:25"],["20:30","21:15"],["21:20","22:05"],["22:10","22:55"]];
   function calendar(data,id){const dates=data.startEnd?.map(date),match=id.match(/^(20\d{2})-(20\d{2})-([12])$/);if(!match||Number(match[2])!==Number(match[1])+1||dates?.length!==4||dates.some(d=>!d)||!Array.isArray(data.sessionTime))throw new Error("校历格式不正确，保留已有校历");
     const earliest=match[3]==="1"?`${match[1]}-08-01`:`${match[2]}-01-01`,latest=match[3]==="1"?`${match[2]}-03-31`:`${match[2]}-08-31`;
@@ -93,11 +99,13 @@
   }
   function practiceSummary(data){const raw=data?.extend?.myInfo;if(Number(data?.code)!==0||!raw||!["dektJf","dsktJf","dsiktJf"].some(k=>k in raw))throw new Error("实践汇总缺少有效记点，保留原缓存");const points=["dektJf","dsktJf","dsiktJf"].map(k=>number(raw[k]));if(points.some(n=>n!==null&&n<0))throw new Error("实践汇总记点无效");const passed=v=>v==null||v===""?null:[true,1,"1","1.0","true","yes","y","是","通过","已通过","达标","合格"].includes(typeof v==="string"?v.trim().toLowerCase():v)?true:[false,0,"0","0.0","false","no","n","否","未通过","不通过","未达标","不合格"].includes(typeof v==="string"?v.trim().toLowerCase():v)?false:null;return {points,myPassed:passed(raw.myTg),lyPassed:passed(raw.lyTg)};}
   function mergeHomework(old,incoming){
-    const records=new Map(old.map(r=>[r.id,r.remoteMissing?{...r,completed:false,remoteMissing:undefined}:r]));
+    const records=new Map(old.map(r=>[r.id,r.remoteMissing?{...r,remoteMissing:undefined}:r]));
     for(const r of incoming){
       const previous=records.get(r.id);
       if(previous&&previous.source!=="school")continue;
-      records.set(r.id,previous?{...r,completed:r.completionKnown?r.completed:previous.completed||r.completed,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,body:previous.body||r.body}:r);
+      // A refresh must not reopen work the user already completed locally.
+      // Only an explicit school completion can add a completion; it never clears one.
+      records.set(r.id,previous?{...r,completed:previous.completed===true||r.completed===true,schoolCompleted:previous.schoolCompleted===true||r.schoolCompleted===true,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,body:previous.body||r.body}:r);
     }
     return [...records.values()];
   }

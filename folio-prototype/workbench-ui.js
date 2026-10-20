@@ -143,7 +143,7 @@
   reader.addEventListener("animationend", event => {
     if (event.target === reader && event.animationName === "workbench-reading-close" && reader.classList.contains("is-closing")) closeReader(true);
   });
-  function incomingItems() { return homeworkState.items.filter(item => !item.repeatTemplate && !item.completed && item.queued && !item.mountedOn).sort((a,b)=>(a.mountDate||"9999").localeCompare(b.mountDate||"9999") || a.id.localeCompare(b.id)); }
+  function incomingItems() { return homeworkState.items.filter(item => !item.repeatTemplate && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true && item.queued && !item.mountedOn).sort((a,b)=>(a.mountDate||"9999").localeCompare(b.mountDate||"9999") || a.id.localeCompare(b.id)); }
   function preparePaper(node,item,index) {
     if(!noteColors.has(item.id))noteColors.set(item.id,notePalette[Math.floor(Math.random()*notePalette.length)]);
     const color=noteColors.get(item.id), colors=paperPalette.find(p=>p[0]===color)||paperPalette[0];
@@ -559,7 +559,7 @@
         suppressClickUntil=performance.now()+350;pageDrag=null;drawer.settle(open);return;
       }
       suppressClickUntil=performance.now()+350;
-      const next=FolioGesture.destination(swipe.extra.index,swipe.dx+swipe.extra.offset,swipe.velocityX,swipe.extra.width,cancelled,{minDistance:26,distanceRatio:.13,flickDistance:16,flickVelocity:.24});
+      const next=FolioGesture.destination(swipe.extra.index,swipe.dx+swipe.extra.offset,swipe.velocityX,swipe.extra.width,cancelled,{minDistance:12,distanceRatio:.04,flickDistance:8,flickVelocity:.08});
       const duration=matchMedia("(prefers-reduced-motion: reduce)").matches?0:330;
       void home.getBoundingClientRect();
       [home,page].forEach(surface=>surface.style.transition=`transform ${duration}ms cubic-bezier(.22,.82,.28,1.035)`);
@@ -590,9 +590,9 @@
     },
     end(swipe,event,cancelled){
       if(!menuSwipe)return;
-      suppressClickUntil=performance.now()+350;
+      suppressClickUntil=performance.now()+700;
       const width=swipe.extra.width;
-      const complete=!cancelled&&(swipe.dx<=-Math.max(56,width*.2)||(swipe.dx<=-36&&swipe.velocityX<-.6));
+      const complete=!cancelled&&(swipe.dx<=-Math.max(44,width*.15)||(swipe.dx<=-24&&swipe.velocityX<-.45));
       const duration=matchMedia("(prefers-reduced-motion: reduce)").matches?0:300;
       [home,menuSurface].forEach(s=>s.style.transition=`transform ${duration}ms cubic-bezier(.22,.82,.28,1.025)`);
       menuSurface.style.transform=`translateX(${complete?-width:0}px)`;home.style.transform=`translateX(${complete?0:width}px)`;

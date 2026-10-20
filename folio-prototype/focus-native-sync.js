@@ -1,0 +1,5 @@
+/* Preserve the existing focus ledger while adding an encrypted durable Android mirror. */
+(()=>{'use strict';if(!window.FolioApp?.native)return;const key='folio-focus-study-v1';let applying=false,latest='',pending=Promise.resolve();
+ const store=FolioRecordStore({name:'focus',key,normalize:FolioFocus.restore,storage:localStorage,call:(op,data)=>FolioNative.call(op,data),onChange(){applying=true;latest=localStorage.getItem(key);window.dispatchEvent(new StorageEvent('storage',{key}));document.dispatchEvent(new Event('folio-focus-change'));applying=false;},onError:e=>document.dispatchEvent(new CustomEvent('folio-study-error',{detail:{message:e.message}}))});
+ document.addEventListener('folio-focus-change',()=>{if(applying)return;const raw=localStorage.getItem(key);if(raw===latest)return;latest=raw;const value=FolioFocus.restore(JSON.parse(raw));pending=store.update(()=>value);pending.catch(()=>{});});window.FolioFocusNativeSync=Object.freeze({ready:store.ready,flush:()=>pending.then(()=>store.flush()),status:store.status});
+})();

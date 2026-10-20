@@ -172,8 +172,10 @@
   window.FolioAcademicUI.overview=()=>{
     const records=grades(),hidden=Boolean(state.hideGrades)||records.some(g=>A.isSealed(state,g));
     const summary=A.summary(records,state.overrides,state.plan,state.retakeMode);
+    const currentTermId=FolioBackend.currentTerm(),currentRecords=records.filter(g=>g.termId===currentTermId),currentSummary=A.summary(currentRecords,state.overrides,state.plan,state.retakeMode);
     return {summary:!records.length?null:hidden?{...summary,gpa:[null,null,null,null],majorGpa:[null,null,null,null],weightedMajorGpa:null}:summary,
-      hidden,practice:ensure("practice").data.map(r=>({id:r.id,title:r.title,points:P.project(r).total})),example:!window.FolioApp?.native};
+      termSummary:!currentRecords.length?null:hidden?{...currentSummary,gpa:[null,null,null,null],majorGpa:[null,null,null,null],weightedMajorGpa:null}:currentSummary,
+      hidden,goal:hidden?null:(()=>{try{const g=JSON.parse(localStorage.getItem("folio-goals-v1"))?.applied;return Number.isFinite(g?.target)?{target:g.target}:null;}catch{return null;}})(),series:hidden?[]:[...new Set(records.map(g=>g.termId))].sort((a,b)=>A.termOrder(a)-A.termOrder(b)).map(id=>({termId:id,gpa:A.summary(records.filter(g=>g.termId===id),state.overrides,state.plan,state.retakeMode).gpa[0]})),courseGrades:hidden?[]:records.filter(g=>g.gpaIncluded).map(g=>({id:g.id,courseId:g.courseId,termId:g.termId,title:g.title,five:g.five})),termCourseGrades:hidden?[]:currentRecords.filter(g=>g.gpaIncluded).map(g=>({id:g.id,courseId:g.courseId,termId:g.termId,title:g.title,five:g.five})),practice:ensure("practice").data.map(r=>({id:r.id,title:r.title,points:P.project(r).total})),example:!window.FolioApp?.native};
   };
   window.FolioAcademicUI.openOverview=kind=>{
     if(kind==="grades"){selectView(termId,"all");showPreviewScreen("grades");return;}

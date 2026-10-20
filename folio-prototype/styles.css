@@ -653,6 +653,8 @@ button.heatmap-cell:hover .heatmap-square { filter: brightness(.9); }
 .heatmap-day-list { margin-top: 14px; }
 .homework-heatmap > .heatmap-course-region { position: relative; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .heatmap-courses { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+.heatmap-courses.is-expanded { flex: 0 0 auto; max-height: none; overflow: visible; }
+.heatmap-course-region.is-expanded { flex: 0 0 auto; }
 .heatmap-courses::-webkit-scrollbar { display: none; }
 .heatmap-courses:focus-visible { outline: 1px solid var(--border-subtle); outline-offset: 1px; }
 .heatmap-more { flex: 0 0 18px; width: 100%; min-height: 18px; padding: 0; margin-top: 3px; border: 0; background: none; color: var(--text-secondary); font-size: 10px; text-align: center; cursor: pointer; }

@@ -36,4 +36,7 @@ final class Vault {
     cipher.init(Cipher.DECRYPT_MODE,key(),new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));
     return new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),StandardCharsets.UTF_8);
   }
+  synchronized void remove(String name) throws Exception {
+    if(!context.getSharedPreferences("vault",0).edit().remove(name).commit())throw new Exception("无法清理安全配置");
+  }
 }

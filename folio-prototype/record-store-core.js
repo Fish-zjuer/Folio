@@ -1,0 +1,12 @@
+/* Serial transactions: persist before publish; optimistic native revision prevents lost updates. */
+(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory;else root.FolioRecordStore=factory;})(globalThis,function({name,key,normalize,storage,call,onChange=()=>{},onError=()=>{}}){
+ let state,revision=0,queue=Promise.resolve(),lastError=null;
+ const copy=v=>JSON.parse(JSON.stringify(v));
+ function snapshot(v){if(!v||!Number.isSafeInteger(v.revision)||v.revision<0)throw Error('原生记录版本无效');if(v.revision>0&&v.data?.version!==1)throw Error('记录格式不受支持，原记录已保留');return v;}
+ function local(){const raw=storage.getItem(key);return raw===null?normalize(null):normalize(JSON.parse(raw));}
+ try{state=local();}catch(e){state=normalize(null);lastError=e;}
+ function cache(next){try{storage.setItem(key,JSON.stringify(next));}catch(e){if(!call)throw e;lastError=e;onError(e);}}
+ const ready=(async()=>{if(!call)return;try{const response=snapshot(await call('records.get',{name}));revision=response.revision;if(revision===0){const value=snapshot(await call('records.save',{name,expectedRevision:0,data:state}));if(value.revision!==1)throw Error('原生记录未确认保存');revision=value.revision;state=normalize(value.data);}else state=normalize(response.data);cache(state);onChange(copy(state));}catch(e){lastError=e;onError(e);throw e;}})();ready.catch(()=>{});
+ function update(change){const job=queue.catch(()=>{}).then(async()=>{await ready;const next=normalize(await change(copy(state)));try{if(call){const saved=await call('records.save',{name,expectedRevision:revision,data:next});if(!Number.isSafeInteger(saved.revision)||saved.revision<=revision)throw Error('原生记录未确认保存');revision=saved.revision;state=normalize(saved.data);cache(state);}else{cache(next);state=next;}lastError=null;onChange(copy(state));return copy(state);}catch(e){lastError=e;if(call&&/版本冲突/.test(e.message)){try{const latest=await call('records.get',{name});revision=latest.revision;state=normalize(latest.data);cache(state);onChange(copy(state));}catch{}}onError(e);throw e;}});queue=job;return job;}
+ return Object.freeze({ready,read:()=>copy(state),update,flush:()=>queue,status:()=>({native:!!call,revision,error:lastError?.message||null}),async reload(){await queue.catch(()=>{});if(call){const v=snapshot(await call('records.get',{name}));state=normalize(v.data);revision=v.revision;}else state=local();onChange(copy(state));return copy(state);}});
+});

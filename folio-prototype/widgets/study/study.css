@@ -1,0 +1,34 @@
+.study-widget{width:100%;height:100%;display:grid;min-width:0;min-height:0;padding:8.5%;gap:0;overflow:hidden;container-type:inline-size;border-radius:inherit;--study-zone:rgba(255,255,255,.48)}
+.study-paper-a{background:#F2EADF}.study-paper-b{background:#E1E6DD}.study-paper-c{background:#EAE2D6}.study-paper-d{background:#DEE6E2}
+.study-widget.study-bento{display:flex;padding:11px;gap:0;box-shadow:inset 0 0 0 1px rgba(90,70,40,.05)}
+.study-zone{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;width:100%;height:100%;padding:0;border:0;background:none;border-radius:inherit;touch-action:pan-y;color:inherit;cursor:pointer}
+.study-bento .study-zone{background:var(--study-zone);border-radius:7cqw;padding:2cqw;overflow:hidden}
+.study-zone > svg{width:100%;height:100%;display:block;margin:auto;pointer-events:none;overflow:visible}
+.study-zone:focus-visible{outline:2px solid #7E9E9A;outline-offset:-2px}.study-zone:active{filter:brightness(.97)}
+.study-pulse{animation:study-breath 2.4s ease-in-out infinite}@keyframes study-breath{50%{opacity:.35}}
+.study-detail-note{font:13px/1.7 var(--font-sans);color:var(--text-secondary);margin:0 0 16px}
+.study-detail-row{display:block;width:100%;padding:13px 0;text-align:left;border:0;border-bottom:1px solid var(--border-subtle);background:none;color:var(--text-primary);font:14px/1.6 var(--font-sans);overflow-wrap:anywhere}
+.study-detail-row small{display:block;color:var(--text-secondary);font-size:12px}.study-detail-answer{white-space:pre-wrap;padding:14px;background:var(--bg-subtle);border-radius:12px;font-size:15px;line-height:1.7;overflow-wrap:anywhere}
+.study-review-actions{display:flex;gap:12px;row-gap:12px;flex-wrap:wrap;margin:16px 0 18px}.study-review-actions button{min-width:42px;min-height:42px;padding:9px 12px}
+.study-project-action{display:block;margin:8px 0 16px}
+:root[data-theme=dark] .study-paper-a{background:#413A31}:root[data-theme=dark] .study-paper-b{background:#343E36}:root[data-theme=dark] .study-paper-c{background:#423B33}:root[data-theme=dark] .study-paper-d{background:#303F3C}:root[data-theme=dark] .study-widget{--study-zone:rgba(245,236,214,.06)}
+@media(prefers-reduced-motion:reduce){.study-pulse{animation:none}}
+
+/* cqw must resolve on the card, so the grid is its child, as in the reference. */
+.study-bento-layout{flex:1;display:grid;gap:3cqw;min-width:0;min-height:0}
+/* App toolbar icons use stroke:currentColor globally. Artwork uses SVG defaults. */
+.study-zone svg{fill:#000;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter}
+
+.study-widget.study-single{padding:0;display:block}
+.study-single-ref{display:block;width:100%;height:100%;border-radius:inherit;pointer-events:none;--serif:STSong,Georgia,serif}
+.study-single-ref .card{width:100%;height:100%;min-height:0;min-width:0;border-radius:inherit}
+.study-single-ref svg{fill:#000;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter}
+.study-single-ref .st::after{left:var(--reference-target,90%)}
+.study-single-ref .study-no-target .st::after{display:none}
+
+/* Standalone cards live inside the app's rounded slot. Keep exactly one paper
+   silhouette (the slot) and let the reference card be transparent inside it. */
+.study-widget.study-single{border-radius:inherit;position:relative}
+.study-widget.study-single .study-single-ref .card{border-radius:inherit;background:transparent;box-shadow:none}
+.study-fan-start{position:absolute;right:9px;bottom:9px;z-index:4;padding:5px 9px;border-radius:999px;background:rgba(250,248,245,.92);box-shadow:0 1px 0 rgba(90,70,40,.12);color:#5E4B3C;font:11px/1.4 var(--font-sans);letter-spacing:.02em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.study-fan-start:active{background:#F2EADF}

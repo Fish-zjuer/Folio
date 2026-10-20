@@ -62,8 +62,9 @@
     let nextRecord;
     if(!remove&&exam){nextRecord={...(previous||{}),id:targetId,semesterId:previous?.semesterId||examSemester.id,source:"custom",title:f.title??previous?.title,type:f.type??previous?.type??"小测",date:f.date??previous?.date,start:f.start??previous?.start,end:f.end??previous?.end,room:f.room??previous?.room??"",seat:f.seat??previous?.seat??"",note:f.note??previous?.note??"",courseId:previous?.courseId||null};const error=FolioExams.validate(nextRecord);if(error)throw new Error(error);}
     if(!remove&&!exam){
-      const base=previous||{id:targetId,title:"",body:"",kind:"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:false,completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
+      const base=previous||{id:targetId,title:"",body:"",kind:p.operation==="create_homework"?"homework":"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:false,completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
       nextRecord={...base};for(const key of ["title","body","kind","course","location","timeMode","deadline","startAt","endAt","important","urgent","queued","completed","reminderMinutes"])if(key in f)nextRecord[key]=f[key];
+      if(p.operation==="create_homework")nextRecord.kind="homework";
       if("clock" in f)nextRecord.deadlineClock=f.clock||null;if(!("timeMode" in f)){if(f.startAt)nextRecord.timeMode="range";else if(f.deadline)nextRecord.timeMode="deadline";}
       if(nextRecord.timeMode!=="deadline"){nextRecord.deadline=null;nextRecord.deadlineClock=null;}
       if(nextRecord.timeMode!=="range"){nextRecord.startAt=null;nextRecord.endAt=null;}

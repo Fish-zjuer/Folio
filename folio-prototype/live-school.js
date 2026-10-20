@@ -49,7 +49,7 @@
         const restored=B.restoreCourseCatalog([t],(state.modules.grades?.data||[]).filter(g=>g.termId===selected));t.courses=restored[0].courses;t.stale=false;store(key,t.courses);publish();return t.courses;
       }
       if(module==="homework"){
-        const fresh=B.homework(await request("homework")),items=B.mergeHomework(homeworkState.items,fresh),next={...homeworkState,items,today:B.today()};
+        const fresh=B.homework(await request("homework")),freshIds=new Set(fresh.map(i=>i.id)),merged=B.mergeHomework(homeworkState.items,fresh),items=merged.filter(i=>i.source!=="school"||freshIds.has(i.id)),next={...homeworkState,items,today:B.today()};
         localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));homeworkState.items=items;homeworkState.today=next.today;commit();store(module,fresh);publish();return homeworkState.items.filter(i=>i.kind==="homework");
       }
       if(module==="exams"){
@@ -76,5 +76,16 @@
     async setTerm(id){if(!/^20\d{2}-20\d{2}-[12]$/.test(id))throw new Error("学期编号不正确");const existing=term(id);FolioCourses.semesters.splice(FolioCourses.semesters.indexOf(existing),1);FolioCourses.semesters.unshift(existing);store("activeTerm",id);location.reload();}
   };
   window.addEventListener("folio-school-login",async()=>{const site=browserSite;browserSite=null;if(!site)return;const modules=site==='academic'?['grades','courses','exams']:site==='homework'?['homework']:['practice'];await Promise.allSettled(modules.map(m=>m==='exams'?refresh(m):FolioAcademicUI.refresh(m)));});
-  document.addEventListener("DOMContentLoaded",()=>{if(state.needsInitialSync){state.needsInitialSync=false;localStorage.setItem(N.storageKey,JSON.stringify(state));FolioSchool.sync().catch(()=>{});}});
+  let homeworkAt=0,homeworkBusy=false;
+  async function refreshHomeworkIfStale(){
+    if(homeworkBusy||!state.accountId||Date.now()-homeworkAt<60000)return;
+    homeworkBusy=true;homeworkAt=Date.now();
+    try{await refresh("homework");}catch{}finally{homeworkBusy=false;}
+  }
+  document.addEventListener("DOMContentLoaded",()=>{
+    if(state.needsInitialSync){state.needsInitialSync=false;localStorage.setItem(N.storageKey,JSON.stringify(state));FolioSchool.sync().catch(()=>{});}
+    refreshHomeworkIfStale();
+  });
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshHomeworkIfStale();});
+  window.addEventListener("focus",()=>refreshHomeworkIfStale());
 })();

@@ -2,7 +2,7 @@
 (()=>{
   'use strict';const S=FolioStats,installed=new Set(),FKEY='folio-focus-study-v1';
   const el=(tag,cls,text)=>{const n=document.createElement(tag);n.className=cls;if(text!=null)n.textContent=text;return n;};
-  function focus(){let raw=null;try{raw=JSON.parse(localStorage.getItem(FKEY));}catch{}return S.focus(raw,Date.now());}
+  function focus(){let raw=null;try{raw=JSON.parse(localStorage.getItem(FKEY));}catch{}return S.focus(window.FolioPomodoro?.focusSnapshot(raw)||raw,Date.now());}
   function now(){return {date:homeworkState.today,clock:new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())};}
   function model(kind){const n=now();return kind==='focus'?focus():kind==='tasks'?S.tasks(homeworkState.items,n.date,n.clock):S.semester(FolioCourses.semesters[0],n.date,n.clock,FolioCourses.onDate);}
   function metric(parent,label,value,unit=''){const m=el('span','overview-metric'),n=el('strong','overview-number',String(value??'—'));if(String(value??'—').length>=4)n.style.fontSize=Math.max(7,14-(String(value).length-3)*1.8)+'cqw';if(unit)n.append(el('small','overview-unit',unit));m.append(el('span','overview-label',label),n);parent.append(m);return m;}

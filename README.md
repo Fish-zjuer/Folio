@@ -4,9 +4,9 @@
 
 把课表、日程、作业、成绩、目标和 AI 对话放在一起。首页包含可自由配置的 2×2 工作台：纸感图形、像素插画和数据组件共用可扩展的 Widget API。
 
-当前测试代码为 **0.11-test（2026-10-20）**，Android 9及以上。安装包和校验文件见 [GitHub Releases](https://github.com/Fish-zjuer/Folio/releases)，公开测试尚未作为校园正式版推广。
+当前测试代码为 **0.17-test（2026-10-20）**，Android 9及以上。安装包和校验文件见 [GitHub Releases](https://github.com/Fish-zjuer/Folio/releases)，公开测试尚未作为校园正式版推广。
 
-本版采用无字母双页图标，修正历史课程查询和目标页的重修计算/横向布局，并提供实际可保存的iCal课表导出。见 [0.11变更与验证边界](folio-android/RELEASE-0.11.md)。0.10字母候选已弃用且未发布。后续跨平台、精品2×2卡片与减少操作步骤见 [ROADMAP](folio-android/ROADMAP.md)。
+本版接入 26 枚学习卡片与首页模型别名/强度；按 Celechron 以本次 `/api/todos` 作为学校待办集合并前台自动刷新；修复翻页/已交作业/独立卡圆角/复习面板/闪卡手势、AI 新增作业草稿、闪卡“开始学习”、作业热力图展开等。详见 [0.17变更与验证边界](folio-android/RELEASE-0.17.md)。
 
 ## 运行结构
 

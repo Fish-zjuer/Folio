@@ -5,7 +5,7 @@
  const svg=(tag,attrs={},text)=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!=null)n.textContent=text;return n;};
  const focus=FolioFocusStore(FolioFocus,FolioBuilding,localStorage,Date.now,()=>document.dispatchEvent(new Event('folio-focus-change')));
  let panel=null,panelTime=null,panelSummary=null,panelToggle=null,panelRest=null;
- function action(text,run){const b=el('button','live-widget-action',text);b.type='button';b.onclick=()=>{try{run();refresh();updatePanel();}catch{announce('没有保存成功，原来的专注记录仍保留。');}};return b;}
+ function action(text,run){const b=el('button','live-widget-action',text);b.type='button';b.onclick=async()=>{b.disabled=true;try{await window.FolioFocusNativeSync?.ready;if(text!=='保存，休息')await window.FolioPomodoro?.pause();await run();await window.FolioFocusNativeSync?.flush();refresh();updatePanel();}catch{announce('没有保存成功，原来的专注记录仍保留。');}finally{b.disabled=false;}};return b;}
  function updatePanel(){if(!panel?.isConnected||homeworkLayer.hidden)return;const s=focus.snapshot(),a=s.active,mins=Math.floor(focus.elapsed()/60000),count=FolioBuilding.collection(s).length;panelTime.textContent=mins+' / 45 分钟';panelSummary.textContent='已建好 '+count+' 间 · 暂停与休息不计时';panelToggle.textContent=a?.runningFrom!=null?'暂停':a||s.sessions.at(-1)?.buildingDraft?'继续搭建':'开始一间小屋';panelRest.disabled=!a;}
  function openFocus(origin){
    openHomeworkSheet('专注搭建',origin);panel=el('div','live-focus-panel');panelTime=el('p','live-focus-time');panelSummary=el('p','live-widget-description');const buttons=el('div','live-widget-actions');panelToggle=action('',()=>focus.toggle());panelRest=action('保存，休息',()=>focus.rest());buttons.append(panelToggle,panelRest);panel.append(panelTime,panelSummary,buttons,el('p','live-widget-description','查资料不会自动中断。收起后继续计时，45 分钟完成一间小屋；下一间由你开始。'));homeworkBody.append(panel);updatePanel();
@@ -46,6 +46,7 @@
  for(const name of ['folio-data-change','folio-school-change'])document.addEventListener(name,()=>refresh());
  document.addEventListener('folio-focus-change',()=>refresh('focus'));
  document.addEventListener('folio-focus-open',event=>openFocus(event.detail?.origin||document.activeElement));
+ window.FolioFocusLedger=Object.freeze({async append(session){await window.FolioFocusNativeSync?.ready;focus.append(session);await window.FolioFocusNativeSync?.flush();},pauseBuilding(){focus.reload();if(focus.snapshot().active?.runningFrom!=null)focus.toggle();},snapshot:()=>focus.snapshot()});
  window.addEventListener('storage',event=>{if(event.key==='folio-focus-study-v1'){focus.reload();refresh('focus');updatePanel();}});
  function resume(){if(window.FolioApp?.native&&homeworkState.today!==FolioBackend.today()){homeworkState.today=FolioBackend.today();commit();}try{focus.tick();}catch{}refresh();updatePanel();}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)resume();});document.addEventListener('preview-screen-change',e=>{if(e.detail.screen==='workbench')resume();});

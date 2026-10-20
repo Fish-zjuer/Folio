@@ -27,3 +27,11 @@ test('实验与临时安排可以作为事项草稿，保留类型和晚间时�
   assert.equal(actions.length,1);assert.equal(actions[0].fields.kind,'event');assert.equal(actions[0].fields.endAt,'2026-10-20T23:00');assert.equal(output.text,'事项草稿待确认');
   assert.throws(()=>A.validateDraft({operation:'create_todo',fields:{title:'坏类型',kind:'course'}}));
 });
+
+test('新增作业有独立草稿操作，强制本机 homework 类型且仍需确认',()=>{
+  const draft=A.validateDraft({operation:'create_homework',fields:{title:'模电实验报告',deadline:'2026-10-29',course:'电路实验'}});
+  assert.equal(draft.operation,'create_homework');
+  assert.equal(draft.fields.kind,'homework');
+  assert.equal(draft.fields.deadline,'2026-10-29');
+  assert.throws(()=>A.validateDraft({operation:'create_homework',fields:{deadline:'2026-10-29'}}));
+});
