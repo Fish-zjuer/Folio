@@ -12,7 +12,7 @@
   if(sessions&&!periods.length)throw Error('缺少所选学期校历，请先更新该学期课表');
   const events=[];
   if(sessions){const start=periods.map(p=>p.start).sort()[0],end=periods.map(p=>p.end).sort().at(-1),count=Math.round((Date.parse(end)-Date.parse(start))/86400000)+1;if(!Number.isInteger(count)||count<1||count>370)throw Error('学期日期范围异常');
-   for(let i=0;i<count;i++){const day=new Date(Date.parse(start)+i*86400000).toISOString().slice(0,10);for(const c of C.onDate(term,day,excluded))events.push({id:c.id,date:day,start:c.start,end:c.end,title:c.title,room:c.room||'',description:c.teacher?`教师：${c.teacher}`:'',kind:'course'});}
+   for(let i=0;i<count;i++){const day=new Date(Date.parse(start)+i*86400000).toISOString().slice(0,10);for(const c of C.onDate(term,day,excluded,"timetable"))events.push({id:c.id,date:day,start:c.start,end:c.end,title:c.title,room:c.room||'',description:c.teacher?`教师：${c.teacher}`:'',kind:'course'});}
   }
   if(includeExams)for(const e of exams){if(e.semesterId!==term.id||!e.date||!e.start||!e.end||e.end<=e.start)continue;events.push({id:e.id,date:e.date,start:e.start,end:e.end,title:`${e.title} · ${e.type||'考试'}`,room:e.room||'',description:'',kind:'exam'});}
   if(!events.length)throw Error('这个学期没有可导出的真实排课或考试，请先更新课表与校历');

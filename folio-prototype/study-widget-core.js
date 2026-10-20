@@ -84,7 +84,7 @@
       term: term?.id || null,
       calendar: term?.calendar || null,
       courses: Array.isArray(courses) ? courses : [],
-      exclusions: term?.scheduleExclusions || []
+      exclusions: term?.scheduleExclusions || [], personalSchedule:term?.personalSchedule||[]
     });
   }
 

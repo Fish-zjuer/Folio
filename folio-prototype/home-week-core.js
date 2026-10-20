@@ -20,10 +20,10 @@
     const entries=project([...coursesOn(date),...examsOn(date)],date).filter(e=>!e.allDay);
     const rows=new Map();
     for(const item of itemsFor(date)){
-      if(item.repeatTemplate)continue;
+      if(item.repeatTemplate||Array.isArray(item.placements)&&!item.placements.includes("home"))continue;
       const matches=project(personal([item]),date);
       const undated=!item.startAt&&!item.deadline&&!item.scheduledDay;
-      if(matches.length||(undated&&!item.completed))rows.set(item.id,{
+      if((matches.length||(undated&&!item.completed))&&!(item.kind==="lesson"&&item.startAt&&item.endAt))rows.set(item.id,{
         ...(matches.find(e=>e.kind==='deadline')||matches[0]||{}),id:item.id+':row',itemId:item.id,title:item.title,
         completed:!!item.completed,date:matches.length?date:null,itemKind:item.kind||'todo'
       });

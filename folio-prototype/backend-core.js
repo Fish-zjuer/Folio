@@ -105,7 +105,7 @@
       if(previous&&previous.source!=="school")continue;
       // A refresh must not reopen work the user already completed locally.
       // Only an explicit school completion can add a completion; it never clears one.
-      records.set(r.id,previous?{...r,completed:previous.completed===true||r.completed===true,schoolCompleted:previous.schoolCompleted===true||r.schoolCompleted===true,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,body:previous.body||r.body}:r);
+      records.set(r.id,previous?{...r,completed:previous.completed===true||r.completed===true,schoolCompleted:previous.schoolCompleted===true||r.schoolCompleted===true,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,urgent:previous.urgent,manualDate:previous.manualDate,mountClock:previous.mountClock,placements:previous.placements,reminderOffsets:previous.reminderOffsets,reminderMinutes:previous.reminderMinutes??r.reminderMinutes,body:previous.body||r.body}:r);
     }
     return [...records.values()];
   }

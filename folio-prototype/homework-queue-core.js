@@ -1,7 +1,7 @@
 /* 独立队列模型：日期按本地日历日计算，不依赖浏览器时区。 */
 (function (root) {
   "use strict";
-  const DAY = 86400000;
+  const DAY = 86400000, P=typeof module!=="undefined"&&module.exports?require("./item-policy-core.js"):root.FolioItemPolicy;
   function dateValue(date) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) throw new Error("无效日期");
     const value = Date.parse(`${date}T00:00:00Z`);
@@ -47,7 +47,7 @@
   }
   function plan(items, weights, options = {}) {
     const groups = new Map();
-    items.filter(item => !item.repeatTemplate && item.queued && dateFor(item)).forEach(item => {
+    items.filter(item => !item.repeatTemplate && item.kind!=="lesson" && item.queued && dateFor(item)).forEach(item => {
       const days = weights.length === 7 ? weekFor(dateFor(item)) : weekendFor(dateFor(item));
       if (!groups.has(days[0])) groups.set(days[0], {days, items: []});
       groups.get(days[0]).items.push(item);
@@ -70,8 +70,9 @@
   function advance(items, today, clock = "23:59") {
     dateValue(today);
     items.forEach(item => {
-      if (!item.repeatTemplate && item.queued && !item.completed && !item.mountedOn && item.mountDate && (item.mountDate < today || item.mountDate===today&&(!item.mountClock||clock>=item.mountClock))) item.mountedOn = today;
+      if (!item.repeatTemplate && item.kind!=="lesson" && item.queued && !item.completed && !item.mountedOn && item.mountDate && (item.mountDate < today || item.mountDate===today&&(!item.mountClock||clock>=item.mountClock))) item.mountedOn = today;
     });
+    items.filter(item=>item.kind==="lesson"&&!item.repeatTemplate&&item.queued&&!item.completed&&!item.manualDate).forEach(item=>{item.mountDate=dateFor(item)||today;item.mountedOn=item.mountDate&&item.mountDate<=today?item.mountDate:null;});
     return items;
   }
   function move(item, date, today) {
@@ -108,11 +109,11 @@
     return days <= 1 ? "fire" : days <= 3 ? "smoke" : "normal";
   }
   function dayLoad(items, date, exceptIds = []) {
-    return items.filter(item => !item.repeatTemplate && item.queued && !exceptIds.includes(item.id) && (item.mountDate || item.mountedOn) === date).length;
+    return items.filter(item => !item.repeatTemplate && item.kind!=="lesson" && item.queued && !exceptIds.includes(item.id) && (item.mountDate || item.mountedOn) === date).length;
   }
   function manualLimit(items, date, options = {}) {
     if (options.capacityMode === "quota") {
-      const weights = options.weights || [0,0,0,0,25,45,30], count = items.filter(item => !item.repeatTemplate && item.queued && dateFor(item) && weekFor(dateFor(item)).includes(date)).length;
+      const weights = options.weights || [0,0,0,0,25,45,30], count = items.filter(item => !item.repeatTemplate && item.kind!=="lesson" && item.queued && dateFor(item) && weekFor(dateFor(item)).includes(date)).length;
       const days = weights.length === 3 ? weekendFor(iso(dateValue(date) + 7 * DAY)) : weekFor(iso(dateValue(date) + 7 * DAY));
       const index = days.indexOf(date);
       return index < 0 ? 0 : quotas(count, weights)[index];
@@ -126,6 +127,7 @@
     dateValue(date); dateValue(today);
     if (!items.includes(item) || item.completed || item.repeatTemplate) return {ok:false,code:"invalid",message:"这项不能调整挂载日。"};
     if (date < today) return {ok:false,code:"past",message:"请选择今天或以后的日期。"};
+    if(item.kind==="lesson")return {ok:true};
     const from = item.mountDate || item.mountedOn;
     if (from === date) return {ok:true,code:"same",from};
     if (from && date > from) {
@@ -140,7 +142,7 @@
   function swapCandidates(items, item, date, today, options = {}) {
     const check = manualCheck(items,item,date,today,options);
     if (check.code !== "swap") return [];
-    return items.filter(other => other !== item && !other.completed && other.schoolCompleted !== true && !other.repeatTemplate && other.queued && other.mountDate === date && !other.mountedOn && noticeStage(other,today,options) === "normal");
+    return items.filter(other => other !== item && other.kind!=="lesson" && !other.completed && other.schoolCompleted !== true && !other.repeatTemplate && other.queued && other.mountDate === date && !other.mountedOn && noticeStage(other,today,options) === "normal");
   }
   function manualMove(items, item, date, today, options = {}, partnerId = null) {
     const check = manualCheck(items,item,date,today,options);
@@ -153,28 +155,29 @@
     move(partner,earlier,today); move(item,date,today);
     return {ok:true,swapped:true};
   }
+  function lessonRail(items,today){return items.filter(i=>i.kind==="lesson"&&!i.repeatTemplate&&i.queued&&!i.completed&&i.mountedOn&&(!dateFor(i)||dateFor(i)>=today)).sort((a,b)=>(a.startAt||a.scheduledDay||"~").localeCompare(b.startAt||b.scheduledDay||"~"));}
   function rail(items) {
-    return items.filter(item => !item.repeatTemplate && item.queued && item.mountedOn && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true)
+    return items.filter(item => !item.repeatTemplate && item.kind!=="lesson" && item.queued && item.mountedOn && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true)
       .sort((a,b) => a.mountedOn.localeCompare(b.mountedOn) || a.id.localeCompare(b.id));
   }
-  function calendarEntries(items) {
+  function calendarEntries(items,surface="calendar") {
     return items.flatMap(item => {
-      if (item.repeatTemplate) return [];
+      if (item.repeatTemplate || !P.shows(item,surface) || item.kind==="lesson"&&item.startAt&&item.endAt) return [];
       const entries = [];
       if (item.deadline) entries.push({id: `${item.id}:deadline`, itemId: item.id, kind: "deadline", date: item.deadline, at:item.deadlineClock ? `${item.deadline}T${item.deadlineClock}` : null, title: item.title, completed: Boolean(item.completed||item.schoolCompleted)});
-      else if (item.startAt) entries.push({id: `${item.id}:range`,itemId:item.id,kind:"range",date:item.startAt.slice(0,10),startAt:item.startAt,endAt:item.endAt,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
-      else if (item.scheduledDay) entries.push({id:`${item.id}:day`,itemId:item.id,kind:"day",date:item.scheduledDay,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
+      if (item.startAt) entries.push({id: `${item.id}:range`,itemId:item.id,kind:"range",date:item.startAt.slice(0,10),startAt:item.startAt,endAt:item.endAt,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
+      else if (!item.deadline && item.scheduledDay) entries.push({id:`${item.id}:day`,itemId:item.id,kind:"day",date:item.scheduledDay,title:item.title,completed:Boolean(item.completed||item.schoolCompleted)});
       if (item.queued && !item.completed && item.schoolCompleted !== true && item.mountDate) entries.push({id: `${item.id}:mount`, itemId: item.id, kind: "mount", date: item.mountDate, title: item.title});
-      return entries.map(entry=>({...entry,itemKind:item.kind||"todo",location:item.location||""}));
+      return entries.map(entry=>({...entry,itemKind:item.kind||"todo",location:item.location||"",color:item.color||null}));
     });
   }
   function homeworkItems(items) {
-    return items.filter(item => !item.repeatTemplate && item.kind !== "event" && (item.source === "school" || item.kind === "homework" || item.queued));
+    return items.filter(item => !item.repeatTemplate && P.shows(item,"homework"));
   }
   function homeworkSubject(item) { return item.source === "personal" ? "自定义" : item.course || "其他"; }
-  function dateFor(item) {return item.deadline || item.startAt?.slice(0,10) || item.scheduledDay || null;}
+  function dateFor(item) {return item.startAt?.slice(0,10) || item.deadline || item.scheduledDay || null;}
   function pendingOn(items, date) { return items.filter(item => !item.completed && item.schoolCompleted !== true && dateFor(item) === date); }
-  const api = {dateValue, weekendFor, weekFor, normalize, quotas, plan, advance, move, complete, setQueued, urgency, important, usableDays, noticeStage, dayLoad, manualLimit, manualCheck, swapCandidates, manualMove, rail, calendarEntries, homeworkItems, homeworkSubject, pendingOn, dateFor};
+  const api = {dateValue, weekendFor, weekFor, normalize, quotas, plan, advance, move, complete, setQueued, urgency, important, usableDays, noticeStage, dayLoad, manualLimit, manualCheck, swapCandidates, manualMove, rail, lessonRail, calendarEntries, homeworkItems, homeworkSubject, pendingOn, dateFor};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FolioQueue = api;
 })(typeof globalThis === "undefined" ? this : globalThis);

@@ -70,7 +70,7 @@
     try { await window.FolioSchool.refresh("homework"); announce("学在浙大作业已刷新"); }
     catch (error) { announce(error?.message || "刷新学在浙大作业失败"); }
   }
-  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, interactionStatus); main.append(grid, board);
+  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, interactionStatus); const lessonQueue=el("section","workbench-lesson-queue");lessonQueue.setAttribute("aria-label","课程安排队列");lessonQueue.hidden=true;main.append(grid,lessonQueue,board);
   page.append(header, overview, main); phone.insertBefore(page, homeworkLayer);
   const home = previewScreens.home, homeHeader = home.querySelector(".topbar");
   const sharedHeader = homeHeader || header;
@@ -143,7 +143,7 @@
   reader.addEventListener("animationend", event => {
     if (event.target === reader && event.animationName === "workbench-reading-close" && reader.classList.contains("is-closing")) closeReader(true);
   });
-  function incomingItems() { return homeworkState.items.filter(item => !item.repeatTemplate && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true && item.queued && !item.mountedOn).sort((a,b)=>(a.mountDate||"9999").localeCompare(b.mountDate||"9999") || a.id.localeCompare(b.id)); }
+  function incomingItems() { return homeworkState.items.filter(item => !item.repeatTemplate && !item.completed && item.schoolCompleted !== true && item.remoteMissing !== true && item.kind!=="lesson" && item.queued && !item.mountedOn).sort((a,b)=>(a.mountDate||"9999").localeCompare(b.mountDate||"9999") || a.id.localeCompare(b.id)); }
   function preparePaper(node,item,index) {
     if(!noteColors.has(item.id))noteColors.set(item.id,notePalette[Math.floor(Math.random()*notePalette.length)]);
     const color=noteColors.get(item.id), colors=paperPalette.find(p=>p[0]===color)||paperPalette[0];
@@ -432,6 +432,7 @@
   let noteRenderSignature="";
   function renderNotes() {
     const signature=JSON.stringify([homeworkState.today,homeworkState.items,window.FolioGoalUI?.queueOptions()]);if(signature===noteRenderSignature){requestAnimationFrame(arrangeNotes);return;}noteRenderSignature=signature;
+    const lessons=FolioQueue.lessonRail(homeworkState.items,homeworkState.today);lessonQueue.hidden=!lessons.length;lessonQueue.replaceChildren();for(const item of lessons){const b=button("workbench-lesson-card",item.title,event=>openItem(item,event.currentTarget));b.style.setProperty("--lesson-color",item.color||"#B8CDC4");b.append(el("strong","",item.title),el("span","",item.startAt?item.startAt.slice(11)+"–"+item.endAt.slice(11):"时间待定"),el("small","",item.location||"地点待定"));b.dataset.itemId=item.id;lessonQueue.append(b);}
     const items = FolioQueue.rail(homeworkState.items);
     const inboxColorsAdded=renderInbox();
     notes.replaceChildren();

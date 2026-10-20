@@ -25,8 +25,10 @@ function renderTimetable() {
   // 课表只保留教务原版 13 节（到 21:15）；个人事项由日程处理，不再拉伸课表。
   const configuredTimes=(allTimes?allTimes.slice(0,13):defaultTimetableTimes);
   const rangeStart=timetableMinute(configuredTimes[0][0]),rangeEnd=timetableMinute(configuredTimes.at(-1)[1]);
+  let pending=document.getElementById("timetable-untimed");if(!pending){pending=make("section","timetable-untimed");pending.id="timetable-untimed";timetableScroll.append(pending);}pending.replaceChildren();
+  for(let day=0;day<7;day++){const date=calendarAddDays(timetableMonday,day);for(const e of FolioQueue.calendarEntries(FolioTodo.materialize(structuredClone(homeworkState.items),date),"timetable").filter(e=>e.kind==="day"&&e.date===date))pending.append(action(`${shortDate(date)} · ${e.title} · 时间待定`,event=>openCalendarEvent(e,event.currentTarget),"small-action"));}pending.hidden=!pending.children.length;
   const dayEntries=Array.from({length:7},(_,day)=>{const date=calendarAddDays(timetableMonday,day);
-    return FolioCalendar.dayEntries(calendarCourses(date),date).filter(entry=>entry.endMinute>rangeStart&&entry.startMinute<rangeEnd);});
+    return FolioCalendar.dayEntries(calendarCourses(date,"timetable"),date).filter(entry=>entry.endMinute>rangeStart&&entry.startMinute<rangeEnd);});
   try{timetableScale=FolioTimetable.scale(configuredTimes,fit);}
   catch{timetableScale=FolioTimetable.scale(defaultTimetableTimes,fit);}
   timetableScroll.classList.toggle("is-tight",tight);

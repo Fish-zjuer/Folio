@@ -1088,3 +1088,11 @@ button.heatmap-cell:hover .heatmap-square { filter: brightness(.9); }
 /* Personal menu mark: same circle, user controlled surname / initials. */
 button.profile-badge { border:0;padding:0;flex-shrink:0;cursor:pointer;font-family:inherit;line-height:1; }
 .profile-badge svg { width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round; }
+
+/* Display controls share the existing paper form; queued lessons keep course styling. */
+.item-display-options{border:0;padding:0;margin:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;min-width:0}
+.item-display-options legend{font-weight:600;padding:0 0 12px}.item-display-options .queue-hint{grid-column:1/-1;margin:0}.item-display-options .queue-check{margin:0;min-width:0}
+.workbench-lesson-queue{display:flex;gap:10px;overflow:auto;flex-shrink:0;padding:2px 2px 8px;max-height:100px}.workbench-lesson-queue[hidden]{display:none}
+.workbench-lesson-card{flex:0 0 150px;display:grid;gap:2px;text-align:left;border:0;border-radius:12px;padding:10px 12px;background:color-mix(in srgb,var(--lesson-color) 44%,var(--paper,#FAF8F5));color:inherit;min-width:0;font:inherit}.workbench-lesson-card strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.workbench-lesson-card span,.workbench-lesson-card small{font-size:12px;color:inherit;opacity:.72}
+
+.timetable-untimed{display:flex;flex-wrap:wrap;gap:8px;padding:8px 4px}.timetable-untimed[hidden]{display:none}

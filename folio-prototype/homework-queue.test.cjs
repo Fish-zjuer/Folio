@@ -109,11 +109,11 @@ test('热力图只计未完成份数：2 → 1 → 0；完成不改变 DDL 或�
   Q.complete(items[1]); assert.equal(Q.pendingOn(items,'2026-10-21').length,0);
   assert.equal(items.length,2); assert.ok(items.every(item=>item.deadline==='2026-10-21'));
 });
-test('自定义作业不依赖入队开关展示；主动入队的普通待办也归入自定义', () => {
+test('自定义作业不依赖入队开关展示；普通待办入队不再改变作业归属', () => {
   const items=[{id:'s',source:'school',course:'这是一个超过四个字的课程全名'},
     {id:'h',source:'personal',kind:'homework',course:'微积分',queued:false},
     {id:'q',source:'personal',kind:'todo',queued:true}, {id:'t',source:'personal',kind:'todo',queued:false}];
-  assert.deepEqual(Q.homeworkItems(items).map(item=>item.id),['s','h','q']);
+  assert.deepEqual(Q.homeworkItems(items).map(item=>item.id),['s','h']);
   assert.equal(Q.homeworkSubject(items[0]),'这是一个超过四个字的课程全名');
   assert.equal(Q.homeworkSubject(items[1]),'自定义'); assert.equal(Q.homeworkSubject(items[2]),'自定义');
 });

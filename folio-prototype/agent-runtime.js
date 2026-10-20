@@ -4,7 +4,7 @@
   const id=()=>crypto.randomUUID(),copy=v=>structuredClone(v),B=window.FolioBackend,readSets=new WeakMap();
   function records(module){
     if(module==="courses")return FolioCourses.semesters.flatMap(t=>t.courses.map(c=>({...c,id:`${t.id}::${c.id}`,termId:t.id})));
-    if(["homework","todos","events"].includes(module))return homeworkState.items.filter(r=>r.kind===({homework:"homework",todos:"todo",events:"event"}[module]));
+    if(["homework","todos","events","lessons"].includes(module))return homeworkState.items.filter(r=>r.kind===({homework:"homework",todos:"todo",events:"event",lessons:"lesson"}[module]));
     if(module==="exams")return [...officialExamRecords,...customExamRecords];
     if(module==="grades")return FolioNative.cache().modules.grades?.data||[];
     if(module==="goals"){try{const g=JSON.parse(localStorage.getItem("folio-goals-v1"));return g?.applied?[{id:"applied-goal",...g.applied}]:[];}catch{return [];}}
@@ -42,7 +42,7 @@
       if(!argsClean.operation.startsWith("create_")&&!target)throw new Error("待修改的记录不存在，请先检索");
       if(!argsClean.operation.startsWith("create_")&&!readSets.get(conversation)?.has(`${messageId}:${target.id}`))throw new Error("修改前必须先通过 read_record 读取该事项");
       if(module==="exams"&&target?.source==="school")throw new Error("学校考试是只读数据，可以创建自定义考试或本地备注");
-      if(target?.source==="school"&&Object.keys(argsClean.fields).some(k=>!["completed","important","urgent","queued","body"].includes(k)))throw new Error("学校原始作业字段只读；可修改本地完成、重要性、入队状态，或另建个人事项");
+      if(target?.source==="school"&&Object.keys(argsClean.fields).some(k=>!["completed","important","urgent","queued","body","placements","reminderOffsets","reminderMinutes"].includes(k)))throw new Error("学校原始作业字段只读；可修改本地完成、重要性、入队状态，或另建个人事项");
       const existing=conversation.proposals.find(p=>p.messageId===messageId&&p.status==="pending"&&p.operation===argsClean.operation&&p.targetId===argsClean.targetId&&JSON.stringify(p.fields)===JSON.stringify(argsClean.fields));if(existing)return {draftId:existing.id,status:"待用户确认"};
       if(conversation.proposals.filter(p=>p.messageId===messageId).length>=8)throw new Error("本轮草稿已达8项，请先确认已有修改");
       const proposal={id:id(),messageId,status:"pending",operation:argsClean.operation,targetId:argsClean.targetId,fields:argsClean.fields,before:target?JSON.stringify(target):null,createdAt:new Date().toISOString()};
@@ -52,7 +52,7 @@
   }
   function confirm(p){
     if(p.status!=="pending")return;
-    const f=p.fields,exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_"),remove=p.operation.startsWith("delete_"),targetId=create?`chat-${p.id}`:p.targetId;
+    const f=FolioItemPolicy.normalizeTime(p.fields),exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_"),remove=p.operation.startsWith("delete_"),targetId=create?`chat-${p.id}`:p.targetId;
     const all=exam?customExamRecords:homeworkState.items,previous=all.find(r=>r.id===targetId);
     if(create&&previous){p.status="confirmed";return;}
     if(!create&&p.appliedFingerprint&&p.appliedFingerprint===JSON.stringify(previous)){p.status="confirmed";return;}
@@ -62,13 +62,16 @@
     let nextRecord;
     if(!remove&&exam){nextRecord={...(previous||{}),id:targetId,semesterId:previous?.semesterId||examSemester.id,source:"custom",title:f.title??previous?.title,type:f.type??previous?.type??"小测",date:f.date??previous?.date,start:f.start??previous?.start,end:f.end??previous?.end,room:f.room??previous?.room??"",seat:f.seat??previous?.seat??"",note:f.note??previous?.note??"",courseId:previous?.courseId||null};const error=FolioExams.validate(nextRecord);if(error)throw new Error(error);}
     if(!remove&&!exam){
-      const base=previous||{id:targetId,title:"",body:"",kind:p.operation==="create_homework"?"homework":"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:false,completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
-      nextRecord={...base};for(const key of ["title","body","kind","course","location","timeMode","deadline","startAt","endAt","important","urgent","queued","completed","reminderMinutes"])if(key in f)nextRecord[key]=f[key];
+      const base=previous||{id:targetId,title:"",body:"",kind:p.operation==="create_lesson"?"lesson":p.operation==="create_homework"?"homework":"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:false,completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
+      nextRecord={...base};for(const key of ["title","body","kind","course","location","timeMode","deadline","startAt","endAt","important","urgent","queued","completed","reminderMinutes","reminderOffsets","placements","scheduledDay","courseId","termId"])if(key in f)nextRecord[key]=f[key];
       if(p.operation==="create_homework")nextRecord.kind="homework";
+      if(p.operation==="create_lesson")nextRecord.kind="lesson";
+      if(nextRecord.kind==="lesson"){nextRecord.termId=nextRecord.termId||B.currentTerm();const linked=FolioCourses.semesters.find(t=>t.id===nextRecord.termId)?.courses.find(c=>c.id===nextRecord.courseId||c.title===nextRecord.course);if(linked){nextRecord.courseId=linked.id;nextRecord.color=linked.color;}}
       if("clock" in f)nextRecord.deadlineClock=f.clock||null;if(!("timeMode" in f)){if(f.startAt)nextRecord.timeMode="range";else if(f.deadline)nextRecord.timeMode="deadline";}
       if(nextRecord.timeMode!=="deadline"){nextRecord.deadline=null;nextRecord.deadlineClock=null;}
       if(nextRecord.timeMode!=="range"){nextRecord.startAt=null;nextRecord.endAt=null;}
-      if(nextRecord.timeMode==="none")nextRecord.reminderMinutes=null;
+      if(nextRecord.timeMode==="none"){nextRecord.reminderMinutes=null;nextRecord.reminderOffsets=[];}
+      if("reminderOffsets" in f)nextRecord.reminderMinutes=FolioItemPolicy.offsets(nextRecord)[0]??null;
       if(f.repeatKind){nextRecord.repeat={...base.repeat,kind:f.repeatKind};if(f.repeatKind==="weekly"&&!nextRecord.repeat.weekdays?.length)nextRecord.repeat.weekdays=[(new Date(`${FolioTodo.anchor(nextRecord)}T00:00:00Z`).getUTCDay()+6)%7+1];}
       if(nextRecord.kind==="homework"&&!nextRecord.course)nextRecord.course="自定义";
       FolioTodo.validate(nextRecord);

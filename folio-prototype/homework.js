@@ -373,6 +373,7 @@ function openItem(item, origin) {
   if(FolioQueue.important(item,window.FolioGoalUI?.queueOptions()))homeworkBody.append(make("p","goal-course-reminder",`${FolioQueue.urgency(item,homeworkState.today,window.FolioGoalUI?.queueOptions())!=="normal"&&!item.completed?"🔥 抓紧完成 · ":""}重要课程作业，优先提前安排；截止前 3 天提醒。`));
   [["截止日期", shortDate(item.deadline)], ["便签状态", queueLabel(item)]].forEach(([label,value]) => { facts.append(make("dt", "", label),make("dd", "", value)); });
   homeworkBody.append(facts);
+  if(item.source==="school"&&window.FolioItemOptions){const options=FolioItemOptions.mount(homeworkBody,item),reminders=FolioItemOptions.reminders(homeworkBody,item),error=make("p","form-error");homeworkBody.append(error,action("保存显示与提醒设置",()=>{try{const values=options.read(),offsets=reminders.read();Object.assign(item,values,{reminderOffsets:offsets,reminderMinutes:offsets[0]??null});FolioQueue.setQueued(item,values.queued);closeHomeworkSheet();commit("显示与提醒设置已保存");}catch(e){error.textContent=e.message;}},"small-action"));}
   if (!item.completed) {
     let hangNowButton = null;
     const moveControls = createQueueMoveControls(item);

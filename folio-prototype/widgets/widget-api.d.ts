@@ -5,7 +5,7 @@ interface FolioWidgetContext {
  readonly apiVersion: 1; readonly id: string; readonly preview: boolean;
  readonly dataMode: 'local' | 'demo'; readonly timezone: 'Asia/Shanghai'; readonly today: string;
  /** Courses after holidays, exchanges and recoverable local exclusions. Requires courses permission. */
- coursesOn(date: string, termId?: string): ReadonlyArray<Readonly<{id:string;courseId:string;title:string;date:string;start:string;end:string;room?:string;periods?:number}>>;
+ coursesOn(date: string, termId?: string): ReadonlyArray<Readonly<{id:string;courseId:string;title:string;date:string;start:string;end:string;room?:string;periods?:number;personal?:boolean;itemId?:string}>>;
  read<T = unknown>(dataset: FolioDataset): Readonly<T>;
  subscribe<T = unknown>(dataset: FolioDataset, callback: (data: Readonly<T>) => void): () => void;
  onDispose(callback: () => void): () => void;

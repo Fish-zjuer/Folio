@@ -9,23 +9,24 @@
   function time(parent,label,ms){const d=S.duration(ms);return metric(parent,label,d.value,d.unit);}
   function sub(parent,text){parent.append(el('span','overview-sub',text));}
   function sheet(kind,part,origin){
-    const value=model(kind);let rows=[],description='';
+    const value=model(kind);let title='',groups=[],metrics=[],caption='',explanation='';
+    const time=ms=>{const d=S.duration(ms);return d.value+' '+d.unit;};
     if(kind==='focus'){
-      const label={last:'上周专注',total:'累计专注',week:'本周专注',houses:'专注成果'}[part];openHomeworkSheet(label,origin);
-      if(part==='houses'){description='只统计本机已保存的成果；演示预览不算记录。';rows=value.buildings.slice().reverse().map(b=>({title:S.day(b.completedAt)+' · 小屋',meta:(b.minutes||45)+' 分钟'}));}
-      else{description='按北京时间、周一至周日统计；暂停不计时，跨日按实际时段拆分。当前搭建最多计45分钟。';rows=Object.entries(value.byDay).filter(([date])=>part==='total'||part==='week'&&date>=value.weekStart||part==='last'&&date<value.weekStart&&date>=value.lastWeekDays[0].date).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,ms])=>{const t=S.duration(ms);return {title:date,meta:t.value+' '+t.unit};});}
+      title={last:'上周专注',total:'累计专注',week:'本周专注',houses:'专注成果'}[part];caption=part==='last'?'只看上一周的实际记录':part==='week'?'这一周，一天一天地积累':'保存在本机的学习积累';
+      if(part==='houses'){metrics=[{value:String(value.buildings.length),label:'已建小屋'}];groups=[{title:'建成的日子',rows:value.buildings.slice().reverse().map(b=>({title:S.day(b.completedAt),meta:'专注搭建',value:(b.minutes||45)+' min',color:'#C9A26E'}))}];}
+      else{const rows=Object.entries(value.byDay).filter(([date])=>part==='total'||part==='week'&&date>=value.weekStart||part==='last'&&date<value.weekStart&&date>=value.lastWeekDays[0].date).sort((a,b)=>b[0].localeCompare(a[0]));metrics=[{value:time(rows.reduce((n,[d,ms])=>n+ms,0)),label:'累计专注'},{value:String(rows.filter(([d,ms])=>ms>0).length),label:'活跃天数'},{value:time(value.today),label:'今日专注'}];groups=[{title:'按日记录',rows:rows.map(([d,ms])=>({title:d,meta:'实际保存时长',value:time(ms),color:'#7E9E9A'}))}];}
+      explanation='按北京时间、周一至周日统计；暂停不计时，跨日按实际时段拆分。搭建成果只统计本机已保存记录。';
     }else if(kind==='tasks'){
-      const label={completed:'已完成记录',homework:'未交作业',todos:'未完待办',deadlines:'截止分布'}[part];openHomeworkSheet(label,origin);
-      description=part==='completed'?'仅当前保存记录中的完成数量；旧记录没有完成时间，不能据此推算本周完成量。':part==='deadlines'?'按实际截止日期统计逾期、今天起三天内到期和无期限事项；与便签预留完整工作日的火烟提醒分开。':'';
-      rows=(part==='deadlines'?[...value.overdue,...value.next3,...value.undated]:value[part]).map(i=>({title:i.title,meta:[i.course,i.completed?'已完成':i.deadline||i.endAt?.slice(0,10)||'无期限'].filter(Boolean).join(' · '),item:i}));
+      title={completed:'已完成记录',homework:'未交作业',todos:'未完待办',deadlines:'截止分布'}[part];caption=part==='deadlines'?'先看逾期，再看即将截止':'只显示你点中的这一类';
+      const task=t=>({title:t.title,meta:[t.course,t.deadline||t.endAt?.slice(0,10)||'无期限'].filter(Boolean).join(' · '),action:()=>openItem(t,origin),color:t.important?'#A56A4D':'#7E9E9A'});
+      groups=part==='deadlines'?[{title:'已经逾期',rows:value.overdue.map(task)},{title:'三日内截止',rows:value.next3.map(task)},{title:'尚无截止时间',rows:value.undated.map(task)}]:[{title:'对应记录',rows:value[part].map(task)}];metrics=[{value:String(groups.reduce((n,g)=>n+g.rows.length,0)),label:'项'}];
+      explanation=part==='completed'?'仅统计当前保存的完成记录；旧记录缺少完成时间，不据此推算本周完成量。':'仅依据实际截止时间，不猜测执行时长。';
     }else{
-      openHomeworkSheet({remaining:'剩余课程',this:'本周课程',next:'下周课程',days:'剩余上课日'}[part],origin);description='节次来自本学期课表和校历，包含正在进行的整节课程；休假与调课沿用日程规则。';
-      rows=(value?{remaining:value.remainingRows,this:value.thisWeekRows,next:value.nextWeekRows,days:value.remainingRows}[part]:[]).map(c=>({title:c.title,meta:`${c.date} · ${c.start} · ${c.periods} 节`}));
+      title={remaining:'剩余课程',this:'本周课程',next:'下周课程',days:'剩余上课日'}[part];caption='只看当前选择的课表范围';const rows=value?{remaining:value.remainingRows,this:value.thisWeekRows,next:value.nextWeekRows,days:value.remainingRows}[part]:[];metrics=[{value:String(part==='days'?new Set(rows.map(c=>c.date)).size:rows.length),label:part==='days'?'上课日':'课段'}];groups=[{title:'排课记录',rows:rows.map(c=>({title:c.title,meta:`${c.date} · ${c.start}`,value:c.periods+' 节',color:'#8886B0'}))}];explanation='来自本学期课表与校历，包含正在进行的整节课程；休假、调课与本地排课排除沿用日程规则。';
     }
-    if(description)homeworkBody.append(el('p','stats-detail-note',description));
-    if(!rows.length)homeworkBody.append(el('p','stats-detail-note','暂无记录'));
-    for(const row of rows){const n=el(row.item?'button':'div','stats-detail-row');n.append(el('strong','',row.title),el('span','',row.meta));if(row.item){n.type='button';n.onclick=()=>openItem(row.item,n);}homeworkBody.append(n);}
+    FolioStudyMenuUI.records({title,caption,metrics,groups,explanation});
   }
+
   function region(root,kind,part,label,preview){const n=el(preview?'div':'button','overview-region stats-'+part);if(!preview){n.type='button';n.dataset.widgetHold='';n.setAttribute('aria-label',label);n.onclick=()=>sheet(kind,part,n);}root.append(n);return n;}
   function draw(root,kind,preview){const v=model(kind),sig=JSON.stringify(v);if(sig===root._signature)return;root._signature=sig;root.replaceChildren();
     if(kind==='focus'){

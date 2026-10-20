@@ -141,7 +141,7 @@
   }
   layer.addEventListener("click",e=>{if(e.target===layer)closePanel();});
   document.addEventListener("keydown",e=>{if(layer.hidden)return;if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();closePanel();}
-    if(e.key==="Tab"){const all=Array.from(panel.querySelectorAll("button:not(:disabled),input,textarea,select,[tabindex='0']")).filter(n=>!n.hidden);const first=all[0],last=all.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel)){e.preventDefault();first?.focus();}}},true);
+    if(e.key==="Tab"){const all=Array.from(panel.querySelectorAll("button:not(:disabled),input,textarea,select,[tabindex='0']")).filter(n=>!n.hidden&&n.getClientRects().length&&!n.closest('[inert]'));const first=all[0],last=all.at(-1);if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel)){e.preventDefault();first?.focus();}}},true);
   function menuRow(name,text,fn,note){const b=btn("",fn,"chat-menu-row");b.append(icon(name),el("span","",text));if(note)b.append(el("small","",note));panel.append(b);return b;}
   function openAttachments(){openPanel("添加到对话");menuRow("file","上传文件",()=>pick("file"));menuRow("album","相册",()=>pick("album"));menuRow("camera","拍照",()=>pick("camera"));menuRow("command","快捷命令",()=>{},"稍后设计").disabled=true;panel.append(el("p","chat-panel-note",window.FolioApp?.native?"附件先保存在本机，发送对话时才提交给所选模型。":"附件仅保存在此浏览器，尚未上传给模型。"));}
   function formField(label,type,value,change){const wrap=el("label","chat-field",label),f=el(type==="select"?"select":type==="textarea"?"textarea":"input");if(f.tagName==="INPUT")f.type=type;f.value=value;f.setAttribute("aria-label",label);f.addEventListener(type==="select"?"change":"input",()=>change(f.value));wrap.append(f);return {wrap,input:f};}
@@ -171,7 +171,7 @@
     const write=(key,v)=>{f[key]=v;persist();};
     const title=formField("标题","text",f.title,v=>write("title",v));title.input.required=true;title.input.maxLength=200;
     const body=formField("内容","textarea",f.body,v=>write("body",v));
-    const kind=selectField("添加为",f.kind,[["todo","待办"],["event","事项"],["homework","自定义作业"]],v=>write("kind",v));
+    const kind=selectField("添加为",f.kind,[["todo","待办"],["lesson","上课／实验"],["event","活动／事项"],["homework","自定义作业"]],v=>write("kind",v));
     const day=formField("截止日期","text",f.deadline,v=>write("deadline",v));day.input.type="hidden";
     const dateButton=btn(f.deadline||"选择日期",()=>{dateChooser.hidden=!dateChooser.hidden;dateButton.setAttribute("aria-expanded",String(!dateChooser.hidden));},"chat-date-button");dateButton.setAttribute("aria-label","选择截止日期");dateButton.setAttribute("aria-expanded","false");
     const dateChooser=el("div","chat-date-chooser");dateChooser.hidden=true;
@@ -200,9 +200,9 @@
   // 侧栏提供历史入口，返回首页后也能找到任意对话与未确认修改。
   function openLiveProposal(c,p){
     const remove=p.operation.startsWith("delete_"),exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_");
-    openPanel(remove?"确认删除":p.operation==="create_homework"?"确认添加作业":create?"确认添加":"确认修改",true);
+    openPanel(remove?"确认删除":p.operation==="create_lesson"?"确认添加课程安排":p.operation==="create_homework"?"确认添加作业":create?"确认添加":"确认修改",true);
     panel.append(el("p","chat-panel-note","尚未执行。可以修改后确认；收起、切换页面或短暂退出都会保留，只有确认或取消才结束这次修改。"));
-    const form=el("form","chat-proposal-form"),f=p.fields;
+    const form=el("form","chat-proposal-form"),f=p.fields;Object.assign(f,FolioItemPolicy.normalizeTime(f));let options=null,reminders=null;
     const target=(exam?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{};
     const write=(key,value)=>{f[key]=value;persist();};
     const field=(label,key,type="text",fallback="")=>{const entry=formField(label,type,f[key]??target[key]??fallback,value=>write(key,value));form.append(entry.wrap);return entry;};
@@ -211,17 +211,19 @@
       field("标题","title");field("内容","body","textarea");
       if(exam){field("日期","date","date");field("开始","start","time");field("结束","end","time");field("类型","type","text","小测");field("教室","room");field("座号","seat");field("备注","note","textarea");}
       else{
-        const kind=selectField("类型",f.kind??(p.operation==="create_homework"?"homework":target.kind??"todo"),[["todo","待办"],["event","事项"],["homework","自定义作业"]],v=>write("kind",v));form.append(kind.wrap);field("科目／关联课程（选填）","course");field("地点（事项选填）","location");
-        const time=selectField("时间安排",f.timeMode??target.timeMode??(f.deadline?"deadline":f.startAt?"range":"none"),[["none","不设时间"],["deadline","截止时间"],["range","特定时间段"]],v=>{write("timeMode",v);day.wrap.hidden=clock.wrap.hidden=v!=="deadline";start.wrap.hidden=end.wrap.hidden=v!=="range";});form.append(time.wrap);
+        const kind=selectField("类型",f.kind??(p.operation==="create_homework"?"homework":p.operation==="create_lesson"?"lesson":target.kind??"todo"),[["todo","待办"],["lesson","上课／实验"],["event","活动／事项"],["homework","自定义作业"]],v=>write("kind",v));form.append(kind.wrap);field("科目／关联课程（选填）","course");field("地点（事项选填）","location");
+        const time=selectField("时间安排",f.timeMode??target.timeMode??(f.deadline?"deadline":f.startAt?"range":"none"),[["none","不设时间"],["deadline","截止时间"],["range","特定时间段"],["pending","时间待定"]],v=>{write("timeMode",v);day.wrap.hidden=clock.wrap.hidden=v!=="deadline";start.wrap.hidden=end.wrap.hidden=v!=="range";scheduled.wrap.hidden=v!=="pending";});form.append(time.wrap);
         const day=field("截止日期","deadline","date"),clock=field("截止时刻（选填）","clock","time",target.deadlineClock||""),start=field("开始时间","startAt","datetime-local"),end=field("结束时间","endAt","datetime-local");
+        const scheduled=field("安排日期（选填）","scheduledDay","date");scheduled.wrap.hidden=time.input.value!=="pending";
         day.wrap.hidden=clock.wrap.hidden=time.input.value!=="deadline";start.wrap.hidden=end.wrap.hidden=time.input.value!=="range";
         form.append(selectField("重复",f.repeatKind??target.repeat?.kind??"none",[["none","不重复"],["daily","每天"],["weekly","每周"],["monthly","每月"]],v=>write("repeatKind",v)).wrap);
-        const remind=field("提前提醒（分钟，仅 App 内）","reminderMinutes","number",target.reminderMinutes??"");remind.input.min="0";remind.input.addEventListener("input",()=>{f.reminderMinutes=remind.input.value===""?null:Number(remind.input.value);persist();});
-        for(const [key,label] of [["important","重要"],["urgent","紧急"],["queued","加入便签队列"],["completed","已完成"]]){const wrap=el("label","chat-check"),check=el("input");check.type="checkbox";check.checked=Boolean(f[key]??target[key]);check.addEventListener("change",()=>write(key,check.checked));wrap.append(check,document.createTextNode(label));form.append(wrap);}
+        reminders=FolioItemOptions.reminders(form,{...target,...f});options=FolioItemOptions.mount(form,{...target,...f,kind:f.kind??target.kind??(p.operation==="create_lesson"?"lesson":"todo")},value=>{Object.assign(f,value);persist();});reminders.input.addEventListener("change",()=>{try{f.reminderOffsets=reminders.read();persist();}catch{}});kind.input.addEventListener("change",()=>options.setKind(kind.input.value));
+        for(const [key,label] of [["important","重要"],["urgent","紧急"],["completed","已完成"]]){const wrap=el("label","chat-check"),check=el("input");check.type="checkbox";check.checked=Boolean(f[key]??target[key]);check.addEventListener("change",()=>write(key,check.checked));wrap.append(check,document.createTextNode(label));form.append(wrap);}
+
       }
     }
     const error=el("p","chat-form-error");error.setAttribute("role","alert");const actions=el("div","chat-panel-actions"),cancel=btn("取消这次修改",()=>{p.status="discarded";if(persist()){closePanel();render();}else p.status="pending";},"chat-secondary danger"),ok=el("button","chat-primary",remove?"确认删除":"确认保存");ok.type="submit";actions.append(cancel,ok);form.append(error,actions);panel.append(form);
-    form.addEventListener("submit",event=>{event.preventDefault();try{FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，但确认状态未保存，请重试。");}closePanel();render();announce("修改已保存");}catch(err){error.textContent=err.message;}});onClose=()=>render();
+    form.addEventListener("submit",event=>{event.preventDefault();try{if(options){Object.assign(f,options.read());f.reminderOffsets=reminders.read();persist();}FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，但确认状态未保存，请重试。");}closePanel();render();announce("修改已保存");}catch(err){error.textContent=err.message;}});onClose=()=>render();
   }
   // Reuse the existing modal lifetime, focus trap and Android back handling.
   // The external agent's second overlay could restore inert after an editor opened.
@@ -229,8 +231,8 @@
     openPanel("待确认修改",true);
     panel.classList.add("chat-deck");layer.classList.add("is-proposal-deck");
     const track=el("div","chat-deck-track");panel.append(track);
-    const labels={kind:"类型",course:"科目",location:"地点",deadline:"截止日期",clock:"截止时间",startAt:"开始",endAt:"结束",date:"日期",start:"开始",end:"结束",room:"教室",seat:"座号",note:"备注",body:"内容",repeatKind:"重复",reminderMinutes:"提前提醒（分钟）",important:"重要",urgent:"紧急",queued:"加入便签队列",completed:"已完成"};
-    const values={event:"事项",homework:"作业",todo:"待办",none:"不重复",daily:"每天",weekly:"每周",monthly:"每月"};
+    const labels={kind:"类型",course:"科目",location:"地点",deadline:"截止日期",clock:"截止时间",startAt:"开始",endAt:"结束",date:"日期",start:"开始",end:"结束",room:"教室",seat:"座号",note:"备注",body:"内容",repeatKind:"重复",reminderMinutes:"提前提醒（分钟）",important:"重要",urgent:"紧急",placements:"显示位置",scheduledDay:"待定安排日期",reminderOffsets:"多个提前提醒（分钟）",queued:"加入工作台队列",completed:"已完成"};
+    const values={lesson:"上课／实验",calendar:"日程",timetable:"课表",todos:"待办列表",home:"首页当天栏",pending:"时间待定",event:"事项",homework:"作业",todo:"待办",none:"不重复",daily:"每天",weekly:"每周",monthly:"每月"};
     function removeCard(card){
       card.classList.add("is-leaving");
       const delay=matchMedia("(prefers-reduced-motion: reduce)").matches?0:180;

@@ -24,8 +24,8 @@ screenFocusTargets.calendar=previewScreens.calendar.querySelector("[data-back-me
 const calendarWeekday=date=>(new Date(FolioQueue.dateValue(date)).getUTCDay()+6)%7;
 const calendarAddDays=(date,days)=>FolioTodo.addDays(date,days);
 const calendarClock=minutes=>minutes===1440 ? "24:00" : `${String(Math.floor(minutes/60)).padStart(2,"0")}:${String(minutes%60).padStart(2,"0")}`;
-function calendarCourses(date) {
-  return FolioCourses.onDate(calendarSemester,date);
+function calendarCourses(date,surface="calendar") {
+  return [...FolioCourses.onDate(calendarSemester,date,undefined,surface),...(surface==="timetable"?FolioQueue.calendarEntries(FolioTodo.materialize(structuredClone(homeworkState.items),date),surface):[])];
 }
 function renderCalendarMonth(month=calendarMonth,target=null) {
   if(!target)document.getElementById("schedule-month-title").textContent=`${month.slice(0,4)} 年 ${Number(month.slice(5))} 月`;
@@ -69,6 +69,7 @@ function calendarNowMinute() {
   return Number(clock.slice(0,2))*60+Number(clock.slice(3));
 }
 function openCalendarEvent(entry,origin,semester=calendarSemester) {
+  if(entry.itemId&&entry.personal){const item=homeworkState.items.find(i=>i.id===entry.itemId)||FolioTodo.materialize(structuredClone(homeworkState.items),entry.date).find(i=>i.id===entry.itemId);if(item)openTodoDetail(item,origin);return;}
   if(entry.kind==="exam"){openExamDetail(entry.examId,origin);return;}
   if(entry.kind!=="course") {
     let item=homeworkState.items.find(item=>item.id===entry.itemId);
@@ -97,7 +98,7 @@ function calendarEventDescription(entry) {
   if(entry.kind==="course") return entry.room;
   const item=calendarProjectedItems.find(item=>item.id===entry.itemId);
   const subject=item?.course;
-  let text=item?.kind==="event"?"事项":"待办";
+  let text=item?.timeMode==="pending"?"时间待定":item?.kind==="lesson"?"上课／实验":item?.kind==="event"?"事项":"待办";
   if(entry.kind==="deadline") text=entry.allDay ? `${shortDate(entry.date)}截止` : `${calendarClock(entry.startMinute)} 截止`;
   else if(entry.kind==="mount") text="推荐这天做";
   else if(entry.continuesBefore||entry.continuesAfter)
@@ -146,7 +147,7 @@ function renderCalendarAgenda(position=false) {
     }
     const li=make("li",entry.allDay ? "schedule-unscheduled-item" : "schedule-event"), row=action("",event=>openCalendarEvent(entry,event.currentTarget),"schedule-event-button");
     // 课程和考试保持原样；作业/待办用简化便签剪 paper 背景区分。
-    li.classList.toggle("is-paper-task",entry.kind!=="course"&&entry.kind!=="exam"&&entry.itemKind!=="event");
+    li.classList.toggle("is-paper-task",entry.kind!=="course"&&entry.kind!=="exam"&&!["event","lesson"].includes(entry.itemKind));
     if(!entry.allDay) {
       const index=timedEvents.indexOf(entry);
       li.classList.toggle("has-experienced-connection",FolioCalendar.connectionExperienced(timedEvents[index+1],homeworkState.today,now));

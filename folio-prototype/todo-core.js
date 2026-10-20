@@ -1,7 +1,7 @@
 /* 待办模型：时间段不伪装成 DDL，重复事项每次独立完成。 */
 (function(root) {
   "use strict";
-  const DAY=86400000;
+  const DAY=86400000, P=typeof module!=="undefined"&&module.exports?require("./item-policy-core.js"):root.FolioItemPolicy;
   function value(date) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date||"")) throw new Error("请选择有效日期");
     const timestamp=Date.parse(`${date}T00:00:00Z`);
@@ -17,9 +17,12 @@
     return value(date)+(Number(clock.slice(0,2))*60+Number(clock.slice(3)))*60000;
   }
   const mode=item=>item.timeMode || (item.deadline ? "deadline" : "none");
-  const anchor=item=>mode(item)==="range" ? item.startAt?.slice(0,10) : item.deadline || item.createdDay;
+  const anchor=item=>mode(item)==="range" ? item.startAt?.slice(0,10) : item.deadline || item.scheduledDay || item.createdDay;
   function validate(draft) {
-    if (draft.kind!=null && !["todo","homework","event"].includes(draft.kind)) throw new Error("请选择有效类型");
+    if (draft.kind!=null && !["todo","homework","event","lesson"].includes(draft.kind)) throw new Error("请选择有效类型");
+    P.validate(draft);
+    if (!["none","deadline","range","pending"].includes(mode(draft)))throw Error("请选择有效时间方式");
+    if(mode(draft)==="pending"&&draft.scheduledDay)value(draft.scheduledDay);
     if (!draft.title.trim()) throw new Error("请填写标题");
     if (mode(draft)==="deadline") {
       value(draft.deadline); if (draft.deadlineClock && !validClock(draft.deadlineClock)) throw new Error("截止时间格式应为 09:00");
@@ -34,9 +37,9 @@
       if (repeat.kind==="weekly" && (!repeat.weekdays?.length || repeat.weekdays.some(n=>!Number.isInteger(n)||n<1||n>7))) throw new Error("至少选择一周中的一天");
       if (repeat.until && value(repeat.until)<value(anchor(draft))) throw new Error("重复结束日期不能早于首次日期");
     }
-    if (draft.reminderMinutes!=null) {
+    if (P.offsets(draft).length) {
       if (mode(draft)==="none") throw new Error("设置时间后才能提前提醒");
-      if (!Number.isFinite(draft.reminderMinutes)||draft.reminderMinutes<0||draft.reminderMinutes>525600) throw new Error("提醒提前量应在 0 到 365 天之间");
+      
     }
     return draft;
   }
@@ -61,6 +64,7 @@
       completed:existing?.completed||false,queued:existing ? existing.queued : parent.queued,
       mountedOn:existing?.mountedOn||null,mountDate:existing?.mountDate||null,manualDate:existing?.manualDate||false};
     if (mode(parent)==="deadline") item.deadline=date;
+    if (mode(parent)==="pending") item.scheduledDay=date;
     if (mode(parent)==="range") {
       item.startAt=`${addDays(parent.startAt.slice(0,10),shift)}T${parent.startAt.slice(11)}`;
       item.endAt=`${addDays(parent.endAt.slice(0,10),shift)}T${parent.endAt.slice(11)}`;
@@ -99,20 +103,21 @@
     });
     return result;
   }
-  function listItems(items) {
+  function listItems(items,surface="todos") {
     const result=[];
-    items.filter(item=>item.source==="personal"&&!item.parentId).forEach(parent=>{
+    items.filter(item=>(item.source==="personal"||surface&&P.shows(item,surface))&&!item.parentId&&(!surface||P.shows(item,surface))).forEach(parent=>{
       if (!parent.repeatTemplate) {result.push(parent);return;}
       const children=items.filter(item=>item.parentId===parent.id).sort((a,b)=>a.occurrenceDay.localeCompare(b.occurrenceDay));
       result.push(children.find(item=>!item.completed) || children.at(-1) || parent);
     });
     return result;
   }
-  function reminderAt(item) {
-    if (item.repeatTemplate||item.completed||item.reminderMinutes==null||mode(item)==="none") return null;
-    const at=mode(item)==="range" ? item.startAt : `${item.deadline}T${item.deadlineClock||"23:59"}`;
-    return new Date(minuteValue(at)-item.reminderMinutes*60000).toISOString().slice(0,16);
+  function reminderTimes(item) {
+    if(item.repeatTemplate||item.completed||item.schoolCompleted||mode(item)==="none"||mode(item)==="pending")return [];
+    const at=mode(item)==="range"?item.startAt:item.deadlineClock?`${item.deadline}T${item.deadlineClock}`:null;
+    if(!at)return [];return P.offsets(item).map(minutes=>({minutes,at:new Date(minuteValue(at)-minutes*60000).toISOString().slice(0,16)}));
   }
-  const api={value,addDays,mode,anchor,validClock,minuteValue,validate,matches,materialize,listItems,reminderAt};
+  function reminderAt(item){return reminderTimes(item)[0]?.at||null;}
+  const api={value,addDays,mode,anchor,validClock,minuteValue,validate,matches,materialize,listItems,reminderAt,reminderTimes};
   if(typeof module!=="undefined"&&module.exports) module.exports=api; else root.FolioTodo=api;
 })(typeof globalThis==="undefined"?this:globalThis);

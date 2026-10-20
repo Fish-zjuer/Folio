@@ -92,8 +92,8 @@
    const cards=[...button.querySelectorAll('.fan i')];
    let order=[0,1,2,3,4].slice(0,cards.length),timer=0,startY=null,swiped=false;
    const lay=()=>order.forEach((index,position)=>{cards[index].style.transform=`rotate(${(position-(cards.length-1)/2)*15}deg)`;cards[index].style.zIndex=position;});
-   const openList=()=>FolioStudyUI.open('review',ctx,button);
-   const openFront=()=>{const id=model.cards?.[0]?.id;if(id)FolioStudyUI.openCard(id,ctx,button);else openList();};
+   const openList=()=>FolioStudyUI.open('review',ctx,button,{motif:'fan'});
+   const openFront=()=>{const id=model.cards?.[order.slice().reverse().find(index=>model.cards?.[index])??0]?.id;if(id)FolioStudyUI.openCard(id,ctx,button);else openList();};
    const cycle=()=>{order.unshift(order.pop());lay();};
    if(cards.length){
      lay();
@@ -112,10 +112,10 @@
    return start;
   }
   function draw(root,spec,m,preview,ctx){root.replaceChildren();const composite=!!spec[4]?.includes?.('1fr');root.className='study-widget study-paper-'+spec[2]+(composite?' study-bento':' study-single');root.setAttribute('aria-label',spec[1]);
-  function control(target,motif,deferClick=false){const b=el(preview?'div':'button','study-zone');if(!preview){b.type='button';b.dataset.widgetHold='';b.setAttribute('aria-label',motif==='fan'?'闪卡扇 · 单击换一张，双击打开卡片列表，上滑打开当前卡':spec[1]+' · '+({calendar:'查看日程',tasks:'查看任务',exams:'查看考试',review:'复习闪卡',focus:'专注计时',courses:'课程进度',grades:'查看成绩',sleep:'记录睡眠',coffee:'记录咖啡',homework:'查看作业',study:'学习目标'}[target]||target));if(!deferClick)b.addEventListener('click',()=>target==='focus'?(['focus','tomatoes','focusBands'].includes(motif)?FolioPomodoroUI.open():ctx.open('focus')):FolioStudyUI.open(target,ctx,b));}return b;}
-  if(!composite){const b=control(spec[3],spec[0],spec[0]==='fan');b.classList.add('study-single-control');const art=FolioStudySingleReference.create(spec[0],root.ownerDocument);if(!preview)FolioStudySingleBindings.bind(art,spec[0],m,ctx);b.append(art);if(!preview&&spec[0]==='fan'){root.append(b,fanGestures(b,m,ctx));return;}root.append(b);return;}
+  function control(target,motif,deferClick=false){const b=el(preview?'div':'button','study-zone');if(!preview){b.type='button';b.dataset.widgetHold='';b.setAttribute('aria-label',motif==='fan'?'闪卡扇 · 单击换一张，双击打开卡片列表，上滑打开当前卡':spec[1]+' · '+(FolioStudyMenuCore.titles[motif]||({calendar:'查看日程',tasks:'查看任务',exams:'查看考试',review:'复习闪卡',focus:'专注计时',courses:'课程进度',grades:'查看成绩',sleep:'记录睡眠',coffee:'记录咖啡',homework:'查看作业',study:'学习目标'}[target]||target)));if(!deferClick)b.addEventListener('click',event=>FolioStudyUI.open(target,ctx,b,FolioStudyMenuHit.pick(b,event,motif)));}return b;}
+  if(!composite){const b=control(spec[3],spec[0],spec[0]==='fan');b.classList.add('study-single-control');const art=FolioStudySingleReference.create(spec[0],root.ownerDocument);if(!preview)FolioStudySingleBindings.bind(art,spec[0],m,ctx);b.append(art);if(!preview)FolioStudyMenuHit.tag(b,spec[0],m);if(!preview&&spec[0]==='fan'){root.append(b,fanGestures(b,m,ctx));return;}root.append(b);return;}
   const layout=el('div','study-bento-layout');layout.style.gridTemplate=spec[4];root.append(layout);const zones=preview?FolioStudyBentoReference.get(spec[0]).zones:FolioStudyBento.zones(spec[0],m);
-  zones.forEach((zone,index)=>{const b=control(spec[5][index][2],spec[5][index][1]);b.style.gridArea=zone.area;layout.append(b);const image=E(b,'svg',{viewBox:zone.viewBox,'aria-hidden':'true',preserveAspectRatio:'xMidYMid meet'});zone.paint(image);});
+  zones.forEach((zone,index)=>{const b=control(spec[5][index][2],spec[5][index][1]);b.style.gridArea=zone.area;layout.append(b);const image=E(b,'svg',{viewBox:zone.viewBox,'aria-hidden':'true',preserveAspectRatio:'xMidYMid meet'});zone.paint(image);if(!preview)FolioStudyMenuHit.tag(b,spec[5][index][1],m,true);});
  }
  const permissions=['courses','tasks','exams','academic','focus','study'];
  function register(spec,combo=false){const id='study/'+(combo?'bento-':'')+spec[0],description=combo?spec[5].map(([,k])=>({agenda:'今日课程',plant:'三件事',nextRing:'下一课24h环',courseSquares:'课次进度',streak:'学习连胜',focusBars:'七日专注',mountain:'考试倒计时',domino:'考试进展',mosaic:'闪卡掌握提醒',moons:'七夜睡眠',coffee:'咖啡记录',dayArc:'6–24点时钟',curve:'遗忘示意',reviewBlocks:'待复习',fan:'闪卡',focus:'25分钟番茄蛇',tomatoes:'已完成番茄会话',focusBands:'今日专注/目标',deadline:'截止',quadrant:'轻重缓急',submitted:'已完成作业',stairs:'当前均绩',gradeRings:'最近四科绩点',trend:'学期走势'}[k]||k)).join(' · '):spec[4];

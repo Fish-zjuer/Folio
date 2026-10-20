@@ -52,11 +52,13 @@
     return parts.join("、");
   }
   function patternLabel(session){
+    if(session.personalRule)return session.personalRule;
     if(session.customRepeat){const weeks=runs(session.customRepeatWeeks||[]);return weeks?`第${weeks}周`:"未安排周次";}
     const odd=session.oddWeek!==false,even=session.evenWeek!==false;
     return odd&&even?"每周":odd?"单周":even?"双周":"不上课";
   }
   function ruleLabel(session,term){
+    if(session.personalRule)return '手动安排 · '+session.personalRule;
     if(session.customRepeat)return patternLabel(session);
     const halves=(term.calendar?.periods||[]).filter(part=>(part.half==="first"?session.firstHalf:session.secondHalf)!==false).map(part=>part.label).join("");
     const lower=Number.isInteger(session.startWeek)?session.startWeek:1;
@@ -79,7 +81,7 @@
       if(candidates.length){const p=candidates[0];p.start=p.start<s.start?p.start:s.start;p.end=p.end>s.end?p.end:s.end;p.startPeriod=Math.min(p.startPeriod,s.startPeriod);p.periods+=count;p.mergedSessionIds=[...(p.mergedSessionIds||[p.id]),s.id];}else out.push({...s,periods:count});
     }return out;
   }
-  function onDate(term,date,shouldExclude=root.FolioScheduleOverrides?.excluded){
+  function officialOnDate(term,date,shouldExclude=root.FolioScheduleOverrides?.excluded){
     const effectiveDate=term.calendar?.exchange?.[date]||date;
     if(term.calendar?.holidays?.[date]&&!term.calendar?.exchange?.[date])return [];
     const info=weekInfo(term,effectiveDate);if(!info)return [];
@@ -88,6 +90,9 @@
       return [{...course,termId:term.id,courseId:course.id,session,teachingWeek:info,room:session.room||course.room||"地点待更新",start:session.start,end:session.end,periods:session.periods||2,
         id:`course-${date}-${course.id}-${session.id||index}`,kind:"course",date,startAt:`${date}T${session.start}`,endAt:`${date}T${session.end}`}];
     })).sort((a,b)=>a.start.localeCompare(b.start)||a.end.localeCompare(b.end)||a.id.localeCompare(b.id));
+  }
+  function onDate(term,date,shouldExclude=root.FolioScheduleOverrides?.excluded,surface="calendar"){
+    return [...officialOnDate(term,date,shouldExclude),...(root.FolioPersonalSchedule?.(date,term.id,surface)||[])].sort((a,b)=>a.start.localeCompare(b.start)||a.id.localeCompare(b.id));
   }
   if (typeof window!=="undefined" && window.FolioApp?.native) {
     const cache=window.FolioNative.cache(),cached=FolioBackend.restoreCourseCatalog(cache.terms||[],cache.modules.grades?.data||[]);

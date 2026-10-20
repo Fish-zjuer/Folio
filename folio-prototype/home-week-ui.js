@@ -38,7 +38,7 @@
   function render(){
     projectedItems=new Map(homeworkState.items.map(i=>[i.id,i]));
     const data=L.collectDay(homeworkState.today,{
-      coursesOn:date=>FolioCourses.semesters.flatMap(term=>FolioCourses.onDate(term,date).map(e=>({...e,semesterId:term.id}))),
+      coursesOn:date=>FolioCourses.semesters.flatMap(term=>FolioCourses.onDate(term,date,undefined,"home").map(e=>({...e,semesterId:term.id}))),
       examsOn:date=>FolioCourses.semesters.flatMap(term=>FolioExams.entries(currentExams(term.id).filter(e=>!e.unscheduled),date)),
       itemsFor:date=>{const items=FolioTodo.materialize(structuredClone(homeworkState.items),date);items.forEach(i=>projectedItems.set(i.id,i));return items;},items:homeworkState.items
     });

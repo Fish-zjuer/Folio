@@ -23,12 +23,11 @@
    });
  }
  function pressureDetail(date,rows,origin){
-   openHomeworkSheet(date,origin);const data=FolioPressure.summary(rows,date),term=FolioCourses.semesters[0];
-   homeworkBody.append(el('p','live-widget-description',`${data.minutes} 分钟已排时长。仅有截止日期的作业不会被猜成工作时长。`));
-   if(!term?.calendar||term.stale)homeworkBody.append(el('p','live-widget-description','课表尚未同步或学期待校正，当前色块只含已有个人安排。'));
-   for(const r of [...data.scheduled,...data.due]){const row=el(r.itemId?'button':'div','stats-detail-row');row.append(el('strong','',r.title),el('span','',r.due?'到期事项':r.minutes?r.minutes+' 分钟':'未安排时长'));if(r.itemId){row.type='button';row.onclick=()=>{const item=homeworkState.items.find(i=>i.id===r.itemId);if(item)openItem(item,row);};}homeworkBody.append(row);}
-   if(!data.scheduled.length&&!data.due.length)homeworkBody.append(el('p','live-widget-description','这天暂无已保存的安排。'));
+   const data=FolioPressure.summary(rows,date),term=FolioCourses.semesters[0],known=!!term?.calendar&&!term.stale;
+   const record=r=>({title:r.title,meta:r.due?'这一天截止':'已经排入时间表',value:r.minutes?r.minutes+' min':'',color:r.due?'#A56A4D':'#7E9E9A',action:r.itemId?()=>{const item=homeworkState.items.find(i=>i.id===r.itemId);if(item)openItem(item,origin);}:null});
+   FolioStudyMenuUI.records({title:date+' · 压力',caption:known?'你点中的这一天':'课表尚未同步，仅含已保存的安排',metrics:[{value:String(data.minutes),label:'已排分钟'},{value:String(data.scheduled.length),label:'已排安排'},{value:String(data.due.length),label:'到期事项',tone:'clay'}],groups:[{title:'时间已经安排好',rows:data.scheduled.map(record)},{title:'这一天要交的',rows:data.due.map(record)}],explanation:'只有截止日期的作业不会被猜成工作时长。色块深浅描述已保存安排，不能代表实际心理压力。'});
  }
+
  function renderPressure(root,preview){
    const today=homeworkState.today,[year,month]=today.split('-').map(Number),dates=FolioPressure.month(year,month-1),data=pressureData(dates),signature=JSON.stringify([today,data]);if(root._signature===signature)return;root._signature=signature;root.replaceChildren();
    const image=svg('svg',{viewBox:'0 0 260 260','aria-label':'本月已排时长热力图'}),rows=dates.length/7,size=26,step=30,x0=27,y0=128-(rows*size+(rows-1)*4)/2;
