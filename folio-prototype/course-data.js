@@ -90,7 +90,7 @@
     })).sort((a,b)=>a.start.localeCompare(b.start)||a.end.localeCompare(b.end)||a.id.localeCompare(b.id));
   }
   if (typeof window!=="undefined" && window.FolioApp?.native) {
-    const cached=window.FolioNative.cache().terms;
+    const cache=window.FolioNative.cache(),cached=FolioBackend.restoreCourseCatalog(cache.terms||[],cache.modules.grades?.data||[]);
     semesters.splice(0,semesters.length,...(cached?.length?cached:[FolioBackend.emptyTerm()]));
   }
   return {calendarCourses,week,semesters,summary,meter,weekInfo,sessionOccurs,patternLabel,ruleLabel,onDate,mergeSessions};

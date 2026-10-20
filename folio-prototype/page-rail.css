@@ -5,3 +5,11 @@
 @media(prefers-reduced-motion:reduce){.rail-page{transition:none!important}}
 
 .rail-split-calendar .schedule-panels{width:100%;transform:none!important}.rail-split-calendar #schedule-month-view{width:100%;flex-basis:100%}.rail-timetable-screen>.timetable-panel{flex:1;min-height:0;width:100%;padding-top:5px}.rail-timetable-screen .timetable-scroll{flex:1;min-height:0}
+
+/* Goal preview remains a real, live summary below the shared navigation bar. */
+.rail-active>.goal-screen{padding-top:var(--app-bar-height)}
+.rail-active>.goal-screen>.goal-header{visibility:visible;display:flex;padding:8px 18px 6px;gap:12px}
+.rail-active>.goal-screen>.goal-header>.detail-back,.rail-active .goal-heading h1{display:none}
+.rail-active .goal-header .goal-live{order:-1;flex:1;min-height:38px;flex-direction:row;align-items:center;gap:8px}
+.rail-active .goal-header .goal-live strong{font-size:22px}
+.rail-active .goal-heading .goal-text-button{margin:0}

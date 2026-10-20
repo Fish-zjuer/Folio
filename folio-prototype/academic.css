@@ -169,3 +169,5 @@
 @keyframes academic-pop { 40%{transform:scale(1.4)}100%{transform:scale(0);opacity:0} }
 @keyframes academic-burst { to { transform:translate(var(--x),var(--y));opacity:0; } }
 @media(prefers-reduced-motion:reduce) { .academic-status.success,.academic-status.is-popping,.academic-burst i { animation:none; }.academic-spinner { animation-duration:2s; } }
+
+.course-refresh{margin-left:10px;padding:6px 10px;flex-shrink:0;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-surface);color:var(--text-secondary);font:inherit;font-size:12px}.course-source-note{margin:8px 0 12px;color:var(--text-muted);font-size:11px;line-height:1.6}.course-source-note:empty{display:none}

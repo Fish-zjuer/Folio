@@ -66,13 +66,11 @@ const folioSettings = Object.freeze([
     { title: "重修绩点计算", icon: "chart", segments: ["取首次", "取最高"], selected: 1 },
     { title: "隐藏成绩与绩点", icon: "eye", subtitle: "所有学期 · 包含已揭晓成绩", on: false, setting: "hide-grades" },
     { title: "自定义课程代码映射", icon: "code", screen: "mapping" },
-    { title: "异步刷新", icon: "refresh", on: false },
     { title: "推送成绩变动", icon: "bell", on: true },
     { title: "作业临期提示", icon: "clipboard", subtitle: "App 内 · 截止前两天", on: true },
   ] },
   { title: "日程与课表", items: [
-    { title: "同步到系统日历", icon: "calendar", on: false },
-    { title: "课表同步选项", icon: "grid", subtitle: "同步开启后选择学期" },
+    { title: "课表导出选项", icon: "grid", subtitle: "选择学期与考试" },
     { title: "导出为 iCal 文件", icon: "download" },
   ] },
   { title: "外观与工具", items: [

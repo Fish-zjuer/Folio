@@ -26,7 +26,7 @@
   }
   function makeInput(){data=material();if(data.blocked)throw new Error(data.blocked);const groups=[...new Set(data.courses.filter(c=>Number.isFinite(c.credits)).map(c=>String(c.credits)))].sort((a,b)=>Number(b)-Number(a));
     const groupOrder=[...new Set([...d.groups.filter(k=>groups.includes(k)),...groups])],priority=groupOrder.flatMap(k=>data.courses.filter(c=>String(c.credits)===k).sort((a,b)=>{const ai=d.order.indexOf(a.id),bi=d.order.indexOf(b.id);return (ai<0?999:ai)-(bi<0?999:bi)||a.id.localeCompare(b.id);}).map(c=>c.id));
-    return {type:d.type,target:d.target,floor:d.floor,margin:.01,coreMultiplier:d.type==="weighted",baseline:data.baseline,courses:data.courses,priority};
+    return {type:d.type,target:d.target,floor:d.floor,margin:.01,coreMultiplier:d.type==="weighted",baseline:data.baseline,baselineRecords:data.baselineRecords,retakeMode:data.retakeMode,targetTermId:d.termId,courses:data.courses,priority};
   }
   function calculate(){
     data=null;
@@ -47,6 +47,7 @@
     submit.textContent=d.phase==="setup"?"确定课程目标":dirty?"保存并应用":"保存并应用";
     notice.textContent=d.phase==="setup"?"先分配，再选择具体课程":"调整会实时测算，保存后更新课程提醒";
     page.querySelectorAll(".goal-status-copy").forEach(el=>el.textContent=warning?"":statusText());
+    renderMath();
     return Boolean(calculation);
   }
   document.addEventListener("folio-academic-calculation-change",()=>{if(currentScreen==="goals")render();});
@@ -59,7 +60,16 @@
     title.textContent=d.phase==="setup"?"目标调试":"课程目标";reconfigure.hidden=d.phase==="setup";calculate();body.replaceChildren();
     const intro=make("div","goal-intro"),termText=term().label.replace("—","–");intro.append(make("span","goal-eyebrow",d.source==="example"?"独立示例 · 非教务成绩":"本地学业缓存"),make("p","goal-term",termText));body.append(intro);if(d.previousTermId)intro.append(make("p","goal-field-help","旧目标学期已不在当前课表中，原草稿已保留。请核对本学期后重新分配。"));
     if(d.phase==="setup")renderSetup();else renderPlan();
+    renderMath();
     error.textContent=warning;
+  }
+  function renderMath(){
+    let box=body.querySelector('.goal-math');if(!box){box=make('details','goal-baseline goal-math');const intro=body.querySelector('.goal-intro');if(!intro)return;intro.after(box);}
+    const opened=box.open;box.replaceChildren(make('summary','','测算明细 · 按课程最终总评计算'));box.open=opened;
+    if(!calculation){box.append(make('p','goal-field-help',warning||'补全数据后显示明细'));return;}
+    const b=data.baseline,base=b.credits?b.points/b.credits:null;
+    box.append(make('p','goal-field-help',`已有基准：${fmt(b.points)} 绩点学分 ÷ ${fmt(b.credits)} 学分 = ${fmt(base)}`),make('p','goal-field-help',`模拟后：${fmt(calculation.points)} 绩点学分 ÷ ${fmt(calculation.credits)} 学分 = ${fmt(calculation.projected)}；目标 ${fmt(d.target)}`),make('p','goal-field-help',`已出分课程按${data.retakeMode==='first'?'取首次':'取最高'}口径与模拟课程合并，重修不重复计学分。课程制式、归属、学分须正确；达到下列目标总评，才对应这份预计均绩，并非期末卷面分。`));
+    if(data.courses.some(c=>c.gradingEstimated))box.append(make('p','goal-field-help','部分未出分课程暂按百分制测算，可在课程设置中校正。'));
   }
   function renderSetup(){
     const settings=make("section","goal-settings"),grid=make("div","goal-field-grid");
@@ -126,7 +136,7 @@
     updateCourseLabels();
     if(store.applied)body.append(action("停用已保存的提醒",removeApplied,"goal-stop"));
   }
-  function updateCourseLabels(){if(!data)return;for(const c of data.courses){const row=body.querySelector(`[data-goal-course="${c.id}"]`);if(!row)continue;const value=d.assignments[c.id],important=c.grading!=="passFail"&&value>=d.threshold;row.querySelector(".goal-important").textContent=important?"重要课 · 作业提前安排":"";const band=row.querySelector(".goal-score-band");if(band)band.textContent=G.bands(c.grading).find(b=>b.value===value)?.label||"";row.classList.toggle("is-important",important);}}
+  function updateCourseLabels(){if(!data)return;for(const c of data.courses){const row=body.querySelector(`[data-goal-course="${c.id}"]`);if(!row)continue;const value=d.assignments[c.id],important=c.grading!=="passFail"&&value>=d.threshold;row.querySelector(".goal-important").textContent=important?"重要课 · 作业提前安排":"";const band=row.querySelector(".goal-score-band");if(band)band.textContent="对应总评："+(G.bands(c.grading).find(b=>b.value===value)?.label||"待确认");row.classList.toggle("is-important",important);}}
   function swapCourse(c,peers,origin){openHomeworkSheet("交换课程目标",origin);homeworkBody.append(make("p","goal-instruction","同学分课程可换着承担目标；倍率、主修归属不同时，预计均绩也会重新计算。"));for(const p of peers){const b=action(`${p.title} · ${fmt(d.assignments[p.id])}`,()=>{const first=d.assignments[c.id],second=d.assignments[p.id];if(!G.limits(c,d.floor).some(v=>v.value===second)||!G.limits(p,d.floor).some(v=>v.value===first)){announce("两门课的制式或上下限不同，不能直接交换。");return;}d.assignments[c.id]=second;d.assignments[p.id]=first;dirty=true;closeHomeworkSheet();calculate();persist();render();},"goal-swap-choice");homeworkBody.append(b);}}
   function editCourse(c,origin){
     openHomeworkSheet(c.title,origin);const form=make("form","goal-course-form");let values={credits:c.credits,grading:c.grading,major:c.major,core:c.core,minimum:c.minimum??null,maximum:c.maximum??null};

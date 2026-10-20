@@ -21,7 +21,7 @@
     if(!native)return Promise.reject(new Error("此功能需要 Android 测试应用"));
     const id=crypto.randomUUID();return new Promise((resolve,reject)=>{
       if(signal?.aborted){reject(new DOMException("已停止","AbortError"));return;}
-      const timeout=setTimeout(()=>{pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new Error("请求超时，请稍后重试"));},operation==="provider"?120000:50000);
+      const timeout=setTimeout(()=>{pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new Error("请求超时，请稍后重试"));},operation==="provider"?120000:operation==="app.calendar.export"?300000:50000);
       const abort=()=>{clearTimeout(timeout);pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new DOMException("已停止","AbortError"));};signal?.addEventListener("abort",abort,{once:true});
       pending.set(id,{resolve,reject,finish(){clearTimeout(timeout);signal?.removeEventListener("abort",abort);}});
       window.FolioAndroid.call(id,operation,JSON.stringify(data));

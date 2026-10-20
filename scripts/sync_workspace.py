@@ -14,7 +14,8 @@ for folder in ['assets','widgets','design-lab','qa']:
 for folder in ['src','res','tests','branding']:
  files.extend(path for path in (native/folder).rglob('*') if path.is_file())
 files.extend(native.glob('*.py'));files.extend([native/'AndroidManifest.xml',native/'LICENSE'])
-for name in ['APP-INTEGRATION.md','RELEASE-0.7.md','RELEASE-0.8.md','RELEASE-0.9.md','ROADMAP.md']:
+files.extend(native.glob('RELEASE-*.md'))
+for name in ['APP-INTEGRATION.md','ROADMAP.md']:
  files.append(native/name)
 for path in sorted(set(files)):
  relative=path.relative_to(source)

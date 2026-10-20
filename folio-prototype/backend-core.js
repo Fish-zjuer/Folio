@@ -101,7 +101,18 @@
     }
     return [...records.values()];
   }
+  function restoreCourseCatalog(terms,records){
+    const out=structuredClone(terms),byTerm=new Map(out.map(t=>[t.id,t]));
+    for(const g of records||[]){
+      if(!/^20\d{2}-20\d{2}-[12]$/.test(g.termId)||!g.courseId||!g.title)continue;
+      let t=byTerm.get(g.termId);if(!t){t=emptyTerm(g.termId);out.push(t);byTerm.set(t.id,t);}
+      const c=t.courses.find(c=>c.id===g.courseId);
+      if(c){if(c.credits==null&&Number.isFinite(g.credits))c.credits=g.credits;if(!c.code&&g.courseCode)c.code=g.courseCode;continue;}
+      t.courses.push({id:g.courseId,title:g.title,credits:Number.isFinite(g.credits)?g.credits:null,code:g.courseCode||null,teacher:null,room:null,color:'#B58B70',sessions:[],exams:[],source:'grades',catalogOnly:true});
+    }
+    return out;
+  }
   function emptyTerm(id=currentTerm()){return {id,label:termLabel(id),calendar:null,courses:[]};}
   function mergeCourses(parts){const map=new Map();for(const part of parts)for(const c of part){if(!map.has(c.id))map.set(c.id,{...c,sessions:[]});const target=map.get(c.id);for(const s of c.sessions)if(!target.sessions.some(v=>v.id===s.id))target.sessions.push(s);}return [...map.values()];}
-  return {text,number,clean,today,currentTerm,termId,termLabel,sortTerms,migrateCache,hash,date,decode,array,grades,homework,calendar,timetable,checkTimetableTerm,courseCredits,exams,practice,practiceSummary,mergeHomework,emptyTerm,mergeCourses,defaultTimes};
+  return {restoreCourseCatalog,text,number,clean,today,currentTerm,termId,termLabel,sortTerms,migrateCache,hash,date,decode,array,grades,homework,calendar,timetable,checkTimetableTerm,courseCredits,exams,practice,practiceSummary,mergeHomework,emptyTerm,mergeCourses,defaultTimes};
 });

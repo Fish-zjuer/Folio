@@ -68,8 +68,19 @@ function courseMeetings(course){
   if(!groups.size)info.append(make("span","course-meeting-pending","上课安排待更新"));
   return info;
 }
+const courseRefresh=action('更新',()=>loadCourseTerm(courseSemesterId,true),'course-refresh');courseRefresh.setAttribute('aria-label','更新所选学期课程');courseTermButton.after(courseRefresh);
+const courseLoadState=make('p','course-source-note');document.getElementById('course-list-total').after(courseLoadState);
+const courseLoads=new Set();
+async function loadCourseTerm(id,force=false){
+  if(!window.FolioApp?.native)return;
+  if(!force&&window.FolioSchool?.cache().modules[`courses:${id}`]?.updatedAt)return;
+  if(courseLoads.has(id))return;courseLoads.add(id);if(id===courseSemesterId){courseRefresh.disabled=true;courseLoadState.textContent='正在查询所选学期课表…';}
+  try{await FolioAcademicUI.refresh('courses',id);}catch{if(id===courseSemesterId)courseLoadState.textContent='课表查询未完成，保留已有课程信息，可点更新重试。';}
+  finally{courseLoads.delete(id);if(id===courseSemesterId){courseRefresh.disabled=false;renderCourses();}}
+}
 function renderCourses(){
   const term=currentCourseSemester(),totals=FolioCourses.summary(term.courses);
+  courseRefresh.disabled=courseLoads.has(term.id);const catalog=term.courses.some(c=>c.catalogOnly),warning=window.FolioSchool?.cache().modules[`courses:${term.id}`]?.warning;courseLoadState.textContent=courseLoads.has(term.id)?"正在查询所选学期课表…":catalog?"课程名称与学分来自成绩记录；没有返回的教师、地点和排课不会补造。":warning?"课表更新未完成，已有数据保留，可点更新重试。":"";
   renderSemesterLabel(term);
   const stats=document.getElementById("course-list-total");stats.replaceChildren();
   stats.append(document.createTextNode("共 "),make("span","course-stat-number",String(totals.count)),document.createTextNode(" 门课程 "),make("span","course-stat-divider","·"),document.createTextNode(" "),make("span","course-stat-number",String(totals.credits)),document.createTextNode(" 学分"));
@@ -93,7 +104,7 @@ function renderCourses(){
 courseTermButton.addEventListener("click",()=>{
   openHomeworkSheet("选择学期",courseTermButton);
   const list=make("div","course-term-options");
-  FolioCourses.semesters.forEach(term=>{const choice=action("",()=>{courseSemesterId=term.id;renderCourses();coursesPage.querySelector(".settings-scroll").scrollTop=0;closeHomeworkSheet();},"course-term-option");
+  FolioCourses.semesters.forEach(term=>{const choice=action("",()=>{courseSemesterId=term.id;renderCourses();coursesPage.querySelector(".settings-scroll").scrollTop=0;closeHomeworkSheet();loadCourseTerm(term.id);},"course-term-option");
     choice.append(make("span","",courseTermLabel(term)),make("span","",term.id===courseSemesterId?"✓":""));choice.setAttribute("aria-pressed",String(term.id===courseSemesterId));list.append(choice);});homeworkBody.append(list);
 });
 function alignWrappedTeachers(){if(coursesPage.hidden)return;courseList.querySelectorAll(".course-list-copy").forEach(copy=>{const name=copy.querySelector(".course-list-name"),teacher=copy.querySelector(".course-list-teacher");if(name&&teacher){teacher.classList.remove("is-newline");teacher.classList.toggle("is-newline",teacher.getBoundingClientRect().top>name.getBoundingClientRect().top+8);}});}
@@ -132,7 +143,7 @@ function openCourseDetail(id,returnScreen="courses"){
 }
 function returnToCourses(){const fallback=courseDetailReturnScreen;goBack(fallback);requestAnimationFrame(()=>{if(currentScreen!=="courses")return;renderCourses();courseList.querySelector(`[data-course-id="${courseSelectedId}"]`)?.focus({preventScroll:true});});}
 document.getElementById("course-detail-back").addEventListener("click",returnToCourses);
-document.addEventListener("preview-screen-change",event=>{if(event.detail.screen==="courses")renderCourses();});
+document.addEventListener("preview-screen-change",event=>{if(event.detail.screen==="courses"){renderCourses();loadCourseTerm(courseSemesterId);}});
 document.addEventListener("folio-grade-visibility-change",renderCourseAcademicFields);
 document.addEventListener("folio-goals-change",renderCourses);
 renderCourses();

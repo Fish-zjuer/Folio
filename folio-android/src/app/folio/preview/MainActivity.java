@@ -20,7 +20,7 @@ public final class MainActivity extends Activity {
   private WebView web;private Vault vault;private SchoolSession schoolSession;private final Network network=new Network();private android.animation.ValueAnimator chromeAnimator;
   private final ExecutorService jobs=Executors.newFixedThreadPool(5);
   private volatile boolean trusted=false;private ValueCallback<Uri[]> fileCallback;private Uri cameraOutput;
-  private Dialog loginDialog;private WebView loginView;
+  private Dialog loginDialog;private WebView loginView;private String calendarExportId,calendarExportText;
   private volatile boolean resumed=false;private boolean pageReady=false,notificationPermissionPending=false;private JSONObject pendingNotification;private String pendingGradeId="";
   private static final String GRADE_CHANNEL="folio-new-grades",GRADE_EXTRA="folio.gradeId";
   public void onCreate(Bundle state){
@@ -81,7 +81,7 @@ public final class MainActivity extends Activity {
     try{if(params.isCaptureEnabled())startActivityForResult(camera,100);else if(image)startActivityForResult(pick,100);else startActivityForResult(Intent.createChooser(pick,"选择文件"),100);}
     catch(ActivityNotFoundException e){fileCallback.onReceiveValue(null);fileCallback=null;}
   }
-  protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request!=100||fileCallback==null)return;
+  protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==101){String id=calendarExportId,text=calendarExportText;calendarExportId=null;calendarExportText=null;if(id==null)return;if(result!=RESULT_OK||data==null||data.getData()==null){calendarExportReply(id,false,true,null);return;}Uri output=data.getData();jobs.execute(()->{try(OutputStream stream=getContentResolver().openOutputStream(output,"wt")){if(stream==null)throw new IOException("无法写入所选位置");stream.write(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));calendarExportReply(id,true,false,null);}catch(Exception error){calendarExportReply(id,false,false,"日历文件未能保存，请重试");}});return;}if(request!=100||fileCallback==null)return;
     Uri[] values=null;if(result==RESULT_OK){if(data!=null&&data.getClipData()!=null){ClipData clip=data.getClipData();values=new Uri[clip.getItemCount()];for(int i=0;i<values.length;i++)values[i]=clip.getItemAt(i).getUri();}else if(data!=null&&data.getData()!=null)values=new Uri[]{data.getData()};else if(cameraOutput!=null)values=new Uri[]{cameraOutput};}
     fileCallback.onReceiveValue(values);fileCallback=null;cameraOutput=null;
   }
@@ -94,6 +94,12 @@ public final class MainActivity extends Activity {
     loginView.setWebViewClient(new WebViewClient(){public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){Uri u=r.getUrl();return !"https".equals(u.getScheme())||!(u.getHost()!=null&&(u.getHost().equals("zju.edu.cn")||u.getHost().endsWith(".zju.edu.cn")));}});
     layout.addView(loginView,new LinearLayout.LayoutParams(-1,0,1));loginDialog.setContentView(layout);loginDialog.getWindow().setLayout(-1,-1);
     loginDialog.setOnDismissListener(d->{CookieManager.getInstance().flush();network.browserLoginCompleted();schoolSession.browserLoginCompleted();loginView.destroy();loginView=null;web.evaluateJavascript("window.dispatchEvent(new Event('folio-school-login'))",null);});loginDialog.show();loginDialog.getWindow().setLayout(-1,-1);loginView.loadUrl(target);
+  }
+  private void calendarExportReply(String id,boolean saved,boolean cancelled,String error){try{JSONObject result=new JSONObject().put("ok",error==null);if(error!=null)result.put("error",error);else result.put("data",new JSONObject().put("saved",saved).put("cancelled",cancelled));reply(id,result);}catch(JSONException ignored){}}
+  private void exportCalendar(String id,JSONObject input) throws Exception {
+    final String filename=input.optString("filename"),text=input.optString("content");
+    if(!filename.matches("folio-[0-9-]+\\.ics")||text.length()>2000000||!text.startsWith("BEGIN:VCALENDAR\r\n")||!text.endsWith("END:VCALENDAR\r\n"))throw new IOException("日历文件内容不正确或过大");
+    runOnUiThread(()->{if(calendarExportId!=null){calendarExportReply(id,false,false,"已有日历文件正在保存");return;}calendarExportId=id;calendarExportText=text;try{Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/calendar").putExtra(Intent.EXTRA_TITLE,filename);startActivityForResult(intent,101);}catch(ActivityNotFoundException error){calendarExportId=null;calendarExportText=null;calendarExportReply(id,false,false,"系统没有可用的文件保存入口");}});
   }
   private void reply(String id,JSONObject value){runOnUiThread(()->{if(trusted&&!isFinishing())web.evaluateJavascript("window.FolioNative&&window.FolioNative.receive("+JSONObject.quote(id)+","+value.toString()+")",null);});}
   private JSONObject publicConfig(JSONObject config) throws JSONException {JSONObject result=new JSONObject(config.toString());result.remove("apiKey");result.put("hasKey",!config.optString("apiKey").isEmpty());return result;}
@@ -132,6 +138,7 @@ public final class MainActivity extends Activity {
             if(!input.has("apiKey"))input.put("apiKey",previous.optString("apiKey"));String secret=input.optString("apiKey");if(!secret.isEmpty()&&!secret.matches("[\\x21-\\x7E]{1,2048}"))throw new Exception("API Key 包含空格、换行或无效字符，请检查后重新填写");vault.put("provider",input.toString());data=publicConfig(input);break;
           case "provider":data=network.provider(id,input,new JSONObject(vault.get("provider")));break;
           case "public.data":data=PublicData.fetch(network,id,input);break;
+          case "app.calendar.export":exportCalendar(id,input);return;
           case "app.usage.read":data=PhoneUsage.read(MainActivity.this);break;
           case "app.usage.settings":runOnUiThread(()->{try{startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS,Uri.parse("package:"+getPackageName())));}catch(ActivityNotFoundException e){startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS));}});data=new JSONObject().put("opened",true);break;
           case "school":data=schoolSession.school(id,input);break;

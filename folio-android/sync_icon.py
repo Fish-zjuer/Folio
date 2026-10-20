@@ -10,5 +10,6 @@ vector=lambda items: '<vector xmlns:android="http://schemas.android.com/apk/res/
 for folder in ['mipmap-anydpi-v26','values']:(ROOT/'res'/folder).mkdir(exist_ok=True)
 (ROOT/'res/values/launcher_colors.xml').write_text('<resources><color name="launcher_background">'+bg+'</color></resources>\n',encoding='utf-8')
 (ROOT/'res/mipmap-anydpi-v26/ic_launcher.xml').write_text('<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@color/launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/></adaptive-icon>\n',encoding='utf-8')
-svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108"><path fill="'+bg+'" d="M0 0h108v108H0z"/>'+''.join('<path fill="'+p['fill']+'" d="'+p['d']+'"/>' for p in paths)+'</svg>\n'
+# Web preview uses the same central viewport as the Android adaptive-icon mask.
+svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72"><path fill="'+bg+'" d="M0 0h108v108H0z"/>'+''.join('<path fill="'+p['fill']+'" d="'+p['d']+'"/>' for p in paths)+'</svg>\n'
 (ROOT.parent/'folio-prototype/assets/folio-icon.svg').write_text(svg,encoding='utf-8')

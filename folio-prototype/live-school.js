@@ -32,12 +32,12 @@
         const old=new Map((state.modules.grades?.data||[]).map(g=>[g.id,g]));
         const records=fresh.map(g=>{term(g.termId);let points=FolioAcademic.gradePoints(g.original,g.grading);if(g.grading==="percent"&&typeof g.reportedFive==="number"&&g.reportedFive>=0&&g.reportedFive<=5){const five=g.reportedFive;points={five,four43:five>4?({5:4.3,4.8:4.2,4.5:4.1,4.2:4}[five]??4):five,four:Math.min(4,five),gpaIncluded:true};}return {...g,...points,major:majorIds?majorIds.has(g.id):old.get(g.id)?.major??false,score:FolioAcademic.percentScore(g.original,g.grading),earned:g.grading==="passFail"?/^(合格|P)$/.test(g.original):points.five!==null&&points.five>0};});
         if(!records.every(g=>FolioAcademic.validRecord("grades",g)))throw new Error("成绩包含无法识别的分制或学分，保留已有成绩");
-        const merged=new Map(old);for(const g of records)merged.set(g.id,g);const data=[...merged.values()];updateCredits(B.courseCredits(raw));store(module,data);FolioAcademicDemo.grades=data;publish();return data;
+        const merged=new Map(old);for(const g of records)merged.set(g.id,g);const data=[...merged.values()];updateCredits(B.courseCredits(raw));const catalogs=B.restoreCourseCatalog(FolioCourses.semesters,data);for(const catalog of catalogs){const existing=term(catalog.id);existing.courses=catalog.courses;}store(module,data);FolioAcademicDemo.grades=data;publish();return data;
       }
       if(module==="courses"){
         const t=term(selected);if(!/^20\d{2}-20\d{2}-[12]$/.test(selected))throw new Error("这个学期缺少教务学期编号");
         let config=state.modules[`calendar:${selected}`]?.data||null;if(config)try{B.calendar(config,selected);}catch{config=null;}
-        try{config=await request("calendar",{term:selected});const normalized=B.calendar(config,selected);t.calendar=normalized;store(`calendar:${selected}`,config);}catch(error){failed(`calendar:${selected}`,error);}
+        try{const candidate=await request("calendar",{term:selected});const normalized=B.calendar(candidate,selected);config=candidate;t.calendar=normalized;store(`calendar:${selected}`,config);}catch(error){failed(`calendar:${selected}`,error);}
         const halves=selected.endsWith("1")?["1|秋","1|冬"]:["2|春","2|夏"],parts=[];
         // 一个半学期失败时，整张课表保留，不用残缺结果覆盖。
         for(const season of halves)parts.push(B.timetable(await request("courses",{year:selected.slice(0,9),season,captcha}),selected,season,config));
@@ -46,7 +46,7 @@
         try{const raw=await request("exams");updateCredits(B.courseCredits(raw));}catch(error){failed("courseCredits",error);}
         const fresh=B.mergeCourses(parts),credits=new Map((state.modules.courseCredits?.data||[]).filter(g=>g.termId===selected).map(g=>[g.courseId,g.credits]));
         const previous=new Map(t.courses.map(c=>[c.id,c]));t.courses=fresh.map(c=>({...c,code:c.code||(state.modules.courseCredits?.data||[]).find(g=>g.termId===selected&&g.courseId===c.id)?.courseCode||previous.get(c.id)?.code||null,credits:c.credits??credits.get(c.id)??previous.get(c.id)?.credits??null,exams:(state.modules.exams?.data||[]).filter(e=>e.courseId===c.id&&e.semesterId===selected)}));
-        t.stale=false;store(key,t.courses);publish();return t.courses;
+        const restored=B.restoreCourseCatalog([t],(state.modules.grades?.data||[]).filter(g=>g.termId===selected));t.courses=restored[0].courses;t.stale=false;store(key,t.courses);publish();return t.courses;
       }
       if(module==="homework"){
         const fresh=B.homework(await request("homework")),items=B.mergeHomework(homeworkState.items,fresh),next={...homeworkState,items,today:B.today()};

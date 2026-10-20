@@ -191,11 +191,11 @@
     const blocked=selectedTerm.stale?"旧版课表的学期待校正，请先在教务连接中重新同步本学期课表。":state.hideGrades?"成绩与绩点已隐藏；请在设置中恢复显示，或使用独立示例调试。":counted.some(g=>A.isSealed(state,g))?"有成绩尚未揭晓，暂不使用它们推算均绩。可先揭晓，或使用独立示例调试。":null;
     const baseline=counted.reduce((b,g)=>({points:b.points+g.five*g.credits*(type==="weighted"&&g.core?1.2:1),credits:b.credits+g.credits}),{points:0,credits:0});
     const current=grades().filter(g=>g.termId===selected),known=new Set(current.filter(g=>A.isPublished(g)).map(g=>g.courseId));
-    const courses=ensure("courses",selected).data.filter(c=>!known.has(c.id)).map(c=>{
+    const courses=selectedTerm.courses.filter(c=>!known.has(c.id)).map(c=>{
       const g=current.find(g=>g.courseId===c.id),local=g?A.effective(g,state.overrides):null,code=c.code||selectedTerm.courses.find(p=>p.id===c.id)?.code;
       return {...c,credits:c.credits??g?.credits??null,major:local?.major??(code&&(window.FolioSchool?.cache().modules.majorCourses?.data||[]).some(m=>m.code===code)?true:null),core:local?.core??false,grading:["percent","fiveLevel","passFail"].includes(g?.grading)?g.grading:"percent",gradingEstimated:!g||g.grading==="pending"};
     });
-    return {baseline,courses,known:known.size,source:"学业本地缓存",blocked};
+    return {baseline,baselineRecords:records.map(g=>A.effective(g,state.overrides)),retakeMode:state.retakeMode||"highest",courses,known:known.size,source:"学业本地缓存",blocked};
   };
   save(state);render();
 })();
