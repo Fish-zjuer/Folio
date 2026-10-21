@@ -21,6 +21,7 @@
 - 原始界面、交互、文案、图形与视觉设计版权归 **Fish** 所有；代码开源不转移设计版权，署名称谓与品牌政策见 `NOTICE.md`。
 - “Folio”名称与图标不随代码许可授权；修改版需使用不同名称和图标。
 - 服务条款见 `TERMS.md`，隐私说明见 `PRIVACY.md`；Widget API v1 与所有随 Folio 分发/加载的第三方卡片必须以 GPL-3.0-only 开源并提供完整源码，见 `WIDGET-API-LICENSE.md`。APK 内包含 `assets/legal/` 文本，关于页提供 GitHub 链接。
+- 官方维护者接手时签署 `MAINTAINER-AGREEMENT.md`；专项赞助的 5%–10% 分成、项目基金与交接规则见 `SPONSORSHIP.md`、`TRADEMARK.md`、`GOVERNANCE.md` 与 `MAINTAINERS.md`。
 - 第三方：Celechron（GPL-3.0）与 JetBrains Mono（OFL 1.1）声明继续保留。
 
 ## 验证与边界

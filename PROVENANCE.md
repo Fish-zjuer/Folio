@@ -9,4 +9,4 @@
 - JetBrains Mono 字体及其 OFL 声明见 `folio-prototype/assets/fonts/`。
 - 书桌、便签与火焰等存在用户提供的设计参考文件，保留于 assets；项目所有者确认这些参考图由 AI 工具生成并由其选择/修改，未使用他人作品作为参考。若后续发现外部素材，将补充记录并处理。
 - 实时服务包括 Open-Meteo、Hacker News、学校站点；校历请求使用 calendar.celechron.top。服务访问条款、数据使用和署名要求与代码许可分别核实。接入服务不意味着其数据或服务归本项目所有。
-- 2026-10-21：项目所有者决定以开源方式发布，代码采用 GPL-3.0-only，设计版权与 Folio 名称/图标保留；v1.0 重新打包并附 `TERMS.md`、`PRIVACY.md`、`NOTICE.md`。Widget API v1 与所有随 Folio 分发/加载的第三方卡片同样要求 GPL-3.0-only 并提供完整源码，见 `WIDGET-API-LICENSE.md`。公开不代表学校真实 SSO、后台通知或真机验收已经完成。
+- 2026-10-21：项目所有者决定以开源方式发布，代码采用 GPL-3.0-only，设计版权与 Folio 名称/图标保留；v1.0 重新打包并附 `TERMS.md`、`PRIVACY.md`、`NOTICE.md`。Widget API v1 与所有随 Folio 分发/加载的第三方卡片同样要求 GPL-3.0-only 并提供完整源码，见 `WIDGET-API-LICENSE.md`。官方维护者专项赞助的 5%–10% 分成见 `SPONSORSHIP.md`，交接与基金治理见 `GOVERNANCE.md`。公开不代表学校真实 SSO、后台通知或真机验收已经完成。
