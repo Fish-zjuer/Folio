@@ -59,3 +59,30 @@ test('走过的路线保持灰色像素，终点完成也不擦除整条路',()=
     for(const progress of[.5,1]){S.render(host,progress,'#BFA787',{periods:3,duration:145});const pixels=host.children[0].children.filter(n=>n.attributes['data-path-pixel']);const passed=pixels.filter(n=>n.attributes['data-passed']==='true');assert.ok(passed.length>0);assert.ok(passed.every(n=>n.attributes.fill==='#C9C6BD'));if(progress===1)assert.equal(passed.length,pixels.length);}
   }finally{global.document=previousDocument;global.FolioPixels=previousPixels;}
 });
+
+test('秒级进度在同一像素内也移动头像，复用原图且不覆盖相邻竖线',()=>{
+  const previousDocument=global.document,previousPixels=global.FolioPixels;
+  class Element {constructor(){this.attributes={};this.children=[];}setAttribute(k,v){this.attributes[k]=v;}append(child){this.children.push(child);}replaceChildren(...children){this.children=children;}}
+  global.document={createElementNS:()=>new Element()};
+  global.FolioPixels={presets:[{id:'test'}],DISPLAY_SIZE:24,svg:()=>new Element()};
+  try{
+    const host=new Element();host.clientWidth=72;host.clientHeight=106;host.dataset={};
+    const points=S.route(72,106);assert.equal(points[0].x-points[2].x-24/2-8/2,6);
+    S.render(host,20/95,'#BFA787',{periods:2,duration:95});
+    const svg=host.children[0],head=svg.children.at(-1),before=Number(head.attributes.y);
+    S.update(host,(20+1/60)/95);
+    assert.strictEqual(host.children[0],svg);assert.strictEqual(svg.children.at(-1),head);
+    assert.ok(Number(head.attributes.y)>before);assert.ok(Number(head.attributes.y)-before<1);
+    S.update(host,1);assert.ok(svg.children.filter(n=>n.attributes['data-path-pixel']).every(n=>n.attributes['data-passed']==='true'&&n.attributes.fill==='#C9C6BD'));
+  }finally{global.document=previousDocument;global.FolioPixels=previousPixels;}
+});
+
+test('横向间距逐像素可调，竖向高度和24像素图标尺寸保持不变，转角时刻正确',()=>{
+  for(let gap=18;gap<=28;gap++){
+    const width=gap*2+28,points=S.route(width,106),path=S.cells(points),plan=S.coursePlan(points,3,145);
+    assert.equal(points[0].x-points[2].x,gap);assert.equal(points[1].y-points[0].y,S.route(64,106)[1].y-S.route(64,106)[0].y);
+    assert.ok(gap-12-4>=2);
+    plan.minutes.forEach((minute,vertex)=>assert.deepEqual(path[S.courseIndex(points,minute/145,3,145)],points[vertex]));
+    assert.equal(new Set(path.map(p=>p.x+','+p.y)).size,path.length);
+  }
+});

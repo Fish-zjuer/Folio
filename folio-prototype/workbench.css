@@ -232,7 +232,7 @@
 .sidebar{touch-action:pan-y}.sidebar.is-menu-dragging,.home-screen.is-menu-dragging{will-change:transform}
 
 /* Taking over an opening menu must cancel its entrance keyframes immediately. */
-.sidebar.is-menu-dragging{animation:none!important}
+.sidebar.is-menu-dragging,.sidebar.is-menu-settled{animation:none!important}
 
 /* A small paper basket belongs to edit mode, with the desk's palette and hard shadow. */
 .workbench-trash{position:absolute;left:50%;bottom:max(74px,calc(env(safe-area-inset-bottom,0px) + 60px));z-index:30;display:grid;place-items:center;width:76px;height:78px;transform:translateX(-50%);border:1px solid #C7A293;border-radius:11px 11px 14px 10px;background:#F3E5DB;box-shadow:3px 4px 0 #C5A391;padding:0;cursor:pointer;touch-action:none;animation:basket-arrive 220ms cubic-bezier(.22,1,.36,1)}

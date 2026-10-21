@@ -37,6 +37,12 @@ final class Network {
       CookieManager.getInstance().setCookie("https://zjuam.zju.edu.cn/","iPlanetDirectoryPro="+value+"; Domain=zju.edu.cn; Path=/; Secure; HttpOnly");return;
     }
   }
+  private synchronized void acceptIssuedSso(String value) throws Exception {
+    // Use the cookie actually issued by this password response, never an old browser cookie.
+    for(HttpCookie c:new ArrayList<>(schoolCookies.getCookieStore().getCookies()))if(c.getName().equals("iPlanetDirectoryPro"))for(URI uri:new ArrayList<>(schoolCookies.getCookieStore().getURIs()))schoolCookies.getCookieStore().remove(uri,c);
+    schoolCookies.getCookieStore().add(new URI("https://zjuam.zju.edu.cn/"),SchoolProtocol.rootSsoCookie(value));
+    CookieManager.getInstance().setCookie("https://zjuam.zju.edu.cn/","iPlanetDirectoryPro="+value+"; Domain=zju.edu.cn; Path=/; Secure; HttpOnly");
+  }
   synchronized void removeSso() throws Exception {
     for(HttpCookie c:new ArrayList<>(schoolCookies.getCookieStore().getCookies()))if(c.getName().equals("iPlanetDirectoryPro"))for(URI uri:new ArrayList<>(schoolCookies.getCookieStore().getURIs()))schoolCookies.getCookieStore().remove(uri,c);
     for(String host:Arrays.asList("zjuam.zju.edu.cn","zju.edu.cn"))for(String domain:Arrays.asList("", "; Domain=zju.edu.cn"))CookieManager.getInstance().setCookie("https://"+host+"/","iPlanetDirectoryPro=; Max-Age=0; Path=/"+domain+"; Secure");
@@ -68,15 +74,18 @@ final class Network {
         c.setInstanceFollowRedirects(false);c.setConnectTimeout(12000);c.setReadTimeout(school?20000:90000);c.setRequestMethod(method);
         c.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/122.0.0.0 Mobile Safari/537.36 Folio/0.5");
         for(Map.Entry<String,String> e:headers.entrySet())c.setRequestProperty(e.getKey(),e.getValue());
+        boolean casPassword=school&&method.equals("POST")&&url.getHost().equals("zjuam.zju.edu.cn")&&url.getPath().equals("/cas/login");
         if(school&&SchoolProtocol.schoolHost(url.getHost())){
           String cookie=cookies(url.toString());if(!cookie.isEmpty())c.setRequestProperty("Cookie",cookie);
         }
         if(body!=null){c.setDoOutput(true);try(OutputStream out=c.getOutputStream()){out.write(body.getBytes(StandardCharsets.UTF_8));}}
         int status=c.getResponseCode();
+        HttpCookie issued=casPassword?SchoolProtocol.issuedSso(c.getHeaderFields()):null;
         if(school){String location=c.getHeaderField("Location");trace(method+" "+SchoolProtocol.safeEndpoint(url.toString())+" → "+status+" Cookie名["+cookieNames(cookies(url.toString()))+"]"+(location==null?"":" → "+SchoolProtocol.safeEndpoint(new URL(url,location).toString())));}
         if(school&&SchoolProtocol.schoolHost(url.getHost())){
           synchronized(this){if(generation!=schoolGeneration)throw new IOException("学校账号已切换，请重新同步");schoolCookies.put(url.toURI(),c.getHeaderFields());
-          for(Map.Entry<String,List<String>> e:c.getHeaderFields().entrySet())if(e.getKey()!=null&&e.getKey().equalsIgnoreCase("Set-Cookie"))for(String value:e.getValue())CookieManager.getInstance().setCookie(url.toString(),value);}
+          for(Map.Entry<String,List<String>> e:c.getHeaderFields().entrySet())if(e.getKey()!=null&&e.getKey().equalsIgnoreCase("Set-Cookie"))for(String value:e.getValue())CookieManager.getInstance().setCookie(url.toString(),value);
+          if(issued!=null)acceptIssuedSso(issued.getValue());}
         }
         if(follow&&status>=300&&status<400){
           if(!school)throw new IOException("模型接口发生重定向，请直接填写最终 HTTPS base_url");
@@ -86,7 +95,7 @@ final class Network {
         }
         if(school&&url.getHost().equals("zdbk.zju.edu.cn")&&url.getPath().endsWith("/kaptcha")&&status==200){String type=c.getContentType();if(type!=null&&type.startsWith("image/")){byte[] bytes=readBytes(c.getInputStream(),2*1024*1024);return new JSONObject().put("status",status).put("image","data:"+type.split(";")[0]+";base64,"+android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP));}}
         String text=read(status>=400?c.getErrorStream():c.getInputStream(),32*1024*1024);
-        JSONObject result=new JSONObject();result.put("status",status);result.put("body",text);result.put("url",school?url.getProtocol()+"://"+url.getHost()+url.getPath():"");if(!follow)result.put("location",c.getHeaderField("Location"));return result;
+        JSONObject result=new JSONObject();result.put("status",status);result.put("body",text);result.put("url",school?url.getProtocol()+"://"+url.getHost()+url.getPath():"");if(casPassword)result.put("ssoIssued",issued!=null);if(!follow)result.put("location",c.getHeaderField("Location"));return result;
       } finally {active.remove(id,c);c.disconnect();}
     }
     throw new IOException("登录跳转过多，请重新登录对应学校平台");

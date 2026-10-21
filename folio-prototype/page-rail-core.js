@@ -3,4 +3,10 @@
  function destination(index,dx,velocity,width,count,cancelled=false){if(cancelled)return index;const dir=dx<0?1:-1,passes=Math.abs(dx)>=Math.max(32,width*.2)||Math.abs(dx)>=24&&Math.abs(velocity)>.35;return clamp(index+(passes?dir:0),0,count-1);}
  function scrub(x,left,width,count){return clamp((x-left)/Math.max(1,width),0,1)*(count-1);}
  function visiblePages(value,current,count){return Array.from({length:count},(_,i)=>i).filter(i=>Math.abs(i-value)<1||i===current);}
- const api={progress,destination,scrub,visiblePages};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FolioPageRailCore=api;})(typeof globalThis==='undefined'?this:globalThis);
+ // Keep input tracking synchronous, but draw only the latest position per frame.
+ // flush is needed before settling; cancel prevents an old gesture painting a new screen.
+ function frameQueue(draw,request,cancel){let pending=null,frame=null;
+  function run(){frame=null;const value=pending;pending=null;if(value!==null)draw(value);}
+  return {push(value){pending=value;if(frame===null)frame=request(run);},flush(){if(frame===null)return false;cancel(frame);run();return true;},cancel(){if(frame!==null)cancel(frame);frame=null;pending=null;}};
+ }
+ const api={progress,destination,scrub,visiblePages,frameQueue};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FolioPageRailCore=api;})(typeof globalThis==='undefined'?this:globalThis);

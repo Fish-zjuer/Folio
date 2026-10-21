@@ -8,6 +8,7 @@ let calendarCollapsed=false;
 let calendarProjectedItems=[];
 let calendarDayEvents=[];
 let calendarCountdownState=null;
+let calendarRenderedMinute=null;
 const calendarAgenda=document.getElementById("schedule-agenda");
 const calendarAbove=document.getElementById("schedule-more-above");
 const calendarBelow=document.getElementById("schedule-more-below");
@@ -68,6 +69,24 @@ function calendarNowMinute() {
   const clock=calendarPreviewTime||new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Shanghai",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date());
   return Number(clock.slice(0,2))*60+Number(clock.slice(3));
 }
+function calendarProgressMinute() {
+  if(calendarPreviewTime) return calendarNowMinute();
+  const now=new Date(Date.now()+8*3600000);
+  return now.getUTCHours()*60+now.getUTCMinutes()+now.getUTCSeconds()/60+now.getUTCMilliseconds()/60000;
+}
+function updateCalendarProgress() {
+  if(document.hidden||currentScreen!=="calendar"||!homeworkLayer.hidden||calendarSelectedDay!==homeworkState.today||scheduleView!=="month") return;
+  const now=calendarProgressMinute();
+  if(Math.floor(now)!==calendarRenderedMinute) {renderCalendarAgenda(false);return;}
+  calendarAgenda.querySelectorAll('.has-course-progress').forEach(row=>{
+    const entry=calendarDayEvents.find(e=>e.id===row.dataset.eventId),pet=row.querySelector('.schedule-pet-progress');
+    if(!entry||!pet) return;
+    const remaining=FolioCalendar.activeRemainingFraction(entry,homeworkState.today,now);
+    if(remaining===null) return;
+    row.dataset.remaining=String(remaining);row.dataset.progressElapsed=String(1-remaining);
+    FolioSnakeProgress.update(pet,1-remaining);
+  });
+}
 function openCalendarEvent(entry,origin,semester=calendarSemester) {
   if(entry.itemId&&entry.personal){const item=homeworkState.items.find(i=>i.id===entry.itemId)||FolioTodo.materialize(structuredClone(homeworkState.items),entry.date).find(i=>i.id===entry.itemId);if(item)openTodoDetail(item,origin);return;}
   if(entry.kind==="exam"){openExamDetail(entry.examId,origin);return;}
@@ -125,6 +144,7 @@ function renderCalendarAgenda(position=false) {
   summaryElement.textContent=summary.join(" · ")||"这一天没有安排";
   summaryElement.hidden=!summary.length&&Boolean(counts[0][0]);
   const isToday=calendarSelectedDay===homeworkState.today, now=calendarNowMinute();
+  calendarRenderedMinute=now;
   const timeline=FolioCalendar.timelineState(calendarDayEvents,homeworkState.today,now);
   const target=isToday ? calendarDayEvents.find(entry=>entry.id===timeline.anchorId)||FolioCalendar.focusEvent(calendarDayEvents,now) : calendarDayEvents[0];
   const countdownKey=`${calendarSelectedDay}:${timeline.nextId}`;
@@ -169,7 +189,7 @@ function renderCalendarAgenda(position=false) {
     const current=isToday&&entry.id===timeline.currentId;
     const next=entry.kind==="course"&&isToday&&entry===target&&entry.startMinute>now;
     const courseRemaining=FolioCalendar.remainingFraction(entry,homeworkState.today,now);
-    const remaining=current ? FolioCalendar.activeRemainingFraction(entry,homeworkState.today,now) : null;
+    const remaining=current ? FolioCalendar.activeRemainingFraction(entry,homeworkState.today,calendarProgressMinute()) : null;
     if(entry.kind==="course"&&courseRemaining===0) {
       li.classList.add("is-finished-course");row.classList.add("is-finished-course");
     }
@@ -261,5 +281,6 @@ document.addEventListener("preview-screen-change",event=>{
 document.addEventListener("folio-data-change",()=>{renderCalendarMonth();renderCalendarAgenda(false);});
 document.addEventListener("folio-goals-change",()=>renderCalendarAgenda(false));
 document.addEventListener("folio-exams-change",()=>{renderCalendarMonth();renderCalendarAgenda(false);});
-setInterval(()=>{if(currentScreen==="calendar"&&homeworkLayer.hidden)renderCalendarAgenda(false);},60000);
+setInterval(updateCalendarProgress,1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateCalendarProgress();});
 renderCalendarMonth();renderCalendarAgenda();

@@ -21,7 +21,7 @@
     return dragged||flick?1-index:index;
   }
   function bind(surface,options){
-    let active=null;
+    let active=null;const listeners=[];const on=(target,...args)=>{target.addEventListener(...args);listeners.push(()=>target.removeEventListener(...args));};
     const now=()=>performance.now();
     function start(event,point,source){
       if(active||options.enabled?.()===false||options.ignore?.(event.target,event))return;
@@ -50,15 +50,15 @@
       item.velocityY=elapsed>=10?(last.y-first.y)/elapsed:0;
       options.end?.(item,event,cancelled);
     }
-    surface.addEventListener("touchstart",event=>{if(event.touches.length===1)start(event,event.touches[0],"touch");else if(active?.source==="touch")end(event,null,true);},{passive:true});
-    surface.addEventListener("touchmove",event=>{if(active?.source!=="touch")return;const point=[...event.touches].find(p=>p.identifier===active.id);if(point)move(event,point);else end(event,null,true);},{passive:false});
-    surface.addEventListener("touchend",event=>{if(active?.source!=="touch")return;const point=[...event.changedTouches].find(p=>p.identifier===active.id);if(point)end(event,point);},{passive:true});
-    surface.addEventListener("touchcancel",event=>{if(active?.source==="touch")end(event,null,true);},{passive:true});
-    surface.addEventListener("pointerdown",event=>{if(event.pointerType!=="touch"&&event.isPrimary&&event.button===0)start(event,event,"pointer");});
-    root.addEventListener("pointermove",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)move(event,event);},{passive:false});
-    root.addEventListener("pointerup",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)end(event,event);});
-    root.addEventListener("pointercancel",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)end(event,event,true);});
-    return {cancel(){if(active)end({},null,true);},get active(){return active;}};
+    on(surface,"touchstart",event=>{if(event.touches.length===1)start(event,event.touches[0],"touch");else if(active?.source==="touch")end(event,null,true);},{passive:true});
+    on(surface,"touchmove",event=>{if(active?.source!=="touch")return;const point=[...event.touches].find(p=>p.identifier===active.id);if(point)move(event,point);else end(event,null,true);},{passive:false});
+    on(surface,"touchend",event=>{if(active?.source!=="touch")return;const point=[...event.changedTouches].find(p=>p.identifier===active.id);if(point)end(event,point);},{passive:true});
+    on(surface,"touchcancel",event=>{if(active?.source==="touch")end(event,null,true);},{passive:true});
+    on(surface,"pointerdown",event=>{if(event.pointerType!=="touch"&&event.isPrimary&&event.button===0)start(event,event,"pointer");});
+    on(root,"pointermove",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)move(event,event);},{passive:false});
+    on(root,"pointerup",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)end(event,event);});
+    on(root,"pointercancel",event=>{if(active?.source==="pointer"&&active.id===event.pointerId)end(event,event,true);});
+    return {cancel(){if(active)end({},null,true);},destroy(){if(active)end({},null,true);for(const off of listeners.splice(0))off();},get active(){return active;}};
   }
   const api={axis,pageOffset,destination,bind};
   if(typeof module!=="undefined"&&module.exports)module.exports=api;else root.FolioGesture=api;

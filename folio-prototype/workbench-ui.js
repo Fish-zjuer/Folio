@@ -70,7 +70,7 @@
     try { await window.FolioSchool.refresh("homework"); announce("学在浙大作业已刷新"); }
     catch (error) { announce(error?.message || "刷新学在浙大作业失败"); }
   }
-  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, interactionStatus); const lessonQueue=el("section","workbench-lesson-queue");lessonQueue.setAttribute("aria-label","课程安排队列");lessonQueue.hidden=true;main.append(grid,lessonQueue,board);
+  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, interactionStatus);window.FolioWidgetPalette?.bind(board); const lessonQueue=el("section","workbench-lesson-queue");lessonQueue.setAttribute("aria-label","课程安排队列");lessonQueue.hidden=true;main.append(grid,lessonQueue,board);
   page.append(header, overview, main); phone.insertBefore(page, homeworkLayer);
   const home = previewScreens.home, homeHeader = home.querySelector(".topbar");
   const sharedHeader = homeHeader || header;
@@ -292,9 +292,9 @@
   }
   const editTools=el("div","workbench-edit-tools");editTools.hidden=true;editTools.setAttribute("role","toolbar");editTools.setAttribute("aria-label","组件编辑");
   const editLabel=el("span","workbench-edit-label"),editChange=button("workbench-edit-change","更换组件",()=>openPicker(editIndex)),editRemove=button("workbench-edit-remove","移除组件",()=>removeWidget(editIndex)),editDone=button("workbench-edit-done","完成编辑",()=>exitEdit());
-  editChange.textContent="更换";editRemove.textContent="移除";editDone.textContent="完成";editTools.append(editLabel,editChange,editRemove,editDone);page.append(editTools);
+  editChange.textContent="更换";editRemove.textContent="移除";editDone.textContent="完成";const editManage=button("workbench-edit-manage","管理卡片包",()=>registry.get(slots[editIndex])?.manage?.());editManage.textContent="管理包";editManage.hidden=true;editTools.append(editLabel,editManage,editChange,editRemove,editDone);page.append(editTools);
   function positionEditTools(){if(editTools.hidden)return;editTools.style.top=`${Math.max(0,grid.getBoundingClientRect().top-page.getBoundingClientRect().top-46)}px`;}
-  function editSlot(index){if(!Number.isInteger(index)||index<0||index>3||!registry.has(slots[index]))return;editIndex=index;editTools.hidden=false;trash.hidden=false;page.classList.add("is-widget-editing");for(const slot of slotNodes)slot.classList.toggle("is-widget-selected",Number(slot.dataset.index)===index);editLabel.textContent=`${positions[index]} · ${registry.get(slots[index]).label}`;positionEditTools();}
+  function editSlot(index){if(!Number.isInteger(index)||index<0||index>3||!registry.has(slots[index]))return;editIndex=index;editTools.hidden=false;trash.hidden=false;page.classList.add("is-widget-editing");for(const slot of slotNodes)slot.classList.toggle("is-widget-selected",Number(slot.dataset.index)===index);editLabel.textContent=`${positions[index]} · ${registry.get(slots[index]).label}`;editManage.hidden=typeof registry.get(slots[index]).manage!=="function";editRemove.textContent=registry.get(slots[index]).isPack?"整包移除":"移除";positionEditTools();}
   function exitEdit(){editIndex=-1;editTools.hidden=true;trash.hidden=true;trash.classList.remove("is-target");page.classList.remove("is-widget-editing");for(const slot of slotNodes)slot.classList.remove("is-widget-selected");}
   grid.addEventListener("click",event=>{if(editIndex<0)return;const slot=event.target.closest(".workbench-slot.has-widget");if(slot){event.preventDefault();event.stopImmediatePropagation();editSlot(Number(slot.dataset.index));}},true);
   grid.addEventListener("keydown",event=>{const slot=event.target.closest(".workbench-slot.has-widget");if(slot===event.target&&["Enter","F2"," "].includes(event.key)){event.preventDefault();editSlot(Number(slot.dataset.index));editChange.focus({preventScroll:true});}});
@@ -319,7 +319,7 @@
       slot.replaceChildren();
       if (component) {
         const content = el("div", "workbench-slot-content");
-        try{slot._dispose=component.mount(content);}catch{content.append(el("p","workbench-picker-empty","组件未能加载"));console.warn("Widget mount failed",id);}
+        try{const stopColors=window.FolioWidgetPalette?.bind(content),mounted=component.mount(content);slot._dispose=()=>{disposeView(mounted);stopColors?.();};}catch{content.append(el("p","workbench-picker-empty","组件未能加载"));console.warn("Widget mount failed",id);}
         slot.append(content);
       } else {
         slot.append(button("workbench-add", `${positions[index]}添加组件`, () => openPicker(Number(slot.dataset.index)), '<path d="M12 4v16M4 12h16"/>'));
@@ -465,7 +465,8 @@
     if(!incomingPanel.hidden && !incomingPanel.classList.contains("is-closing") && reader.hidden)openIncoming();
     requestAnimationFrame(arrangeNotes);
   }
-  const noteResize = new ResizeObserver(arrangeNotes); noteResize.observe(board); noteResize.observe(notes);
+  let noteLayoutFrame=0;
+  const noteResize = new ResizeObserver(()=>{if(!noteLayoutFrame)noteLayoutFrame=requestAnimationFrame(()=>{noteLayoutFrame=0;arrangeNotes();});}); noteResize.observe(board); noteResize.observe(notes);
   notes.addEventListener("scroll", updateNoteOverflow, { passive: true });
   document.addEventListener("folio-data-change", renderNotes);
   document.addEventListener("folio-goals-change", renderNotes);
@@ -478,14 +479,14 @@
     selected = index; returnFocus = document.activeElement;
     title.textContent = `添加到${positions[index]}`; clearPreviews(); choices.scrollTop = 0;
     if (!registry.size) choices.append(el("p", "workbench-picker-empty", "暂无可添加的组件"));
-    registry.forEach(component => {
+    FolioWorkbenchSlots.catalog(registry.values()).forEach(component => {
       const item = el("article", "workbench-choice-item"), preview = el("div", "workbench-choice-preview");
       preview.setAttribute("aria-hidden", "true"); preview.inert=true;
-      try{previewDisposers.push(component.preview?.(preview));}catch{console.warn("Widget preview failed",component.id);}
+      try{previewDisposers.push(window.FolioWidgetPalette?.bind(preview),component.preview?.(preview));}catch{console.warn("Widget preview failed",component.id);}
       const label = el("h3", "workbench-choice-label", component.label);
       const description = el("p", "workbench-choice-description", component.description || "");
       const choice = button("workbench-choice-add", `添加${component.label}到${positions[index]}`, () => {
-        slots[selected] = component.id; persist(); render(); closePicker();
+        try{slots[selected] = component.create?component.create():component.id;persist();render();closePicker();}catch(error){announce(error.message||"未能添加组件");}
       }); choice.textContent = "添加"; item.append(preview, label, description, choice); choices.append(item);
     });
     picker.hidden = false; setWorkbenchInert(true); close.focus({ preventScroll: true });
@@ -578,15 +579,15 @@
   },true);
   let menuSwipe=null,menuTimer=null;
   const menuSurface=previewScreens.menu;
-  function clearMenuSwipe(){clearTimeout(menuTimer);menuTimer=null;menuSwipe=null;[menuSurface,home].forEach(s=>{s.classList.remove("is-menu-dragging");s.style.removeProperty("transform");s.style.removeProperty("transition");s.style.removeProperty("z-index");s.inert=false;s.hidden=previewScreens[currentScreen]!==s;});}
+  function clearMenuSwipe(){clearTimeout(menuTimer);menuTimer=null;menuSwipe=null;[menuSurface,home].forEach(s=>{s.classList.remove("is-menu-dragging");s.style.removeProperty("transform");s.style.removeProperty("transition");s.style.removeProperty("z-index");s.inert=false;s.hidden=previewScreens[currentScreen]!==s;});if(currentScreen!=="menu")menuSurface.classList.remove("is-menu-settled");}
   FolioGesture.bind(menuSurface,{axis:"x",enabled:()=>currentScreen==="menu"&&!menuTimer,
     ignore:target=>Boolean(target.closest("input,textarea,select,[contenteditable=true]")),
     start:()=>({width:phone.clientWidth}),
     move(swipe){
       // 左滑把菜单从左侧推出；右侧首页跟随进入。轻扫只回弹，不误触发整段切换。
       if(swipe.dx>=0&&!menuSwipe)return;
-      if(!menuSwipe){menuSwipe=swipe;home.hidden=false;home.inert=true;[home,menuSurface].forEach(s=>{s.classList.add("is-menu-dragging");s.style.transition="none";s.style.zIndex=s===menuSurface?"12":"11";});home.style.transform=`translateX(${phone.clientWidth}px)`;}
-      const width=swipe.extra.width,dx=Math.max(-width,Math.min(0,swipe.dx));
+      if(!menuSwipe){menuSwipe=swipe;swipe.extra.offset=Math.min(0,new DOMMatrixReadOnly(getComputedStyle(menuSurface).transform).m41);menuSurface.classList.add("is-menu-settled");home.inert=true;home.style.transform=`translateX(${swipe.extra.width}px)`;[home,menuSurface].forEach(s=>{s.classList.add("is-menu-dragging");s.style.transition="none";s.style.zIndex=s===menuSurface?"12":"11";});home.hidden=false;}
+      const width=swipe.extra.width,dx=Math.max(-width,Math.min(0,swipe.dx+swipe.extra.offset));
       menuSurface.style.transform=`translateX(${dx}px)`;home.style.transform=`translateX(${width+dx}px)`;
     },
     end(swipe,event,cancelled){
@@ -612,6 +613,7 @@
     animations.forEach(animation => animation.cancel()); animations = [];
     phone.querySelectorAll(".workbench-transition").forEach(node => node.remove());
     const next = event.detail.screen;
+    if(next!=="menu")menuSurface.classList.remove("is-menu-settled");
     syncHeader();
     if (["home","workbench"].includes(next) && event.detail.focus !== false) menu.focus({preventScroll:true});
     if (next === "workbench") { updateClock(); renderNotes(); }
@@ -631,16 +633,18 @@
     apiVersion:1,
     register(component) {
       if (!component || typeof component.id !== "string" || !component.id || typeof component.label !== "string" || typeof component.mount !== "function") throw new TypeError("组件需提供 id、label 和 mount");
-      registry.set(component.id, component); render();
+      registry.set(component.id, component);render();document.dispatchEvent(new CustomEvent("folio-widget-registry-change",{detail:{ids:[component.id]}}));
     },
     registerMany(components) {
       components.forEach(component => {
         if (!component || typeof component.id !== "string" || !component.id || typeof component.label !== "string" || typeof component.mount !== "function") throw new TypeError("组件需提供 id、label 和 mount");
       });
-      components.forEach(component=>registry.set(component.id,component));render();
+      components.forEach(component=>registry.set(component.id,component));render();document.dispatchEvent(new CustomEvent("folio-widget-registry-change",{detail:{ids:components.map(c=>c.id)}}));
     },
-    listComponents(){return [...registry.values()].map(({id,label,description})=>({id,label,description:description||""}));},
+    listComponents(){return FolioWorkbenchSlots.catalog(registry.values()).map(({id,label,description})=>({id,label,description:description||""}));},
+    mountComponent(id,root,{preview=false}={}){const c=registry.get(id);if(!c||c.isPack)throw Error("这个组件不可放入卡片包");const stopColors=window.FolioWidgetPalette?.bind(root),handle=preview?c.preview?.(root):c.mount(root);return()=>{disposeView(handle);stopColors?.();};},
     getLayout() { return slots.slice(); },
+    isEditing(){return editIndex>=0||reorder.active;},
     edit: editSlot, openPicker,
     openInbox(){showPreviewScreen("workbench");openIncoming();},
   });

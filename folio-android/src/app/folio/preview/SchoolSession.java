@@ -12,7 +12,8 @@ final class SchoolSession {
   private final Network network;private final Vault vault;
   private final Object ssoLock=new Object();private final Map<String,Object> siteLocks=new HashMap<>();
   private volatile long ssoUntil=0;private volatile boolean practiceVerified=false;
-  void browserLoginCompleted(){ssoUntil=0;practiceVerified=false;}
+  private volatile long ssoFailureUntil=0;private volatile String ssoFailure="";
+  void browserLoginCompleted(){ssoUntil=0;ssoFailureUntil=0;practiceVerified=false;}
   SchoolSession(Network network,Vault vault){this.network=network;this.vault=vault;for(String s:Arrays.asList("academic","homework","practice"))siteLocks.put(s,new Object());}
   JSONObject account() throws Exception {
     JSONObject saved=new JSONObject(vault.get("school-account"));String username=saved.optString("username");
@@ -25,27 +26,31 @@ final class SchoolSession {
     String password=input.has("password")?input.optString("password"):username.equals(old.optString("username"))?old.optString("password"):"";
     if(password.isEmpty()||password.length()>512)throw new IOException("请填写密码");
     boolean changed=!old.optString("username").equals(username);vault.put("school-account",new JSONObject().put("username",username).put("password",password).toString());
-    ssoUntil=0;practiceVerified=false;if(changed)network.resetSchoolCookies();JSONObject result=account();return result.put("changed",changed);
+    ssoUntil=0;ssoFailureUntil=0;practiceVerified=false;if(changed)network.resetSchoolCookies();JSONObject result=account();return result.put("changed",changed);
   }
-  synchronized void forget() throws Exception {vault.put("school-account","{}");ssoUntil=0;practiceVerified=false;network.resetSchoolCookies();}
+  synchronized void forget() throws Exception {vault.put("school-account","{}");ssoUntil=0;ssoFailureUntil=0;practiceVerified=false;network.resetSchoolCookies();}
   private Map<String,String> headers(){Map<String,String> h=new HashMap<>();h.put("Accept","text/html,application/json,*/*");return h;}
   private JSONObject get(String id,String address,boolean follow) throws Exception {return network.request(id,address,"GET",null,headers(),true,follow);}
   private void sso(String id,boolean force) throws Exception {
     synchronized(ssoLock){
       if(!force&&ssoUntil>System.currentTimeMillis()&&network.hasCookie("https://zjuam.zju.edu.cn/cas/login","iPlanetDirectoryPro"))return;
+      // Concurrent modules must not submit the same rejected password one after another.
+      if(ssoFailureUntil>System.currentTimeMillis())throw new IOException(ssoFailure);
       JSONObject credentials=new JSONObject(vault.get("school-account"));String username=credentials.optString("username"),password=credentials.optString("password");
       if(username.isEmpty()||password.isEmpty())throw new IOException("请先在教务连接中填写学号和密码，或使用官方网页登录");
       int generation=network.generation();network.removeSso();
       JSONObject page=get(id,"https://zjuam.zju.edu.cn/cas/login",false);if(page.optInt("status")!=200)throw new IOException("统一身份认证暂时无法访问，请稍后重试或使用官方网页登录");
-      String execution=SchoolProtocol.execution(page.optString("body"));JSONObject keyResponse=get(id,"https://zjuam.zju.edu.cn/cas/v2/getPubKey",false);
+      SchoolProtocol.execution(page.optString("body"));JSONObject keyResponse=get(id,"https://zjuam.zju.edu.cn/cas/v2/getPubKey",false);
       if(keyResponse.optInt("status")!=200)throw new IOException("未取得学校登录公钥，请稍后重试");
       JSONObject key=new JSONObject(keyResponse.optString("body"));String encrypted=SchoolProtocol.encryptPassword(password,key.optString("modulus"),key.optString("exponent"));
-      Map<String,String> h=headers();h.put("Content-Type","application/x-www-form-urlencoded; charset=UTF-8");
-      String body="username="+URLEncoder.encode(username,"UTF-8")+"&password="+URLEncoder.encode(encrypted,"UTF-8")+"&execution="+URLEncoder.encode(execution,"UTF-8")+"&_eventId=submit&rememberMe=true";
+      Map<String,String> h=headers();h.put("Content-Type","application/x-www-form-urlencoded; charset=UTF-8");h.put("Origin","https://zjuam.zju.edu.cn");h.put("Referer","https://zjuam.zju.edu.cn/cas/login");
+      String body=SchoolProtocol.loginForm(page.optString("body"),username,encrypted);
       JSONObject result=network.request(id,"https://zjuam.zju.edu.cn/cas/login","POST",body,h,true,false);
       if(network.generation()!=generation)throw new IOException("学校账号已切换，请重试");
-      if(!network.hasCookie("https://zjuam.zju.edu.cn/cas/login","iPlanetDirectoryPro")){String response=result.optString("body");if(response.contains("验证码")||response.contains("captcha"))throw new IOException("学校要求验证码／额外认证，请使用官方网页登录完成");throw new IOException("登录未完成，请检查学号、密码；也可使用官方网页登录");}
-      network.promoteSso();
+      if(!result.optBoolean("ssoIssued")||!network.hasCookie("https://zjuam.zju.edu.cn/cas/login","iPlanetDirectoryPro")){
+        ssoFailure=result.optInt("status")>=400?"学校认证服务返回 HTTP "+result.optInt("status")+"，请稍后重试；原数据已保留":SchoolProtocol.loginFailure(result.optString("body"));ssoFailureUntil=System.currentTimeMillis()+10000;throw new IOException(ssoFailure);
+      }
+      ssoFailureUntil=0;
       // CAS password login is shared only briefly; each business station retains its own session.
       ssoUntil=System.currentTimeMillis()+120000;
     }
@@ -75,7 +80,9 @@ final class SchoolSession {
     if(status<300||status>=400||location.isEmpty())throw new AuthExpired("学校认证会话已失效");
     String callback=trustedLocation(cas,location);URL received=new URL(callback),expected=new URL(service);
     if(!received.getHost().equals(expected.getHost())||!received.getPath().equals(expected.getPath())||received.getQuery()==null||!received.getQuery().matches(".*(?:^|&)ticket=[^&]+.*"))throw new IOException("学校认证回调不正确，请使用官方网页登录");
-    JSONObject result=get(id,callback,true);if(result.optInt("status")<200||result.optInt("status")>=300||SchoolProtocol.authBody(result.optString("body")))throw new AuthExpired("学校平台会话未建立");
+    // The academic callback commonly issues its session on a 302. Following the home page
+    // first can enter another login chain and discard that just-created business context.
+    JSONObject result=get(id,callback,site.equals("practice"));if(!SchoolProtocol.businessCallbackAccepted(result.optInt("status"),result.optString("body")))throw new AuthExpired("学校平台会话未建立");
     if(site.equals("academic")){if(!network.hasCookie(service,"JSESSIONID")||!network.hasCookie(service,"route"))throw new IOException("教务平台未建立完整会话，请使用官方网页登录");}
     else verifyPracticeContext(id);
   }
@@ -92,7 +99,7 @@ final class SchoolSession {
     String user=raw.optString("userId").trim();Object anonymous=raw.opt("anonymous");boolean nonAnonymous=Boolean.FALSE.equals(anonymous)||"false".equals(anonymous)||"0".equals(anonymous)||Integer.valueOf(0).equals(anonymous);
     return nonAnonymous&&!user.isEmpty()&&!user.equalsIgnoreCase("ANONYMOUS")&&!String.valueOf(raw.opt("roles")).contains("ANONYMOUS_USER_ROLE");
   }catch(Exception e){return false;}}
-  private boolean expired(JSONObject response){int status=response.optInt("status");String body=response.optString("body");if(status==401||status==403||SchoolProtocol.authEndpoint(response.optString("url"))||SchoolProtocol.authBody(body)||status==200&&body.trim().startsWith("<"))return true;try{JSONObject json=new JSONObject(body);int code=json.optInt("code",json.optInt("status"));if(code==401||code==403||code==901||json.optInt("kickout")==1||json.optBoolean("isLogin",true)==false)return true;String message=json.optString("message",json.optString("msg"));return (message.contains("登录")||message.contains("认证")||message.contains("token"))&&(!json.optBoolean("success",true)||code!=0&&code!=200);}catch(Exception e){return false;}}
+  private boolean expired(JSONObject response){int status=response.optInt("status");String body=response.optString("body");if(SchoolProtocol.authStatus(status)||SchoolProtocol.authEndpoint(response.optString("url"))||SchoolProtocol.authBody(body)||status==200&&body.trim().startsWith("<"))return true;try{JSONObject json=new JSONObject(body);int code=json.optInt("code",json.optInt("status"));if(code==401||code==403||code==901||json.optInt("kickout")==1||json.optBoolean("isLogin",true)==false)return true;String message=json.optString("message",json.optString("msg"));return (message.contains("登录")||message.contains("认证")||message.contains("token"))&&(!json.optBoolean("success",true)||code!=0&&code!=200);}catch(Exception e){return false;}}
   JSONObject school(String id,JSONObject input) throws Exception {
     String module=input.optString("module");if(module.equals("calendar"))return network.school(id,input);
     String site=module.equals("homework")?"homework":module.startsWith("practice")?"practice":"academic";
@@ -111,6 +118,6 @@ final class SchoolSession {
       JSONObject retry=network.school(id,input);if(!expired(retry))return retry;
       sso(id,false);try{businessLogin(id,site);}catch(AuthExpired e){sso(id,true);businessLogin(id,site);}
     }
-    JSONObject retried=network.school(id,input);if(expired(retried))throw new IOException("登录仍未完成，请使用官方网页登录；原数据已保留");return retried;
+    JSONObject retried=network.school(id,input);if(expired(retried))throw new IOException(retried.optInt("status")==901?"教务网重建会话后仍被拒绝（HTTP 901）；原缓存保留，请复制连接诊断排查":"登录仍未完成，请使用官方网页登录；原数据已保留");return retried;
   }
 }

@@ -4,9 +4,9 @@
 
 把课表、日程、作业、成绩、目标和 AI 对话放在一起。首页包含可自由配置的 2×2 工作台：纸感图形、像素插画和数据组件共用可扩展的 Widget API。
 
-当前测试代码为 **0.18-test（2026-10-20）**，Android 9及以上。安装包和校验文件见 [GitHub Releases](https://github.com/Fish-zjuer/Folio/releases)，公开测试尚未作为校园正式版推广。
+当前版本为 **1.0（2026-10-21）**，Android 9及以上，仅安卓。安装包和校验文件见 [GitHub Releases v1.0](https://github.com/Fish-zjuer/Folio/releases/tag/v1.0)；这是第一个公开版本，产品仍处于早期阶段。
 
-本版加入课程安排类型、多选显示位置、多个App内提醒及时间待定；26枚学习卡的二级菜单按点击区域与记录定位，分组、搜索和主要操作更清楚。保持原卡片绘图和Widget API v1。详见 [0.18变更与验证边界](folio-android/RELEASE-0.18.md)。
+本版包含首页对话与 2×2 工作台、日程/课表、待办、作业热力图、课程/考试、学业/成绩、目标测算、深色与跟随系统、本地提醒、学校教务连接、Widget API v1 和卡片包。AI 模型不内置，由用户配置。详见 [1.0 变更与验证边界](folio-android/RELEASE-1.0.md)。
 
 ## 运行结构
 

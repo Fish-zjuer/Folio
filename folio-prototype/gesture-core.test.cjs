@@ -21,9 +21,9 @@ test('主界面可配置更轻的翻页门槛，短距离快划也能过去；�
   assert.equal(G.destination(0,-34,-.3,390),0);
 });
 function harness(t,options={}){
-  const windowListeners=new Map(),surfaceListeners=new Map(),old=global.addEventListener;
-  global.addEventListener=(name,fn)=>windowListeners.set(name,fn);t.after(()=>{global.addEventListener=old;});
-  const surface={addEventListener:(name,fn)=>surfaceListeners.set(name,fn)},moves=[],ends=[];
+  const windowListeners=new Map(),surfaceListeners=new Map(),old=global.addEventListener,oldRemove=global.removeEventListener;
+  global.addEventListener=(name,fn)=>windowListeners.set(name,fn);global.removeEventListener=name=>windowListeners.delete(name);t.after(()=>{global.addEventListener=old;global.removeEventListener=oldRemove;});
+  const surface={addEventListener:(name,fn)=>surfaceListeners.set(name,fn),removeEventListener:name=>surfaceListeners.delete(name)},moves=[],ends=[];
   const binding=G.bind(surface,{axis:'x',move:s=>moves.push({dx:s.dx,axis:s.axis}),end:(s,e,cancelled)=>ends.push({dx:s.dx,axis:s.axis,cancelled}),...options});
   const point=(x,y)=>({identifier:7,clientX:x,clientY:y});
   let prevented=0;
@@ -52,3 +52,5 @@ test('月历选择双轴时上下触摸不丢失，取消和多指均只回弹�
   h.touch('touchstart',200,200);h.touch('touchmove',150,200);h.touch('touchstart',150,200,2);
   assert.equal(h.ends.length,2);assert.equal(h.ends[1].cancelled,true);
 });
+
+test('移除卡片包后销毁手势绑定，清掉窗口和表面的监听并回弹一次',t=>{const h=harness(t);h.touch('touchstart',200,100);h.touch('touchmove',100,100);h.binding.destroy();assert.equal(h.binding.active,null);assert.equal(h.surfaceListeners.size,0);assert.equal(h.windowListeners.size,0);assert.equal(h.ends.length,1);assert.equal(h.ends[0].cancelled,true);});

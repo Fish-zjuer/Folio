@@ -7,6 +7,37 @@ import java.net.URL;
 
 /** CAS protocol adapted from Celechron zjuam.dart (GPL-3.0). No credentials are logged. */
 final class SchoolProtocol {
+  private static String attribute(String tag,String name){
+    Matcher m=Pattern.compile("(?:^|\\s)"+Pattern.quote(name)+"\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))",Pattern.CASE_INSENSITIVE).matcher(tag);
+    if(!m.find())return "";String value=m.group(1)!=null?m.group(1):m.group(2)!=null?m.group(2):m.group(3);
+    return value.replace("&quot;","\"").replace("&#39;","'").replace("&lt;","<").replace("&gt;",">").replace("&amp;","&");
+  }
+  /** Preserve the server's CAS hidden fields instead of reconstructing an older form. */
+  static String loginForm(String html,String username,String encrypted) throws Exception {
+    String login=null;Matcher forms=Pattern.compile("<form\\b[^>]*>([\\s\\S]*?)</form\\s*>",Pattern.CASE_INSENSITIVE).matcher(html);
+    while(forms.find()){String candidate=forms.group(1);try{execution(candidate);login=candidate;break;}catch(Exception ignored){}}
+    if(login==null)throw new Exception("学校登录页发生变化，未取得认证表单；可使用官方网页登录");
+    java.util.Map<String,String> fields=new java.util.LinkedHashMap<>();Matcher tags=Pattern.compile("<input\\b[^>]*>",Pattern.CASE_INSENSITIVE).matcher(login);
+    while(tags.find()){String tag=tags.group(),name=attribute(tag,"name");if(attribute(tag,"type").equalsIgnoreCase("hidden")&&name.matches("[A-Za-z_][A-Za-z0-9_.-]{0,63}")&&fields.size()<32)fields.put(name,attribute(tag,"value"));}
+    fields.put("execution",execution(login));fields.put("_eventId","submit");fields.put("username",username);fields.put("password",encrypted);fields.put("rememberMe","true");fields.put("authcode","");
+    StringBuilder out=new StringBuilder();for(java.util.Map.Entry<String,String> field:fields.entrySet()){if(out.length()>0)out.append('&');out.append(java.net.URLEncoder.encode(field.getKey(),"UTF-8")).append('=').append(java.net.URLEncoder.encode(field.getValue(),"UTF-8"));}return out.toString();
+  }
+  /** A delete-cookie followed by a live cookie must not be mistaken for a failed password login. */
+  static java.net.HttpCookie issuedSso(java.util.Map<String,java.util.List<String>> headers){
+    java.net.HttpCookie found=null;for(java.util.Map.Entry<String,java.util.List<String>> header:headers.entrySet())if(header.getKey()!=null&&header.getKey().equalsIgnoreCase("Set-Cookie"))for(String raw:header.getValue())try{
+      for(java.net.HttpCookie c:java.net.HttpCookie.parse(raw))if(c.getName().equals("iPlanetDirectoryPro")&&!c.getValue().isEmpty()&&!c.hasExpired()&&c.getMaxAge()!=0)found=c;
+    }catch(IllegalArgumentException ignored){}return found;
+  }
+  static boolean businessCallbackAccepted(int status,String body){return status>=200&&status<400&&!authBody(body);}
+  // ZDBK uses HTTP 901 as well as JSON code=901 to reject an authenticated session.
+  static boolean authStatus(int status){return status==401||status==403||status==901;}
+  static String loginFailure(String body){
+    // The normal login form itself always contains captcha markup; only inspect actual error messages.
+    Matcher errors=Pattern.compile("<(?:p|div|span)\\b[^>]*(?:class\\s*=\\s*['\"][^'\"]*\\berror\\b[^'\"]*['\"]|id\\s*=\\s*['\"]msg['\"])[^>]*>([\\s\\S]*?)</(?:p|div|span)>",Pattern.CASE_INSENSITIVE).matcher(body);
+    StringBuilder text=new StringBuilder();while(errors.find())text.append(errors.group(1).replaceAll("<[^>]+>"," "));
+    if(text.toString().matches("[\\s\\S]*(?:验证码|额外认证|二次认证|动态码|扫码)[\\s\\S]*"))return "学校要求验证码／额外认证，请使用官方网页登录完成";
+    return "统一身份认证未完成，请检查学号和密码；如学校要求额外认证，请使用官方网页登录";
+  }
   static String execution(String html) throws Exception {
     Matcher tags=Pattern.compile("<input\\b[^>]*>",Pattern.CASE_INSENSITIVE).matcher(html);
     while(tags.find()){

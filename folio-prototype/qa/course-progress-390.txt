@@ -1,0 +1,7 @@
+Browser tab: 7, Title: "上课路线微调", URL: "http://127.0.0.1:4200/Projects/folio-prototype/qa/course-progress-mobile.html?v=course-progress2".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 136-138
++										140 text 10 月 21 日 · 周三
++									141 text 这一天没有安排
++										142 text 这天没有安排。
+The focused UI element is 0 AXWebArea 上课路线微调, URL: 127.0.0.1:4200/Projects/folio-prototype/qa/course-progress-mobile.html?v=course-progress2

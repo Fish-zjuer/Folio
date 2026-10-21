@@ -1,0 +1,13 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+function page(nativeValue,mediaDark=false){
+ const winEvents={},docEvents={},mediaEvents={},changes=[],storage=new Map(),html={dataset:{}},meta={},media={matches:mediaDark,addEventListener:(n,f)=>mediaEvents[n]=f};
+ const window={addEventListener:(n,f)=>winEvents[n]=f};if(nativeValue!==undefined)window.FolioAndroid={systemDark:()=>nativeValue.value};
+ const document={documentElement:html,hidden:false,querySelectorAll:()=>[],querySelector:()=>meta,dispatchEvent:e=>changes.push(e.detail),addEventListener:(n,f)=>docEvents[n]=f};
+ const context=vm.createContext({window,document,matchMedia:()=>media,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},announce(){}});
+ for(const file of ['theme-init.js','theme-ui.js'])vm.runInContext(fs.readFileSync(__dirname+'/'+file,'utf8'),context);
+ return{html,window,media,meta,changes,fire:(n,detail)=>winEvents[n]?.({detail}),mediaChange:()=>mediaEvents.change?.(),visible:()=>docEvents.visibilitychange?.()};
+}
+test('Android实际系统深色优先于固定浅色WebView媒体查询，首次加载即可生效',()=>{const s=page({value:true},false);assert.equal(s.html.dataset.theme,'dark');assert.equal(s.html.dataset.colorMode,'system');assert.equal(s.meta.content,'#242521');});
+test('系统深浅切换和恢复前台同步更新，不覆盖手动浅/深选择',()=>{const value={value:false},s=page(value,false);value.value=true;s.fire('folio-system-theme',{dark:true});assert.equal(s.html.dataset.theme,'dark');s.window.FolioTheme.set('light');s.fire('folio-system-theme',{dark:true});assert.equal(s.html.dataset.theme,'light');s.window.FolioTheme.set('dark');value.value=false;s.fire('folio-system-theme',{dark:false});assert.equal(s.html.dataset.theme,'dark');s.window.FolioTheme.set('system');assert.equal(s.html.dataset.theme,'light');value.value=true;s.fire('folio-native-resume');assert.equal(s.html.dataset.theme,'dark');});
+test('普通浏览器仍随系统媒体查询动态切换，显式浅色不被改变',()=>{const s=page(undefined,false);s.media.matches=true;s.mediaChange();assert.equal(s.html.dataset.theme,'dark');s.window.FolioTheme.set('light');s.media.matches=false;s.mediaChange();s.media.matches=true;s.mediaChange();assert.equal(s.html.dataset.theme,'light');});
+test('旧宿主可用主题事件同步系统状态，非法事件忽略，返回可见时校正',()=>{const s=page(undefined,false);s.fire('folio-system-theme',{dark:true});assert.equal(s.html.dataset.theme,'dark');s.fire('folio-system-theme',{dark:'false'});assert.equal(s.html.dataset.theme,'dark');s.fire('folio-system-theme',{dark:false});s.visible();assert.equal(s.html.dataset.theme,'light');});

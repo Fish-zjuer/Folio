@@ -23,11 +23,13 @@ public final class MainActivity extends Activity {
   private Dialog loginDialog;private WebView loginView;private String calendarExportId,calendarExportText;
   private volatile boolean resumed=false;private boolean pageReady=false,notificationPermissionPending=false;private JSONObject pendingNotification;private String pendingGradeId="";
   private static final String GRADE_CHANNEL="folio-new-grades",GRADE_EXTRA="folio.gradeId";
+  private String pendingReminder="";
   public void onCreate(Bundle state){
     super.onCreate(state);vault=new Vault(this);records=new RecordRepository(new RecordRepository.Storage(){public String read(String key)throws Exception{return vault.get(key);}public void write(String key,String value)throws Exception{vault.put(key,value);}public void delete(String key)throws Exception{vault.remove(key);}});schoolSession=new SchoolSession(network,vault);pendingGradeId=getIntent().getStringExtra(GRADE_EXTRA);if(pendingGradeId==null)pendingGradeId="";
     String colorMode=getPreferences(MODE_PRIVATE).getString("colorMode","system");boolean dark=colorMode.equals("dark")||colorMode.equals("system")&&(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;int canvas=dark?Color.rgb(36,37,33):Color.rgb(249,249,247);
     getWindow().setStatusBarColor(canvas);getWindow().setNavigationBarColor(canvas);getWindow().getDecorView().setBackgroundColor(canvas);if(Build.VERSION.SDK_INT>=29)getWindow().setNavigationBarContrastEnforced(false);
     getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+    pendingReminder=getIntent().getStringExtra(LocalReminders.EXTRA);if(pendingReminder==null)pendingReminder="";
     web=new WebView(this);web.setBackgroundColor(canvas);
     WebSettings settings=web.getSettings();settings.setTextZoom(100);settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setSafeBrowsingEnabled(true);
     web.addJavascriptInterface(new Bridge(),"FolioAndroid");
@@ -48,7 +50,7 @@ public final class MainActivity extends Activity {
           return new WebResourceResponse(mime,"UTF-8",200,"OK",headers,getAssets().open("www/"+asset));
         }catch(IOException e){return response("text/plain",404,"Not found");}
       }
-      public void onPageFinished(WebView view,String url){if(trusted){pageReady=true;view.evaluateJavascript("window.dispatchEvent(new Event('folio-native-ready'))",null);deliverGrade();}}
+      public void onPageFinished(WebView view,String url){if(trusted){pageReady=true;view.evaluateJavascript("window.dispatchEvent(new Event('folio-native-ready'))",null);sendSystemTheme();deliverGrade();deliverReminder();}}
     });
     web.setWebChromeClient(new WebChromeClient(){
       public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){chooseFile(callback,params);return true;}
@@ -121,10 +123,12 @@ public final class MainActivity extends Activity {
     Notification notification=new Notification.Builder(this,GRADE_CHANNEL).setSmallIcon(getApplicationInfo().icon).setContentTitle("Folio · 有新成绩").setContentText("有课程成绩更新，点按查看").setAutoCancel(true).setContentIntent(open).setVisibility(Notification.VISIBILITY_PRIVATE).build();manager.notify(grade.hashCode(),notification);
   }
   private void requestGradePermission(){if(Build.VERSION.SDK_INT>=33&&!canNotify()&&!notificationPermissionPending){notificationPermissionPending=true;requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},201);}}
-  public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==201){notificationPermissionPending=false;JSONObject pending=pendingNotification;pendingNotification=null;if(pending!=null&&canNotify())gradeNotification(pending);if(trusted)web.evaluateJavascript("window.dispatchEvent(new Event('folio-notification-permission'))",null);}}
+  public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==201){notificationPermissionPending=false;JSONObject pending=pendingNotification;pendingNotification=null;if(pending!=null&&canNotify())gradeNotification(pending);if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(trusted)web.evaluateJavascript("window.dispatchEvent(new Event('folio-notification-permission'))",null);}}
   private void deliverGrade(){if(!pageReady||!trusted||pendingGradeId.isEmpty())return;String id=pendingGradeId;pendingGradeId="";web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-grade',{detail:{gradeId:"+JSONObject.quote(id)+"}}))",null);}
-  protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String grade=intent.getStringExtra(GRADE_EXTRA);if(grade!=null){pendingGradeId=grade;deliverGrade();}}
+  private void deliverReminder(){if(!pageReady||!trusted||pendingReminder.isEmpty())return;String raw=pendingReminder;pendingReminder="";try{JSONObject target=new JSONObject(raw);if(target.optBoolean("summary")){web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-reminder',{detail:{summary:true}}))",null);return;}String id=target.optString("itemId");if(id.isEmpty()||id.length()>300)return;web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-reminder',{detail:{itemId:"+JSONObject.quote(id)+"}}))",null);}catch(JSONException ignored){}}
+  protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String grade=intent.getStringExtra(GRADE_EXTRA);if(grade!=null){pendingGradeId=grade;deliverGrade();}String reminder=intent.getStringExtra(LocalReminders.EXTRA);if(reminder!=null){pendingReminder=reminder;deliverReminder();}}
   private final class Bridge {
+    @JavascriptInterface public boolean systemDark(){return (getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;}
     @JavascriptInterface public void call(String id,String operation,String payload){
       if(!trusted||id==null||id.length()>100||payload==null||payload.length()>24*1024*1024)return;
       if(operation.equals("cancel")){network.cancel(id);return;}
@@ -161,6 +165,10 @@ public final class MainActivity extends Activity {
           case "app.chrome":chrome(input);data=new JSONObject();break;
           case "app.notify":boolean foreground=resumed;runOnUiThread(()->{if(!resumed)gradeNotification(input);});data=new JSONObject().put("foreground",foreground);break;
           case "app.notification.status":data=new JSONObject().put("allowed",canNotify()&&((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).areNotificationsEnabled());break;
+          case "app.reminders.sync":data=LocalReminders.sync(MainActivity.this,input);break;
+          case "app.reminders.status":data=LocalReminders.status(MainActivity.this);break;
+          case "app.reminders.test":data=LocalReminders.test(MainActivity.this);break;
+          case "app.reminders.exact.settings":runOnUiThread(()->{if(Build.VERSION.SDK_INT>=31)try{startActivity(new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:"+getPackageName())));}catch(ActivityNotFoundException e){Toast.makeText(MainActivity.this,"请在系统设置中允许闹钟与提醒",Toast.LENGTH_SHORT).show();}});data=new JSONObject().put("opened",Build.VERSION.SDK_INT>=31);break;
           case "app.notification.permission":runOnUiThread(()->requestGradePermission());data=new JSONObject().put("requested",true);break;
           case "app.notification.settings":runOnUiThread(()->startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName())));data=new JSONObject();break;
           case "app.background":runOnUiThread(()->moveTaskToBack(true));data=new JSONObject();break;
@@ -173,7 +181,9 @@ public final class MainActivity extends Activity {
   }
   private void handleBack(){if(loginDialog!=null&&loginDialog.isShowing()){if(loginView.canGoBack())loginView.goBack();else loginDialog.dismiss();return;}web.evaluateJavascript("window.FolioNative&&window.FolioNative.back()",null);}
   public void onBackPressed(){handleBack();}
-  protected void onResume(){super.onResume();resumed=true;if(web!=null&&pageReady&&trusted)web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-resume'))",null);}
+  private void sendSystemTheme(){if(web!=null&&pageReady&&trusted){boolean dark=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-system-theme',{detail:{dark:"+dark+"}}))",null);}}
+  public void onConfigurationChanged(android.content.res.Configuration config){super.onConfigurationChanged(config);sendSystemTheme();}
+  protected void onResume(){super.onResume();resumed=true;if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(web!=null&&pageReady&&trusted){sendSystemTheme();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-resume'))",null);}}
   protected void onPause(){resumed=false;super.onPause();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-background'))",null);CookieManager.getInstance().flush();}
   protected void onDestroy(){trusted=false;if(loginDialog!=null&&loginDialog.isShowing())loginDialog.dismiss();network.close();jobs.shutdownNow();web.removeJavascriptInterface("FolioAndroid");web.destroy();super.onDestroy();}
 }

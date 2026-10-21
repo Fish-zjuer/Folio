@@ -98,7 +98,7 @@
    if(cards.length){
      lay();
      button.addEventListener('pointerdown',event=>{startY=event.clientY;swiped=false;});
-     button.addEventListener('pointerup',event=>{if(startY!==null&&startY-event.clientY>=26){swiped=true;clearTimeout(timer);timer=0;openFront();}startY=null;});
+     button.addEventListener('pointerup',event=>{if(button.closest('.card-pack.is-swiping')){startY=null;return;}if(startY!==null&&startY-event.clientY>=26){swiped=true;clearTimeout(timer);timer=0;openFront();}startY=null;});
      button.addEventListener('click',event=>{
        event.preventDefault();event.stopImmediatePropagation();
        if(swiped){swiped=false;return;}
@@ -119,7 +119,8 @@
  }
  const permissions=['courses','tasks','exams','academic','focus','study'];
  function register(spec,combo=false){const id='study/'+(combo?'bento-':'')+spec[0],description=combo?spec[5].map(([,k])=>({agenda:'今日课程',plant:'三件事',nextRing:'下一课24h环',courseSquares:'课次进度',streak:'学习连胜',focusBars:'七日专注',mountain:'考试倒计时',domino:'考试进展',mosaic:'闪卡掌握提醒',moons:'七夜睡眠',coffee:'咖啡记录',dayArc:'6–24点时钟',curve:'遗忘示意',reviewBlocks:'待复习',fan:'闪卡',focus:'25分钟番茄蛇',tomatoes:'已完成番茄会话',focusBands:'今日专注/目标',deadline:'截止',quadrant:'轻重缓急',submitted:'已完成作业',stairs:'当前均绩',gradeRings:'最近四科绩点',trend:'学期走势'}[k]||k)).join(' · '):spec[4];
-  FolioWidgetSDK.register({apiVersion:1,id,version:'1.0.0',name:spec[1],description,permissions,
+  const paper={a:['#F2EADF','#343029'],b:['#E1E6DD','#2C352E'],c:['#EAE2D6','#383129'],d:['#DEE6E2','#293631']}[spec[2]]||['#F2EADF','#343029'];
+  FolioWidgetSDK.register({apiVersion:1,id,version:'1.0.0',name:spec[1],description,permissions,themes:{light:{paper:paper[0],ink:'#4E3426',accent:'#A56A4D',panel:'#FAF8F5'},dark:{paper:paper[1],ink:'#D6D0C1',accent:'#C58C72',panel:'#464C42'}},
    preview(root){const n=el('div');root.append(n);draw(n,spec,demo(),true);return()=>n.remove();},
    mount(root,ctx){const n=el('div');root.append(n);let ready=false,lastMinute='',disposed=false,frame=0;const update=()=>{if(!ready||disposed||frame)return;frame=requestAnimationFrame(()=>{frame=0;if(!disposed)draw(n,spec,read(ctx),false,ctx);});};for(const k of permissions)ctx.subscribe(k,update);ready=true;update();const timer=setInterval(()=>{if(document.hidden||!n.isConnected||!n.closest('#workbench-screen:not([hidden])'))return;const minute=Math.floor(Date.now()/60000);if(minute!==lastMinute){lastMinute=minute;update();}},15000);ctx.onDispose(()=>{disposed=true;clearInterval(timer);cancelAnimationFrame(frame);n.remove();});}
   });

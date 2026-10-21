@@ -115,3 +115,17 @@ document.addEventListener("preview-screen-change",event=>{
 document.addEventListener("keydown",event=>{if(currentScreen==="pixel"&&event.key==="Escape") {event.preventDefault();showPreviewScreen(pixelReturn);}},true);
 document.addEventListener("folio-avatar-change",()=>calendarAgenda.querySelectorAll(".has-course-progress").forEach(renderCalendarPet));
 pixelSetColor(pixelColor);pixelRender();
+
+/* Adjust horizontal lane spacing only; the avatar stays 24px and height is unchanged. */
+(()=>{
+  const key='folio-course-lane-gap-v1';let gap=18;
+  try{const stored=Number(localStorage.getItem(key));if(Number.isInteger(stored)&&stored>=18&&stored<=28)gap=stored;}catch{}
+  const box=make('section','progress-spacing-setting'),label=make('label','progress-spacing-label','路线间距'),value=make('output'),slider=make('input'),sample=make('div','progress-spacing-sample'),copy=make('span','','上课进度'),art=make('span','progress-spacing-art'),reset=make('button','progress-spacing-reset','恢复默认');
+  label.htmlFor='progress-lane-gap';slider.id='progress-lane-gap';slider.type='range';slider.min='18';slider.max='28';slider.step='1';slider.value=String(gap);slider.setAttribute('aria-label','进度路线横向间距');value.htmlFor=slider.id;reset.type='button';
+  label.append(value);sample.append(copy,art);box.append(label,sample,slider,reset);pixelScreen.querySelector('.pixel-scroll').prepend(box);
+  function apply(next){gap=Math.max(18,Math.min(28,Math.round(next)));document.documentElement.style.setProperty('--width-course-pet',(gap*2+28)+'px');slider.value=String(gap);value.textContent=gap+'px';FolioSnakeProgress.render(art,.24,'#A7BCA8',{periods:2,duration:95});}
+  function save(){try{localStorage.setItem(key,String(gap));}catch{announce('路线间距未保存，本次预览仍保留。');}}
+  slider.addEventListener('input',()=>apply(Number(slider.value)));slider.addEventListener('change',save);reset.onclick=()=>{apply(18);save();};
+  document.addEventListener('preview-screen-change',event=>{if(event.detail.screen==='pixel')requestAnimationFrame(()=>apply(gap));});document.addEventListener('folio-avatar-change',()=>apply(gap));
+  window.FolioCourseProgress=Object.freeze({get gap(){return gap;}});apply(gap);
+})();

@@ -2,6 +2,25 @@
 
 四个槽位是组件宿主，不与内置组件清单绑定。用户仍可添加、留空、更换与长按换位。内置和开发者组件最终进入同一个 `FolioWorkbench` 注册表；不得在组件中自行改四格布局或假定固定位置。
 
+目录展示顺序（2026-10-21）：精修便当、独立学习图形、其他图形、卡片包入口、资讯与数字/文字总览。主添加器与包内添加器共用排序；只排序目录副本，不改变用户已放置的卡片。宿主级`FolioWorkbench.register`可用可选`presentation: 'data'`将纯数据组件放到后段；这不是对SDK v1 manifest新增必填字段，现有第三方组件仍可接入。
+
+## 亮、暗两套配色（新组件提交要求）
+
+**新增或重新设计的组件必须同时设计亮色和暗色两套颜色，并在`themes.light`、`themes.dark`声明。** 真实卡片、选择器缩略图、卡片包内卡片和二级菜单都要验收两种主题。不能只替换外框背景，也不能以对整张卡片加亮度滤镜代替暗色设计。大面积纸面、内嵌底板、主次文字、数据颜料、边界及按压/选中/禁用状态分别检查；允许小面积亮色作为图例、眼睛等强调，不保留大片纯白底板。
+
+```js
+themes: {
+  light: {paper:'#F2EADF', panel:'#FAF8F5', ink:'#4E3426', accent:'#A56A4D'},
+  dark:  {paper:'#343029', panel:'#464C42', ink:'#D6D0C1', accent:'#C58C72'}
+}
+```
+
+两套必须有相同的语义键，键名用小写字母/数字/连字符，最多32个；值为6位或8位十六进制颜色。宿主校验成对声明、键名和值，将当前主题的值写成组件根节点的`--widget-paper`、`--widget-panel`等CSS变量。样式直接使用`background:var(--widget-paper);color:var(--widget-ink)`；SVG的fill/stroke也可使用这些变量。不要在缩略图里重新硬编码一套亮色。
+
+`ctx.theme`返回只读的`{mode:'light'|'dark',preference:'light'|'dark'|'system',colors}`，mode为跟随系统后实际生效的主题。需要Canvas或其他命令式绘图时，用`ctx.subscribeTheme(callback)`；立即回调一次，之后随主题更新，返回取消函数，组件销毁时宿主也会清理。主题读取与订阅在preview中可用，不要求任何用户数据权限。纯CSS/SVG变量无需为了换色重读学业数据、重建整张图形。
+
+运行时仍兼容没有themes的旧v1组件；**兼容加载不等于符合新提交要求**。只声明一套或两套键不一致会拒绝注册。完整双主题例子已更新在`widgets/example/weekly-focus.js`。内置旧图形另有配对颜料适配层，新作者应直接实现自己的两套颜色，不依赖宿主猜测颜色含义。
+
 ## 五分钟接入
 
 完整例子：`widgets/example/weekly-focus.js`；类型定义：`widgets/widget-api.d.ts`。
@@ -17,8 +36,13 @@ FolioWidgetSDK.register({
   apiVersion: 1,
   id: 'your-name/my-widget', version: '1.0.0', name: '我的组件',
   description: '一句话说明作用', permissions: ['focus'],
+  themes: {
+    light: {paper:'#F2EADF', ink:'#4E3426'},
+    dark: {paper:'#343029', ink:'#D6D0C1'}
+  },
   preview(root, ctx) { /* 只画静态示意，不读用户数据。 */ },
   mount(root, ctx) {
+    root.style.cssText = 'background:var(--widget-paper);color:var(--widget-ink)';
     const value = document.createElement('strong'); root.append(value);
     ctx.subscribe('focus', data => {
       value.textContent = (data.lastWeek / 3600000).toFixed(1) + ' h';
@@ -74,3 +98,7 @@ v1是**审核后随App一起打包的JS接口**，不是在线插件商店，也
 
 ## 2026-10-20：学习记录可选数据集
 新增只读`study`及`folio-study-change`，含本机明确录入的nights/coffee/cards/reviews/focusGoal/sleepGoal，缺失不推算。`focus.activeMinutes`为当前45分钟搭建内有效分钟。`academic.goal/series/courseGrades`遵从统一成绩隐藏策略。其余API v1契约不变；`ctx.open('todos')`兼容跳转到实际tasks页。26个study/*随包组件见STUDY-WIDGETS.md，原型仅用于预览，不落盘。
+
+
+## 卡片包宿主（2026-10-20）
+已注册的普通组件和SDK v1开发者组件均可被放入“卡片包”。包使用相同的mount/preview与清理契约，不要求插件新增代码。只挂载当前与相邻页，切换至非当前页后SDK订阅停止推送，恢复当前页会刷新。不要依赖固定工作台格子、全局唯一DOM ID或无限存活的挂载实例；自行创建的监听/计时器应清理。包不允许再放入包。配置与验证见CARD-PACKS.md。
