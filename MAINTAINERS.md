@@ -2,7 +2,7 @@
 
 ## 创始人/项目守护者
 
-- **Fish** — [@Fish-zjuer](https://github.com/Fish-zjuer)
+- **Fish** — [@Fish-zjuer](https://github.com/Fish-zjuer)；校园论坛：一条Fish；身份说明见 [AUTHORS.md](AUTHORS.md)
 
 ## 官方维护者
 

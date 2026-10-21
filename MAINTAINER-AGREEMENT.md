@@ -72,7 +72,7 @@
 
 原作者：
 
-- 姓名/ID：Fish
+- 姓名/ID：Fish（GitHub: Fish-zjuer；校园论坛: 一条Fish）
 - GitHub：[@Fish-zjuer](https://github.com/Fish-zjuer)
 - 日期：
 

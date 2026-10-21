@@ -1,6 +1,6 @@
 # Folio
 
-由 **Fish（[@Fish-zjuer](https://github.com/Fish-zjuer)）** 发起、设计和主导的校园个人助理。
+由 **Fish**（GitHub: [@Fish-zjuer](https://github.com/Fish-zjuer)；校园论坛: **一条Fish**）发起、设计和主导的校园个人助理。名字对应关系见 [AUTHORS.md](AUTHORS.md)。
 
 把课表、日程、作业、成绩、目标和 AI 对话放在一起。首页包含可自由配置的 2×2 工作台：纸感图形、像素插画和数据组件共用可扩展的 Widget API。
 

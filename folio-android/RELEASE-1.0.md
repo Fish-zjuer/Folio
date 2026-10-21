@@ -4,6 +4,7 @@
 - SHA256：`eee21be6f571b1360d2e511c352fe41fb4aa3d59e4ebd6ab9f0c6410da91b1a4`。
 - 原证书连续性、Android 9+/target 34/竖屏及 134 个 Web 运行资源逐字节核验通过，无 QA 夹具或私钥进入资源。
 - 对应源码：`dist/folio-1.0-source.zip`，417 个文件，SHA256 `7a3c84ae9230b4d29796deb72f8cb4875a5a4a745cb917a33e4045d2dcafff53`。
+- 作者标识：**Fish**、GitHub **Fish-zjuer**、校园论坛 **一条Fish** 指同一人；对应关系与公开署名见 `AUTHORS.md`。
 - 这是 Folio 的第一个公开版本，但仍属于早期产品：学校真实 SSO、后台通知和真机体验仍在继续验证。
 
 ## 本版内容
