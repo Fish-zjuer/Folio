@@ -30,12 +30,16 @@ Folio 的原始界面、交互、文案、图形与视觉设计由 **Fish** 主�
 
 “Folio”名称与 Folio 图标不随代码许可授权。修改版应使用不同的名称和图标，除非获得 Fish 的书面许可。此条是品牌与商标政策，独立于 GPL 代码许可；它不限制 GPL 授予的代码权利。
 
-## 5. 第三方
+## 5. 2×2 卡片接口与第三方卡片
+
+Folio Widget API v1 的规范、类型声明、示例与宿主实现均以 GPL-3.0-only 授权，免费开放。任何随 Folio 分发或由 Folio 加载的第三方卡片/组件，必须以 GPL-3.0-only 授权并提供完整源码；不接受闭源、只发编译产物或带付费授权的卡片。完整规则见 [WIDGET-API-LICENSE.md](WIDGET-API-LICENSE.md)。
+
+## 6. 第三方
 
 - 学校协议部分参考/改编自 **Celechron**（GPL-3.0），声明见 `assets/licenses/Celechron-GPL-3.0.txt`。
 - **JetBrains Mono** 字体以 SIL Open Font License 1.1 授权，见 `assets/fonts/JetBrainsMono-OFL.txt`。
 - 天气、资讯、学校系统与 AI 模型由各自服务提供，适用其自身条款；Folio 不主张这些服务或数据的所有权。
 
-## 6. 贡献
+## 7. 贡献
 
 除非与维护者另有书面约定，代码贡献按 GPL-3.0-only 提交与分发；视觉/交互设计贡献需先与维护者约定。请勿提交无权使用的第三方素材、账号、Cookie 或密钥。

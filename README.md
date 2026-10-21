@@ -13,6 +13,7 @@
 - 代码：**GPL-3.0-only**，见 [LICENSE](LICENSE)。
 - 原始界面、交互、文案、图形与视觉设计版权归 **Fish** 所有；代码开源不转移设计版权，见 [NOTICE.md](NOTICE.md)。
 - “Folio”名称与图标不随代码许可授权；修改版需使用不同名称和图标。
+- Widget API v1 与所有随 Folio 分发/加载的第三方卡片必须以 GPL-3.0-only 开源并提供完整源码；不接受闭源或付费授权卡片，见 [WIDGET-API-LICENSE.md](WIDGET-API-LICENSE.md)。
 - 第三方：Celechron（GPL-3.0）、JetBrains Mono（OFL 1.1）；完整声明保留在 `folio-prototype/assets/licenses/` 与 `assets/fonts/`。
 - 使用前请阅读 [服务条款](TERMS.md) 与 [隐私说明](PRIVACY.md)；参与贡献见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
