@@ -92,6 +92,7 @@ calendarMonthSurface.addEventListener("wheel",event=>{
 },{passive:false});
 // 响应手机宽度和短屏行高变化；保持当前折叠状态。
 let calendarFoldWidth=0;
-new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width&&width!==calendarFoldWidth){calendarFoldWidth=width;syncCalendarFold(false);}}).observe(calendarMonthGrid);
+let calendarFoldResizeFrame=0;
+new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width&&width!==calendarFoldWidth){calendarFoldWidth=width;if(!calendarFoldResizeFrame)calendarFoldResizeFrame=requestAnimationFrame(()=>{calendarFoldResizeFrame=0;if(calendarMonthGrid.getClientRects().length)syncCalendarFold(false);});}}).observe(calendarMonthGrid);
 window.addEventListener("resize",()=>{if(currentScreen==="calendar"&&!calendarFoldSwipe)syncCalendarFold(false);});
 syncCalendarFold(false);

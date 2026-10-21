@@ -4,6 +4,8 @@ type FolioDestination = 'home' | 'workbench' | 'calendar' | 'courses' | 'homewor
 interface FolioWidgetContext {
  readonly apiVersion: 1; readonly id: string; readonly preview: boolean;
  readonly dataMode: 'local' | 'demo'; readonly timezone: 'Asia/Shanghai'; readonly today: string;
+ readonly theme: Readonly<{mode:'light'|'dark';preference:'light'|'dark'|'system';colors:Readonly<Record<string,string>>}>;
+ subscribeTheme(callback:(theme:FolioWidgetContext['theme'])=>void):()=>void;
  /** Courses after holidays, exchanges and recoverable local exclusions. Requires courses permission. */
  coursesOn(date: string, termId?: string): ReadonlyArray<Readonly<{id:string;courseId:string;title:string;date:string;start:string;end:string;room?:string;periods?:number;personal?:boolean;itemId?:string}>>;
  read<T = unknown>(dataset: FolioDataset): Readonly<T>;
@@ -15,6 +17,8 @@ interface FolioWidgetContext {
 interface FolioWidget {
  apiVersion: 1; id: string; version: string; name: string; description?: string;
  permissions: FolioDataset[];
+ /** Required for new submissions. Optional at runtime only for legacy v1 compatibility. */
+ themes?: {light:Record<string,string>;dark:Record<string,string>};
  mount(root: HTMLElement, context: FolioWidgetContext): void | (() => void) | {destroy(): void};
  preview?(root: HTMLElement, context: FolioWidgetContext): void | (() => void) | {destroy(): void};
 }

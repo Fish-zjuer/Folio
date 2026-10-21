@@ -1,0 +1,3 @@
+Browser tab: 8, Title: "课程深色与间距设置", URL: "http://127.0.0.1:4200/Projects/folio-prototype/qa/academic-dark-mobile.html?v=academic-dark21".
+There has been no change in the accessibility tree.
+The focused UI element is 5 AXWebArea Folio · 像素形象, URL: 127.0.0.1:4200/Projects/folio-prototype/qa/academic-dark-integration.html?v=academic-dark21

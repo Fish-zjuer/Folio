@@ -4,7 +4,7 @@
   if(!window.FolioApp?.native)return;
   const B=FolioBackend,N=FolioNative,flights=new Map();
   let state=N.cache(),captcha="",accountEpoch=0,browserSite=null;
-  const connectedRequest=FolioSchoolConnection.create({call:(op,args)=>N.call(op,args),decode:B.decode});
+  const connectedRequest=FolioSchoolConnection.create({call:(op,args)=>N.call(op,args),decode:B.decode,nativeRecovery:true});
   const request=async(module,args={})=>{const epoch=accountEpoch;const result=await connectedRequest(module,args);if(epoch!==accountEpoch)throw new Error("学校账号已切换，请重新同步");if(module!=="calendar"&&state.lastLoginWarning){delete state.lastLoginWarning;localStorage.setItem(N.storageKey,JSON.stringify(state));}return result;};
   function term(id){let found=FolioCourses.semesters.find(t=>t.id===id);if(!found){found=B.emptyTerm(id);FolioCourses.semesters.push(found);}return found;}
   function store(module,data,warning=null){const next=structuredClone(state);next.protocolVersion=3;next.modules[module]={data,updatedAt:new Date().toISOString(),warning};next.terms=structuredClone(B.sortTerms(FolioCourses.semesters,FolioCourses.semesters[0]?.id));localStorage.setItem(N.storageKey,JSON.stringify(next));state=next;return data;}
@@ -70,9 +70,10 @@
       throw new Error("未知模块");
     }catch(error){failed(key,error);throw error;}})();flights.set(key,work);try{return await work;}finally{flights.delete(key);}
   }
-  window.FolioSchool={refresh,bindAccount,cache:()=>state,login:site=>{browserSite=site;return N.call("school.login",{site});},authenticate:site=>N.call("school.authenticate",{site}),setCaptcha:value=>{captcha=String(value).trim().slice(0,20);},
+  function warnings(){const id=FolioCourses.semesters[0]?.id;return [['grades','成绩'],['major','主修'],[`courses:${id}`,'课表'],['exams','考试'],['homework','作业'],['practice','实践']].map(([key,label])=>({label,warning:state.modules[key]?.warning||(key==='practice'?state.modules.practiceSummary?.warning:null)})).filter(e=>e.warning);}
+  window.FolioSchool={refresh,bindAccount,warnings,cache:()=>state,login:site=>{browserSite=site;return N.call("school.login",{site});},authenticate:site=>N.call("school.authenticate",{site}),setCaptcha:value=>{captcha=String(value).trim().slice(0,20);},
     setCalendar(dates){if(dates.some(d=>!/^\d{4}-\d{2}-\d{2}$/.test(d))||!(dates[0]<=dates[1]&&dates[1]<dates[2]&&dates[2]<=dates[3]))throw new Error("请填写连续、顺序正确的四个日期");const t=FolioCourses.semesters[0],raw={startEnd:dates,sessionTime:[]};t.calendar={...B.calendar(raw,t.id),manual:true};store(`calendar:${t.id}`,raw);publish();},
-    async sync(){const jobs=[...Object.keys({grades:1,courses:1,homework:1,practice:1}).map(m=>FolioAcademicUI.refresh(m)),refresh("exams")];return Promise.allSettled(jobs);},
+    async sync(){const jobs=[...Object.keys({grades:1,courses:1,homework:1,practice:1}).map(m=>FolioAcademicUI.refresh(m)),refresh("exams")];const result=await Promise.allSettled(jobs),warning=FolioSchoolConnection.failureSummary(warnings());if(warning)state.lastLoginWarning=warning;else delete state.lastLoginWarning;localStorage.setItem(N.storageKey,JSON.stringify(state));return result;},
     async setTerm(id){if(!/^20\d{2}-20\d{2}-[12]$/.test(id))throw new Error("学期编号不正确");const existing=term(id);FolioCourses.semesters.splice(FolioCourses.semesters.indexOf(existing),1);FolioCourses.semesters.unshift(existing);store("activeTerm",id);location.reload();}
   };
   window.addEventListener("folio-school-login",async()=>{const site=browserSite;browserSite=null;if(!site)return;const modules=site==='academic'?['grades','courses','exams']:site==='homework'?['homework']:['practice'];await Promise.allSettled(modules.map(m=>m==='exams'?refresh(m):FolioAcademicUI.refresh(m)));});
@@ -83,7 +84,7 @@
     try{await refresh("homework");}catch{}finally{homeworkBusy=false;}
   }
   document.addEventListener("DOMContentLoaded",()=>{
-    if(state.needsInitialSync){state.needsInitialSync=false;localStorage.setItem(N.storageKey,JSON.stringify(state));FolioSchool.sync().catch(()=>{});}
+    if(state.needsInitialSync){state.needsInitialSync=false;localStorage.setItem(N.storageKey,JSON.stringify(state));FolioSchool.sync().then(()=>{if(warnings().length&&typeof announce==='function')announce('学校数据未全部更新，请在教务连接查看具体原因。');}).catch(()=>{});}
     refreshHomeworkIfStale();
   });
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshHomeworkIfStale();});

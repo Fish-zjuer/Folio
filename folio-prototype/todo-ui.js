@@ -45,12 +45,14 @@ function renderRichTodos() {
     if(flags.children.length) button.append(flags);
     button.append(make("p","homework-meta",todoTimeLabel(item)));
     if(item.repeat?.kind!=="none" && item.repeat) button.append(make("p","todo-rule-meta",`↻ ${todoRepeatLabel(item)}`));
-    if(FolioItemPolicy.offsets(item).length) button.append(make("p","todo-rule-meta",`${FolioItemPolicy.offsets(item).map(todoReminderLabel).join("、")||"不提醒"} · App 内`));
+    if(FolioItemPolicy.offsets(item).length) button.append(make("p","todo-rule-meta",`${FolioItemPolicy.offsets(item).map(todoReminderLabel).join("、")||"不提醒"} · ${window.FolioApp?.native ? (window.FolioReminders?.enabled ? "系统提醒" : "系统提醒未开启") : "App 内"}`));
     button.append(make("p",`homework-mount${item.mountedOn&&!item.completed ? " is-mounted" : ""}`,queueLabel(item)));
     li.append(button); list.append(li);
   });
   container.append(items.length ? list : make("p","list-empty","还没有待办，从右上角添加。"));
-  container.append(action("全部个人记录",event=>{openHomeworkSheet("全部个人记录",event.currentTarget);FolioTodo.listItems(homeworkState.items,null).forEach(item=>homeworkBody.append(action(item.title+" · "+todoTimeLabel(item),e=>openTodoDetail(item,e.currentTarget),"homework-entry")));},"small-action"));
+  const more=make("div","todo-more");more.style.margin="28px 6px 4px";
+  more.append(action("全部个人记录",event=>{openHomeworkSheet("全部个人记录",event.currentTarget);FolioTodo.listItems(homeworkState.items,null).forEach(item=>homeworkBody.append(action(item.title+" · "+todoTimeLabel(item),e=>openTodoDetail(item,e.currentTarget),"homework-entry")));},"small-action"));
+  container.append(more);
   updateTodoReminders();
 }
 function openTodoDetail(item,origin) {
@@ -59,7 +61,7 @@ function openTodoDetail(item,origin) {
   if(FolioQueue.important(item,window.FolioGoalUI?.queueOptions()))homeworkBody.append(make("p","goal-course-reminder","重要课程作业，优先提前安排；截止前 3 天提醒。"));
   if(item.body) homeworkBody.append(make("p","todo-detail-content",item.body));
   const facts=make("dl","item-facts");
-  const rows=[...(item.location?[["地点",item.location]]:[]),["时间",todoTimeLabel(item)],["重要性",item.important ? "重要" : "一般"],["紧急性",item.urgent ? "紧急" : "不紧急"],["重复",todoRepeatLabel(item)],["提醒",`${FolioItemPolicy.offsets(item).map(todoReminderLabel).join("、")||"不提醒"}${item.reminderMinutes!=null ? " · App 内" : ""}`],["便签",queueLabel(item)]];
+  const rows=[...(item.location?[["地点",item.location]]:[]),["时间",todoTimeLabel(item)],["重要性",item.important ? "重要" : "一般"],["紧急性",item.urgent ? "紧急" : "不紧急"],["重复",todoRepeatLabel(item)],["提醒",`${FolioItemPolicy.offsets(item).map(todoReminderLabel).join("、")||"不提醒"}${FolioItemPolicy.offsets(item).length ? (window.FolioApp?.native ? (window.FolioReminders?.enabled ? " · 系统提醒" : " · 系统提醒未开启") : " · App 内") : ""}`],["便签",queueLabel(item)]];
   rows.forEach(([label,text])=>facts.append(make("dt","",label),make("dd","",text))); homeworkBody.append(facts);
   const actions=make("div","item-actions");
   actions.append(action("编辑",event=>openTodoEditor(item,event.currentTarget),"small-action"));
@@ -182,7 +184,7 @@ function updateTodoReminders() {
   const button=document.getElementById("todo-reminders");button.textContent=ready ? `提醒 · ${ready}` : "提醒";
 }
 document.getElementById("todo-reminders").addEventListener("click",event=>{
-  openHomeworkSheet("App 内提醒",event.currentTarget);
+  openHomeworkSheet("提醒记录",event.currentTarget);
   const entries=todoReminderEntries(),now=todoDemoNow();
   homeworkBody.append(make("p","queue-hint",`示例日期：${shortDate(homeworkState.today)}。提醒以截止时刻或时间段开始时刻为准。`));
   if(!entries.length) homeworkBody.append(make("p","list-empty","暂无提醒，编辑待办时可设置。"));
