@@ -16,6 +16,7 @@
 - Widget API v1 与所有随 Folio 分发/加载的第三方卡片必须以 GPL-3.0-only 开源并提供完整源码；不接受闭源或付费授权卡片，见 [WIDGET-API-LICENSE.md](WIDGET-API-LICENSE.md)。
 - 第三方：Celechron（GPL-3.0）、JetBrains Mono（OFL 1.1）；完整声明保留在 `folio-prototype/assets/licenses/` 与 `assets/fonts/`。
 - 使用前请阅读 [服务条款](TERMS.md) 与 [隐私说明](PRIVACY.md)；参与贡献见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+- 官方维护者、品牌与赞助：见 [维护者名单](MAINTAINERS.md)、[维护者协议](MAINTAINER-AGREEMENT.md)、[赞助与分成政策](SPONSORSHIP.md)、[品牌政策](TRADEMARK.md) 与 [治理规则](GOVERNANCE.md)。Folio 不主动向用户收费；官方维护者因 Folio 获得专项赞助时，按净额 5%–10% 支付给项目基金。
 
 ## 运行结构
 

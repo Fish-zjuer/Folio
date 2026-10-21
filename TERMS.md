@@ -15,6 +15,7 @@ Folio 是一个由个人维护的开源校园信息整理工具，不是学校�
 - “Folio”名称与图标不随代码许可授权；修改版需使用不同名称和图标。
 - 第三方组件、字体、学校系统、天气/资讯服务与 AI 模型适用其各自许可或服务条款。
 - Widget API v1 与所有随 Folio 分发或由 Folio 加载的第三方卡片必须以 GPL-3.0-only 开源并提供完整源码；不接受闭源、只发编译产物或带付费授权的卡片，详见 [WIDGET-API-LICENSE.md](WIDGET-API-LICENSE.md)。
+- Folio 不向普通用户主动收费；官方维护者的专项赞助分成见 [SPONSORSHIP.md](SPONSORSHIP.md)。赞助不改变用户依 GPL 获得的代码权利。
 
 ## 3. 使用条件
 

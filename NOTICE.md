@@ -40,6 +40,10 @@ Folio Widget API v1 的规范、类型声明、示例与宿主实现均以 GPL-3
 - **JetBrains Mono** 字体以 SIL Open Font License 1.1 授权，见 `assets/fonts/JetBrainsMono-OFL.txt`。
 - 天气、资讯、学校系统与 AI 模型由各自服务提供，适用其自身条款；Folio 不主张这些服务或数据的所有权。
 
-## 7. 贡献
+## 7. 赞助与治理
+
+Folio 不主动向用户收费，不设付费墙、付费 API 或付费卡片。官方维护者因 Folio 获得专项赞助时，按 [SPONSORSHIP.md](SPONSORSHIP.md) 将净赞助收入的 5%–10% 支付给 Folio 项目基金；该规则适用于签署 [MAINTAINER-AGREEMENT.md](MAINTAINER-AGREEMENT.md) 并使用 Folio 品牌的官方维护者，不构成 GPL 代码许可的附加限制。交接、基金与争议处理见 [GOVERNANCE.md](GOVERNANCE.md)。
+
+## 8. 贡献
 
 除非与维护者另有书面约定，代码贡献按 GPL-3.0-only 提交与分发；视觉/交互设计贡献需先与维护者约定。请勿提交无权使用的第三方素材、账号、Cookie 或密钥。
