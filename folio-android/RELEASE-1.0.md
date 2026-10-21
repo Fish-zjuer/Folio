@@ -1,9 +1,9 @@
 # 1.0（2026-10-21，首个公开版本）
 
-- APK：`dist/folio-1.0.apk`，587,972 字节，versionCode 100 / versionName 1.0。
-- SHA256：`12b4b13f888c1a2287835a0f27d2bd39c339166d933e0bf5818796a76dcfc96f`。
-- 原证书连续性、Android 9+/target 34/竖屏及 129 个 Web 运行资源逐字节核验通过，无 QA 夹具或私钥进入资源。
-- 对应源码：`dist/folio-1.0-source.zip`，412 个文件，SHA256 `485277a20b27944ca4b7ebdacfb9cf859d188ee60442c2cccd4e151ad700b6ee`。
+- APK：`dist/folio-1.0.apk`，604,686 字节，versionCode 100 / versionName 1.0。
+- SHA256：`f0f31521cfb2fe7b5b98c85bf0b16408f0eea25ebaf6bdd50c91ad775035eb42`。
+- 原证书连续性、Android 9+/target 34/竖屏及 133 个 Web 运行资源逐字节核验通过，无 QA 夹具或私钥进入资源。
+- 对应源码：`dist/folio-1.0-source.zip`，416 个文件，SHA256 `833be670c4af6dc2a1da072f5fdd7e2109e900b9cfa17c06615ee6e5fc466952`。
 - 这是 Folio 的第一个公开版本，但仍属于早期产品：学校真实 SSO、后台通知和真机体验仍在继续验证。
 
 ## 本版内容
@@ -15,10 +15,18 @@
 - 学校教务连接（直连登录、课表/成绩/考试/作业/实践缓存）、手机使用统计、天气/资讯等原生桥接能力。
 - Widget API v1 与卡片包；AI 模型不内置，由用户填写 Base URL、模型和 API Key。
 
+## 许可与条款
+
+- 代码以 **GPL-3.0-only** 开源；完整文本见 `LICENSE`。
+- 原始界面、交互、文案、图形与视觉设计版权归 **Fish** 所有；代码开源不转移设计版权，署名称谓与品牌政策见 `NOTICE.md`。
+- “Folio”名称与图标不随代码许可授权；修改版需使用不同名称和图标。
+- 服务条款见 `TERMS.md`，隐私说明见 `PRIVACY.md`；APK 内包含 `assets/legal/` 文本，关于页提供 GitHub 链接。
+- 第三方：Celechron（GPL-3.0）与 JetBrains Mono（OFL 1.1）声明继续保留。
+
 ## 验证与边界
 
 - 41 个前端 Node 测试文件全部通过；待办核心 8 项回归通过；33 项学校协议、9 项用量离线检查通过。
-- 129 个 Web 运行文件与 APK 内容逐字节一致；签名证书与 0.6 一致，APK 元数据、竖屏和资源白名单通过。
+- 133 个 Web 运行文件与 APK 内容逐字节一致；签名证书与 0.6 一致，APK 元数据、竖屏和资源白名单通过。
 - 未进行真实手机安装、真实学校账号 SSO、退后台/重启通知投递和帧率验收；离线/合成检查不等于真机结果。
 - iOS 版尚未提供；手机使用统计为 Android 专有能力。
 - 数据默认保存在本机，不提供云同步；更新前请自行保留重要记录。
