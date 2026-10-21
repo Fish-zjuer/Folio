@@ -1,5 +1,7 @@
 # Folio Widget API v1
 
+> **许可规则（v1.0）：Widget API v1 与所有随 Folio 分发或由 Folio 加载的第三方卡片，必须以 GPL-3.0-only 开源，并提供完整源码。不接受闭源、只发编译产物或带付费授权的卡片。** 详见 [WIDGET-API-LICENSE.md](https://github.com/Fish-zjuer/Folio/blob/main/WIDGET-API-LICENSE.md)；接口文档、类型声明、示例和宿主实现同样按 GPL-3.0-only 授权。
+
 四个槽位是组件宿主，不与内置组件清单绑定。用户仍可添加、留空、更换与长按换位。内置和开发者组件最终进入同一个 `FolioWorkbench` 注册表；不得在组件中自行改四格布局或假定固定位置。
 
 目录展示顺序（2026-10-21）：精修便当、独立学习图形、其他图形、卡片包入口、资讯与数字/文字总览。主添加器与包内添加器共用排序；只排序目录副本，不改变用户已放置的卡片。宿主级`FolioWorkbench.register`可用可选`presentation: 'data'`将纯数据组件放到后段；这不是对SDK v1 manifest新增必填字段，现有第三方组件仍可接入。

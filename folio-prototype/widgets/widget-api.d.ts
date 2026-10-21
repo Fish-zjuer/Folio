@@ -1,4 +1,9 @@
-/** Folio Widget API v1 — trusted, reviewed, bundled JavaScript only. */
+/**
+ * Folio Widget API v1 — trusted, reviewed, bundled JavaScript only.
+ * License: GPL-3.0-only. Third-party cards distributed with or loaded by
+ * Folio must also be GPL-3.0-only and provide their complete source.
+ * See WIDGET-API-LICENSE.md.
+ */
 type FolioDataset = 'courses' | 'tasks' | 'exams' | 'academic' | 'focus' | 'study';
 type FolioDestination = 'home' | 'workbench' | 'calendar' | 'courses' | 'homework' | 'todos' | 'goals' | 'grades' | 'scholar' | 'focus';
 interface FolioWidgetContext {
