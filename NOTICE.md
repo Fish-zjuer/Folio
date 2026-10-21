@@ -1,7 +1,7 @@
 # Folio · NOTICE
 
 Folio  
-Copyright (C) 2026 Fish  
+Copyright (C) 2026 Fish（GitHub: Fish-zjuer；校园论坛: 一条Fish）  
 https://github.com/Fish-zjuer/Folio
 
 ## 1. 设计归属
