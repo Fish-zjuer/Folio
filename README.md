@@ -8,6 +8,14 @@
 
 本版包含首页对话与 2×2 工作台、日程/课表、待办、作业热力图、课程/考试、学业/成绩、目标测算、深色与跟随系统、本地提醒、学校教务连接、Widget API v1 和卡片包。AI 模型不内置，由用户配置。详见 [1.0 变更与验证边界](folio-android/RELEASE-1.0.md)。
 
+## 许可与署名
+
+- 代码：**GPL-3.0-only**，见 [LICENSE](LICENSE)。
+- 原始界面、交互、文案、图形与视觉设计版权归 **Fish** 所有；代码开源不转移设计版权，见 [NOTICE.md](NOTICE.md)。
+- “Folio”名称与图标不随代码许可授权；修改版需使用不同名称和图标。
+- 第三方：Celechron（GPL-3.0）、JetBrains Mono（OFL 1.1）；完整声明保留在 `folio-prototype/assets/licenses/` 与 `assets/fonts/`。
+- 使用前请阅读 [服务条款](TERMS.md) 与 [隐私说明](PRIVACY.md)；参与贡献见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## 运行结构
 
 - `folio-prototype/`：HTML、CSS、原生 JavaScript 前端，无 npm 构建步骤。
