@@ -22,12 +22,15 @@ document.querySelector(".course-strip").setAttribute(
 // source 是对应的 Flutter 源码入口，供后续移植核对，不显示在产品界面里。
 const folioNavigation = Object.freeze({
   primary: [
+    { id: "relationships", label: "关系网", icon: "network", source: "Folio 本机关联备忘" },
     { id: "workbench", label: "工作台", icon: "grid", source: "Folio 自定义 2×2 工作台" },
     { id: "calendar", label: "日程", icon: "calendar", source: "lib/page/calendar/calendar_view.dart" },
     { id: "tasks", label: "待办", icon: "check", source: "lib/page/task/task_view.dart" },
     { id: "scholar", label: "学业", icon: "graduation", source: "lib/page/scholar/scholar_view.dart" },
   ],
   study: [
+    { id: "learning", label: "课程笔记", icon: "calendar", source: "Folio 本机课程笔记" },
+    { id: "timetable", label: "课表", icon: "calendar", source: "Folio 独立课表视图" },
     { id: "courses", label: "课程", icon: "book", source: "lib/page/scholar/course_list/course_list_view.dart" },
     { id: "exams", label: "考试", icon: "clipboard", source: "lib/page/scholar/exam_list/exam_list_view.dart" },
     { id: "grades", label: "成绩", icon: "chart", source: "lib/page/scholar/grade_detail/grade_detail_view.dart" },
@@ -37,6 +40,7 @@ const folioNavigation = Object.freeze({
 });
 
 const folioIcons = Object.freeze({
+  network:'<circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="20" cy="7" r="2"/><circle cx="6" cy="20" r="2"/><path d="m7 7 3 3m5-1 3-1M7 18l3-4"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M13 14h2M7 17h2"/>',
   check: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="m7.5 12 3 3 6-6"/>',
@@ -170,12 +174,12 @@ function renderMenu(containerId, entries) {
     const item = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
-    const available = ["workbench", "calendar", "homework", "tasks", "courses", "exams", "scholar", "grades", "goals"].includes(entry.id);
+    const available = ["relationships", "learning", "workbench", "calendar", "timetable", "homework", "tasks", "courses", "exams", "scholar", "grades", "goals"].includes(entry.id);
     button.disabled = !available;
     button.className = "menu-entry";
     button.dataset.feature = entry.id;
     button.setAttribute("aria-label", available ? `打开${entry.label}页` : `${entry.label}（功能页待制作）`);
-    if (available) button.addEventListener("click", () => showPreviewScreen(entry.id));
+    if (available) button.addEventListener("click", () => {if(entry.id==="timetable"&&!window.FolioPageRail?.enabled){showPreviewScreen('calendar');showCalendarView('week');}else showPreviewScreen(entry.id);});
     button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${folioIcons[entry.icon]}</svg>`;
     const label = document.createElement("span");
     label.textContent = entry.label;

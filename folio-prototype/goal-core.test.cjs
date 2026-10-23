@@ -21,3 +21,14 @@ test('保留目标只修复失效项，拒绝字符串/null，不改变其他课
  assert.deepEqual(G.preserveAssignments(i,{a:3.9,b:4.8}),{a:3.9,b:4.8,c:3.5});
  assert.throws(()=>G.preserveAssignments({...i,floor:undefined},{}),/最低可接受/);
 });
+test('出分后只撤下同学期课程目标/重要提醒，保留历史与其他目标，不读取实分',()=>{
+ const plan={source:'academic',termId:'t',target:4.5,courses:[course('a',3,{important:true}),course('b',3,{important:true})],assignments:{a:4.8,b:4.5}};
+ const saved={version:1,draft:{...plan},applied:{...plan}},before=JSON.stringify(saved),next=G.retirePublished(saved,[{termId:'old',courseId:'b'},{termId:'t',courseId:'a',five:0}]);
+ assert.equal(JSON.stringify(saved),before);assert.deepEqual(next.applied.assignments,{b:4.5});assert.equal(next.applied.courses.length,1);assert.equal(next.applied.target,4.5);assert.equal(G.reminder(next,'t','a'),null);assert.equal(G.reminder(next,'t','b').value,4.5);assert.equal(next.applied.settledCourses.a.target,4.8);assert.equal(JSON.stringify(next).includes('five'),false);assert.equal(G.retirePublished(next,[{termId:'t',courseId:'a'}]),next);
+ assert.equal(G.retirePublished({applied:{...plan,source:'example'}},[{termId:'t',courseId:'a'}]).applied.assignments.a,4.8);
+});
+test('课程全部出分后取消全部目标但保留原总目标，实绩仅计一次',()=>{
+ const A=require('./academic-core.js'),a=course('a',3),b=course('b',2),actual={...G.resultRecord(a,3.9,'t'),id:'real-a'},baseline={type:'semester',target:4.5,floor:3,baseline:{points:11.7,credits:3},baselineRecords:[actual],targetTermId:'t',courses:[b]};
+ const r=G.evaluate(baseline,{b:4.8});assert.ok(Math.abs(r.projected-(3.9*3+4.8*2)/5)<1e-9);
+ const plan={source:'academic',termId:'t',target:4.5,courses:[a,b],assignments:{a:4.8,b:4.5}},next=G.retirePublished({applied:plan},[{termId:'t',courseId:'a'},{termId:'t',courseId:'b'}]);assert.deepEqual(next.applied.assignments,{});assert.deepEqual(next.applied.courses,[]);assert.equal(next.applied.target,4.5);
+});

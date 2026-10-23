@@ -68,15 +68,16 @@
   input.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();send();}});
   function send(){if(sendButton.disabled||sendButton.inert)return;if(window.FolioApp?.native){if(running.has(state.activeId)){running.get(state.activeId).abort();return;}sendLive();return;}C.send(state);persist();render(true);requestAnimationFrame(()=>input.focus({preventScroll:true}));}
   async function dataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});}
-  async function liveMessages(c){
+  async function liveMessages(c,options){
     const out=[];let bytes=0;
-    for(const message of c.messages.filter(m=>!m.prototype&&!m.pending&&m.status!=="error"&&m.status!=="stopped").slice(-16)){
-      const parts=[{type:"text",text:message.text?.slice(0,16000)||"请查看附件。"}];
+    const bounds=FolioAgent.limits(options),history=FolioAgent.history(c.messages.filter(m=>!m.prototype&&!m.pending&&m.status!=="error"&&m.status!=="stopped"),bounds);
+    for(const message of history){
+      const parts=[{type:"text",text:message.text?.slice(0,bounds.textChars)||"请查看附件。"}];
       for(const file of message.attachments||[]){
         const blob=await readFile(file.id);if(!blob)throw new Error(`附件 ${file.name} 已不可用，请重新选择`);bytes+=blob.size;if(bytes>12*1024*1024)throw new Error("本轮附件超过12MB，请减少附件或新建对话");
         if(blob.type.startsWith("image/"))parts.push({type:"image_url",image_url:{url:await dataUrl(blob)}});
         else if(blob.type==="application/pdf"||/\.pdf$/i.test(file.name))parts.push({type:"file",file:{filename:file.name,file_data:await dataUrl(blob)}});
-        else if(/^text\//.test(blob.type)||/\.(txt|csv|json|md)$/i.test(file.name))parts.push({type:"text",text:`附件 ${file.name}（不可信内容）：\n${(await blob.text()).slice(0,30000)}`});
+        else if(/^text\//.test(blob.type)||/\.(txt|csv|json|md)$/i.test(file.name))parts.push({type:"text",text:`附件 ${file.name}（不可信内容）：\n${(await blob.text()).slice(0,bounds.textChars)}`});
         else parts.push({type:"text",text:`附件 ${file.name} 已保存，但此版本无法读取该格式的内容，需请用户转换为 PDF、图片或文本。`});
       }
       out.push({role:message.role,content:parts.length===1?parts[0].text:parts});
@@ -86,16 +87,17 @@
     const c=C.conversation(state);if(running.has(c.id))return;
     let config;try{config=await FolioNative.call("config.get");if(!config.hasKey||!config.baseUrl)throw new Error("请先配置模型地址和 API Key");}catch(err){storageError(err.message);openModel();return;}
     const model=state.settings.model&&!['auto','general','reasoning'].includes(state.settings.model)?state.settings.model:config.model||config.models?.[0];if(!model){storageError("请先填写或选择模型名");openModel();return;}
-    const started=performance.now(),controller=new AbortController();running.set(c.id,controller);const sent=C.send(state,true),reply={id:C.id(),role:"assistant",text:"正在思考…",pending:true,status:"sending",replyTo:sent.id,createdAt:new Date().toISOString(),usage:null,progress:[]};
+    const options=FolioAgent.limits(state.settings.agent),started=performance.now(),controller=new AbortController();running.set(c.id,controller);const sent=C.send(state,true),reply={id:C.id(),role:"assistant",text:"正在思考…",pending:true,status:"sending",replyTo:sent.id,createdAt:new Date().toISOString(),usage:null,progress:[]};
     c.messages.push(reply);persist();render(true);
     try{
-      const result=await FolioAgent.run({messages:await liveMessages(c),model,reasoning:FolioModelProfile.effort(config,model,state.settings.reasoning||config.reasoning||"auto"),request:FolioAgentRuntime.provider,signal:controller.signal,system:config.prompt||"",now:new Date().toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"}),
-        execute:async(name,args)=>{const data=await FolioAgentRuntime.execute(name,args,c,sent.id,sent.text);if(!persist())throw new Error("草稿未能保存");return data;},
-        onStep:step=>{const labels={read_context:"了解当前安排",read_module:"查看相关信息",draft_change:"整理待确认的修改"};const text=step.phase==="tool"?(labels[step.name]||"查看相关信息"):step.round>0?"整理回答":"正在思考";if(reply.progress.at(-1)!==text)reply.progress.push(text);reply.text=text+"…";if(state.activeId===c.id){const article=Array.from(stream.children).find(n=>n.dataset.messageId===reply.id);const status=article?.querySelector(".chat-progress summary");if(status)status.textContent=reply.text;const log=article?.querySelector(".chat-progress-log");if(log)log.textContent=reply.progress.join("\n");}}
+      const result=await FolioAgent.run({messages:await liveMessages(c,options),options,model,reasoning:FolioModelProfile.effort(config,model,state.settings.reasoning||config.reasoning||"auto"),request:FolioAgentRuntime.provider,signal:controller.signal,system:config.prompt||"",now:new Date().toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"}),
+        execute:async(name,args)=>{const data=await FolioAgentRuntime.execute(name,args,c,sent.id,sent.text,options);if(!persist())throw new Error("草稿未能保存");return data;},
+        onStep:step=>{const follow=nearBottom();FolioAgentProgress.record(reply,step);if(state.activeId===c.id){progressCards.get(reply.id)?.update(reply);if(follow)requestAnimationFrame(()=>scrollToLatest());}}
       });if(!controller.signal.aborted)await new Promise(resolve=>setTimeout(resolve,Math.max(0,500-(performance.now()-started))));Object.assign(reply,result,{pending:false,status:"done"});
     }catch(err){reply.text=err.name==="AbortError"?"已停止。已生成的修改仍待你确认。":`这次请求没有完成：${err.message}`;reply.status=err.name==="AbortError"?"stopped":"error";reply.pending=false;if(err.usage)reply.usage=err.usage;}
     finally{running.delete(c.id);persist();render(true);const draft=c.proposals.find(p=>p.messageId===sent.id&&p.status==="pending");if(draft&&state.activeId===c.id&&currentScreen==="home"&&layer.hidden){const pending=C.pending(state);if(pending.length>1)openProposalDeck(pending);else openProposal(c,draft);}}
   }
+  const progressCards=new Map();
   function render(follow=false){
     if(renderedConversationId && !stream.hidden)scrollPositions.set(renderedConversationId,{top:stream.scrollTop,pinned:nearBottom()});
     revoke();const c=C.conversation(state);input.value=c.text;attachments.replaceChildren();attachments.hidden=!c.attachments.length;
@@ -108,7 +110,7 @@
       if(m.prototype)n.append(el("div","chat-local-label","前端流程预览 · 未连接模型"));
       if(m.attachments?.length){const list=el("div","chat-attachments");m.attachments.forEach(a=>list.append(attachmentNode(a)));n.append(list);}
       n.dataset.messageId=m.id;
-      if(m.role==="assistant"&&(m.pending||m.progress?.length)){const progress=el("details","chat-progress"),summary=el("summary","",m.pending?m.text:"已完成处理"),log=el("div","chat-progress-log",(m.progress||[]).join("\n")||"正在连接模型");progress.append(summary,log);n.append(progress);}
+      if(m.role==="assistant"&&(m.pending||m.progress?.length)){let card=progressCards.get(m.id);if(!card){card=FolioAgentProgress.create(m);progressCards.set(m.id,card);}card.update(m);n.append(card.node);}
       if(!m.pending){const body=el("div",m.role==="assistant"?"chat-markdown":"chat-plain");if(m.role==="assistant"&&window.FolioMarkdown)body.innerHTML=FolioMarkdown.render(m.text);else body.textContent=m.text;n.append(body);}
 
       if(m.role==="assistant"&&!m.pending){
@@ -133,7 +135,7 @@
   const layer=el("div","chat-layer");layer.hidden=true;phone.append(layer);
   let panel=null,origin=null,blocked=[],onClose=null,closeTimer=null,lastPanelControl=null;
   phone.addEventListener("pointerdown",event=>{lastPanelControl=event.target.closest("button");},{passive:true,capture:true});
-  function closePanel(immediate=false,restoreFocus=true){clearTimeout(closeTimer);if(layer.hidden)return;const finish=()=>{layer.hidden=true;layer.classList.remove("is-closing","is-proposal-deck");blocked.forEach(([n,v])=>{n.inert=v;});blocked=[];if(onClose)onClose();onClose=null;if(restoreFocus){const focus=origin?.isConnected&&!origin.closest("[hidden]")?origin:document.getElementById("open-menu");focus.focus({preventScroll:true});}};if(immediate===true||matchMedia("(prefers-reduced-motion: reduce)").matches)finish();else{layer.classList.add("is-closing");closeTimer=setTimeout(finish,180);}}
+  function closePanel(immediate=false,restoreFocus=true){document.dispatchEvent(new Event("folio-panel-closing"));clearTimeout(closeTimer);if(layer.hidden)return;const finish=()=>{layer.hidden=true;layer.classList.remove("is-closing","is-proposal-deck");blocked.forEach(([n,v])=>{n.inert=v;});blocked=[];if(onClose)onClose();onClose=null;if(restoreFocus){const focus=origin?.isConnected&&!origin.closest("[hidden]")?origin:document.getElementById("open-menu");focus.focus({preventScroll:true});}};if(immediate===true||matchMedia("(prefers-reduced-motion: reduce)").matches)finish();else{layer.classList.add("is-closing");closeTimer=setTimeout(finish,180);}}
   function openPanel(title,minimize=false){
     const target=lastPanelControl?.isConnected?lastPanelControl:document.activeElement?.matches("button")?document.activeElement:document.getElementById("open-menu");closePanel(true,false);origin=target;layer.replaceChildren();panel=el("section","chat-panel");panel.setAttribute("role","dialog");panel.setAttribute("aria-modal","true");panel.setAttribute("aria-label",title);panel.tabIndex=-1;
     const header=el("header","chat-panel-header");header.append(el("h2","",title),btn(minimize?"收起":"关闭",closePanel,"chat-panel-close"));panel.append(header);layer.append(panel);layer.hidden=false;
@@ -154,6 +156,21 @@
       selectField("模型",state.settings.model,[["auto","自动选择 · 未连接"],["general","通用模型 · 示例"],["reasoning","推理模型 · 示例"]],v=>update("model",v)).wrap,
       selectField("思考强度",state.settings.reasoning,[["auto","auto"],["low","low"],["medium","medium"],["high","high"]],v=>update("reasoning",v)).wrap,
       el("p","chat-panel-note","真实可调项目会随模型能力变化；不支持思考强度的模型将隐藏此项。"),btn("完成",closePanel,"chat-primary"));
+  }
+  function openAgentSettings(){
+    openPanel('Agent 对话');panel.classList.add('agent-settings-panel');
+    panel.append(el('p','chat-panel-note','设置从下一次发送生效。提高长度和次数会增加模型用量；当前任务保留发送时的设置。'));
+    const values=FolioAgent.limits(state.settings.agent),form=el('form','agent-settings-form'),row=el('div','chat-field-row'),error=el('p','chat-form-error'),fields={};
+    for(const [key,label,choices,suffix]of [
+      ['historyTurns','携带的历史对话', [1,4,8,16,32],'轮'],
+      ['textChars','单条文字长度', [2000,8000,16000,32000,64000],'字'],
+      ['maxRounds','每次任务最多请求', [1,4,8,16,32],'轮'],
+      ['maxDrafts','每次任务最多修改', [1,4,8,16,32],'项']
+    ]){const options=[...new Set([...choices,values[key]])].sort((a,b)=>a-b).map(v=>[String(v),v.toLocaleString('zh-CN')+' '+suffix]);const f=selectField(label,String(values[key]),options,()=>{});fields[key]=f.input;row.append(f.wrap);}
+    form.append(row,el('p','chat-panel-note','一轮历史指一次提问及其回答；一次任务请求包含中间工具处理。文字长度限制带给模型的单条文字，不限制界面保留的原文，也不等于输出 token 上限。'));
+    form.append(el('p','chat-panel-note','工具失败会显示具体原因。调高次数不会放开学校只读字段、授权范围或用户确认要求。思考区显示模型公开摘要和实际工具过程，接口没有提供摘要时只显示过程。'));
+    const actions=el('div','chat-panel-actions'),reset=btn('恢复默认',()=>{const defaults=FolioAgent.limits();for(const key of Object.keys(fields))fields[key].value=String(defaults[key]);}),save=el('button','chat-primary','保存');save.type='submit';actions.append(reset,save);form.append(error,actions);panel.append(form);
+    form.onsubmit=event=>{event.preventDefault();const old=state.settings.agent;state.settings.agent=FolioAgent.limits(Object.fromEntries(Object.entries(fields).map(([k,f])=>[k,Number(f.value)])));if(!persist()){state.settings.agent=old;error.textContent='设置未能保存，请重试。';return;}closePanel();announce('Agent 对话设置已保存，下次发送生效');};
   }
   function openHistory(){openPanel("对话历史");panel.append(el("p","chat-panel-note","保存在当前浏览器，包含消息、附件与未确认草稿。"));
     panel.append(btn("新建对话",newConversation,"chat-primary"));
@@ -199,17 +216,24 @@
   }
   // 侧栏提供历史入口，返回首页后也能找到任意对话与未确认修改。
   function openLiveProposal(c,p){
-    const remove=p.operation.startsWith("delete_"),exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_");
+    if(p.operation.endsWith('_relationship')){FolioRelationshipUI.openProposal(c,p);return;}
+    if(p.operation==="update_preferences"){FolioPreferences.openProposal(c,p);return;}
+    const remove=p.operation.startsWith("delete_"),learning=p.operation.endsWith("learning"),exam=p.operation.endsWith("exam"),create=p.operation.startsWith("create_");
     openPanel(remove?"确认删除":p.operation==="create_lesson"?"确认添加课程安排":p.operation==="create_homework"?"确认添加作业":create?"确认添加":"确认修改",true);
     panel.append(el("p","chat-panel-note","尚未执行。可以修改后确认；收起、切换页面或短暂退出都会保留，只有确认或取消才结束这次修改。"));
     const form=el("form","chat-proposal-form"),f=p.fields;Object.assign(f,FolioItemPolicy.normalizeTime(f));let options=null,reminders=null;
-    const target=(exam?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{};
+    const target=(learning?FolioLearning.records():exam?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{};
     const write=(key,value)=>{f[key]=value;persist();};
     const field=(label,key,type="text",fallback="")=>{const entry=formField(label,type,f[key]??target[key]??fallback,value=>write(key,value));form.append(entry.wrap);return entry;};
     if(remove)form.append(el("h3","",target.title||"所选事项"));
     else{
-      field("标题","title");field("内容","body","textarea");
-      if(exam){field("日期","date","date");field("开始","start","time");field("结束","end","time");field("类型","type","text","小测");field("教室","room");field("座号","seat");field("备注","note","textarea");}
+      if(target.source==="school"&&!exam){form.append(el("h3","",target.title||"学校作业"),el("p","chat-panel-note",`学校同步 · ${target.course||""} · 截止 ${target.deadline||"未定"}。这里只修改本机显示与便签，不改学校原件。`));}else field("标题","title");field("内容","body","textarea");
+      if(learning){form.append(selectField("记录类型",f.kind??target.kind??"note",[["journal","日记"],["note","课程笔记"]],v=>write("kind",v)).wrap);field("日期","date","date",FolioBackend.today());const courses=FolioCourses.semesters.flatMap(t=>t.courses.map(c=>({value:t.id+'::'+c.id,title:c.title+' · '+t.label,termId:t.id,id:c.id})));const chosen=(f.termId??target.termId)+'::'+(f.courseId??target.courseId);form.append(selectField("关联课程",chosen,[["","不关联课程"],...courses.map(c=>[c.value,c.title])],v=>{const c=courses.find(c=>c.value===v);write("courseId",c?.id||"");write("termId",c?.termId||"");}).wrap);}
+      else if(exam){field("日期","date","date");field("开始","start","time");field("结束","end","time");field("类型","type","text","小测");field("教室","room");field("座号","seat");field("备注","note","textarea");}
+      else if(target.source==="school"){
+        reminders=FolioItemOptions.reminders(form,{...target,...f});options=FolioItemOptions.mount(form,{...target,...f},value=>{Object.assign(f,value);persist();});
+        for(const [key,label] of [["important","重要"],["urgent","紧急"],["completed","本机已完成"]]){const wrap=el("label","chat-check"),check=el("input");check.type="checkbox";check.checked=Boolean(f[key]??target[key]);check.addEventListener("change",()=>write(key,check.checked));wrap.append(check,document.createTextNode(label));form.append(wrap);}
+      }
       else{
         const kind=selectField("类型",f.kind??(p.operation==="create_homework"?"homework":p.operation==="create_lesson"?"lesson":target.kind??"todo"),[["todo","待办"],["lesson","上课／实验"],["event","活动／事项"],["homework","自定义作业"]],v=>write("kind",v));form.append(kind.wrap);field("科目／关联课程（选填）","course");field("地点（事项选填）","location");
         const time=selectField("时间安排",f.timeMode??target.timeMode??(f.deadline?"deadline":f.startAt?"range":"none"),[["none","不设时间"],["deadline","截止时间"],["range","特定时间段"],["pending","时间待定"]],v=>{write("timeMode",v);day.wrap.hidden=clock.wrap.hidden=v!=="deadline";start.wrap.hidden=end.wrap.hidden=v!=="range";scheduled.wrap.hidden=v!=="pending";});form.append(time.wrap);
@@ -222,8 +246,9 @@
 
       }
     }
+    if(!remove&&!learning&&!exam){form.append(el("p","chat-panel-note",target.mountedOn?"当前已挂上；加入队列并不代表未挂载。":"当前未挂上便签。"),selectField("便签动作",f.pinAction||"",[["","维持原状"],["return_to_inbox","卸下并收回待贴便签袋"],["hang_now","现在挂上"]],v=>{if(v)f.pinAction=v;else delete f.pinAction;persist();}).wrap);}
     const error=el("p","chat-form-error");error.setAttribute("role","alert");const actions=el("div","chat-panel-actions"),cancel=btn("取消这次修改",()=>{p.status="discarded";if(persist()){closePanel();render();}else p.status="pending";},"chat-secondary danger"),ok=el("button","chat-primary",remove?"确认删除":"确认保存");ok.type="submit";actions.append(cancel,ok);form.append(error,actions);panel.append(form);
-    form.addEventListener("submit",event=>{event.preventDefault();try{if(options){Object.assign(f,options.read());f.reminderOffsets=reminders.read();persist();}FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，但确认状态未保存，请重试。");}closePanel();render();announce("修改已保存");}catch(err){error.textContent=err.message;}});onClose=()=>render();
+    form.addEventListener("submit",async event=>{event.preventDefault();if(ok.disabled)return;ok.disabled=true;try{if(options){Object.assign(f,options.read());f.reminderOffsets=reminders.read();persist();}await FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，但确认状态未保存，请重试。");}closePanel();render();announce("修改已保存");}catch(err){error.textContent=err.message;ok.disabled=false;}});onClose=()=>render();
   }
   // Reuse the existing modal lifetime, focus trap and Android back handling.
   // The external agent's second overlay could restore inert after an editor opened.
@@ -231,8 +256,8 @@
     openPanel("待确认修改",true);
     panel.classList.add("chat-deck");layer.classList.add("is-proposal-deck");
     const track=el("div","chat-deck-track");panel.append(track);
-    const labels={kind:"类型",course:"科目",location:"地点",deadline:"截止日期",clock:"截止时间",startAt:"开始",endAt:"结束",date:"日期",start:"开始",end:"结束",room:"教室",seat:"座号",note:"备注",body:"内容",repeatKind:"重复",reminderMinutes:"提前提醒（分钟）",important:"重要",urgent:"紧急",placements:"显示位置",scheduledDay:"待定安排日期",reminderOffsets:"多个提前提醒（分钟）",queued:"加入工作台队列",completed:"已完成"};
-    const values={lesson:"上课／实验",calendar:"日程",timetable:"课表",todos:"待办列表",home:"首页当天栏",pending:"时间待定",event:"事项",homework:"作业",todo:"待办",none:"不重复",daily:"每天",weekly:"每周",monthly:"每月"};
+    const labels={pinAction:"便签动作",key:"设置",value:"新值",kind:"类型",course:"科目",location:"地点",deadline:"截止日期",clock:"截止时间",startAt:"开始",endAt:"结束",date:"日期",start:"开始",end:"结束",room:"教室",seat:"座号",note:"备注",body:"内容",repeatKind:"重复",reminderMinutes:"提前提醒（分钟）",important:"重要",urgent:"紧急",placements:"显示位置",scheduledDay:"待定安排日期",reminderOffsets:"多个提前提醒（分钟）",queued:"加入工作台队列",completed:"已完成"};
+    const values={return_to_inbox:"卸下并收回待贴便签袋",hang_now:"现在挂上",...FolioPreferencesCore.labels,lesson:"上课／实验",calendar:"日程",timetable:"课表",todos:"待办列表",home:"首页当天栏",pending:"时间待定",event:"事项",homework:"作业",todo:"待办",none:"不重复",daily:"每天",weekly:"每周",monthly:"每月"};
     function removeCard(card){
       card.classList.add("is-leaving");
       const delay=matchMedia("(prefers-reduced-motion: reduce)").matches?0:180;
@@ -245,25 +270,28 @@
     }
     entries.forEach(({conversation,proposal:p})=>{
       if(p.status!=="pending"||!p.operation)return;
-      const target=(p.operation.endsWith("exam")?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{},f=p.fields||{},remove=p.operation.startsWith("delete_");
-      const card=el("article","chat-deck-card"),heading=el("h3","",f.title||target.title||"待确认修改"),action=el("p","chat-deck-operation",remove?"删除":p.operation==="create_homework"?"添加作业":p.operation.startsWith("create_")?"添加":"修改");
+      const relationship=p.operation.endsWith('_relationship'),target=(relationship?FolioRelationships.read().nodes:p.operation.endsWith("learning")?FolioLearning.records():p.operation.endsWith("exam")?[...customExamRecords,...officialExamRecords]:homeworkState.items).find(r=>r.id===p.targetId)||{},f=p.fields||{},remove=p.operation.startsWith("delete_");
+      const card=el("article","chat-deck-card"),heading=el("h3","",f.name||f.title||target.name||target.title||FolioPreferencesCore.labels[f.key]||"待确认修改"),action=el("p","chat-deck-operation",relationship?(remove?'删除整条关系分支':p.operation.startsWith('move_')?'移动整条关系分支':p.operation.startsWith('create_')?'接上新圆':'修改关系节点'):remove?"删除":p.operation==="create_homework"?"添加作业":p.operation.startsWith("create_")?"添加":"修改");
       card.append(action,heading);
       const details=el("dl","chat-deck-details");
+      if(relationship){if('parentId' in f)details.append(el('dt','','新位置'),el('dd','',FolioRelationships.read().nodes.find(n=>n.id===f.parentId)?.name||'独立分支'));if(f.note)details.append(el('dt','','备注'),el('dd','',f.note.slice(0,160)));if(target.id&&(remove||p.operation.startsWith('move_')))details.append(el('dd','chat-panel-note',`包含 ${FolioRelationshipCore.branch(FolioRelationships.read(),target.id).size-1} 个后代节点`));}
       for(const [key,label] of Object.entries(labels)){
+        if(relationship)continue;
         const value=f[key]??target[key];if(value==null||value==="")continue;
         details.append(el("dt","",label),el("dd","",typeof value==="boolean"?(value?"是":"否"):values[value]||String(value).replace("T"," ")));
       }
       if(!details.children.length)details.append(el("dd","chat-panel-note","打开编辑可核对完整内容。"));
       const error=el("p","chat-form-error");error.setAttribute("role","alert");
-      const actions=el("div","chat-deck-actions"),discard=btn("舍弃",()=>{if(p.status!=="pending")return;p.status="discarded";if(persist()){removeCard(card);render();}else p.status="pending";},"chat-secondary danger"),edit=btn("编辑",()=>openProposal(conversation,p),"chat-secondary"),ok=btn(remove?"确认删除":"确认",()=>{
-        if(p.status!=="pending")return;
-        try{FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，确认状态未保存，可重试。");}actions.querySelectorAll("button").forEach(b=>b.disabled=true);removeCard(card);render();announce("修改已保存");}catch(err){error.textContent=err.message;}
+      const actions=el("div","chat-deck-actions"),discard=btn("舍弃",()=>{if(p.status!=="pending")return;p.status="discarded";if(persist()){removeCard(card);render();}else p.status="pending";},"chat-secondary danger"),edit=btn("编辑",()=>openProposal(conversation,p),"chat-secondary"),ok=btn(remove?"确认删除":"确认",async()=>{
+        if(p.status!=="pending"||ok.disabled)return;ok.disabled=true;
+        try{await FolioAgentRuntime.confirm(p);if(!persist()){p.status="pending";throw new Error("记录已保存，确认状态未保存，可重试。");}actions.querySelectorAll("button").forEach(b=>b.disabled=true);removeCard(card);render();announce("修改已保存");}catch(err){error.textContent=err.message;ok.disabled=false;}
       },"chat-primary");
       actions.append(discard,edit,ok);card.append(details,error,actions);track.append(card);
     });
   }
-  window.FolioChatUI={state:()=>state,persist,render,openModel,openProposal,openPanel,closePanel,openProposalDeck};
+  window.FolioChatUI={state:()=>state,persist,render,openModel,openAgentSettings,openProposal,openPanel,closePanel,openProposalDeck};
   document.addEventListener("folio-native-background",()=>persist());
   const historyItem=el("li"),sideHistory=btn("",openHistory,"menu-entry");sideHistory.append(icon("history"),el("span","","对话历史"));historyItem.append(sideHistory);const homeItem=el("li"),sideHome=btn("",()=>showPreviewScreen("home"),"menu-entry");sideHome.dataset.feature="home";sideHome.setAttribute("aria-label","打开首页");const homeIcon=document.createElementNS("http://www.w3.org/2000/svg","svg");homeIcon.setAttribute("viewBox","0 0 24 24");homeIcon.setAttribute("aria-hidden","true");homeIcon.innerHTML='<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z"/>';sideHome.append(homeIcon,el("span","","首页"));homeItem.append(sideHome);document.getElementById("primary-menu").prepend(homeItem,historyItem);
+  const agentSection=el('section','settings-section'),agentHeading=el('h2','settings-section-title','对话'),agentList=el('ul','settings-group'),agentItem=el('li');agentItem.append(btn('Agent 对话',openAgentSettings,'setting-row'));agentList.append(agentItem);agentSection.append(agentHeading,agentList);document.getElementById('settings-groups').append(agentSection);
   render();
 })();

@@ -139,6 +139,7 @@ function openCourseDetail(id,returnScreen="courses"){
   const linkedExams=currentExams(currentCourseSemester().id).filter(e=>e.courseId===course.id);
   linkedExams.forEach(exam=>{const li=make("li"),line=make("div","course-session-time");line.append(make("strong","",`${exam.type}${exam.source==="custom"?" · 自定义":""}`),make("span","",exam.date.replaceAll("-"," / ")));if(exam.source==="custom")li.append(make("p","course-exam-name",exam.title));li.append(line,make("p","course-exam-clock",`${exam.start}–${exam.end}`),make("p","course-session-room",`${exam.room||"教室待公布"} · ${exam.seat ? `${exam.seat} 号` : "座号待公布"}`));examList.append(li);});
   if(!linkedExams.length)examList.append(make("li","course-empty","暂无考试安排"));exams.append(examList);body.append(exams);
+  window.FolioLearning?.mountCourse(body,currentCourseSemester(),course);
   body.scrollTop=0;showPreviewScreen("course-detail");
 }
 function returnToCourses(){const fallback=courseDetailReturnScreen;goBack(fallback);requestAnimationFrame(()=>{if(currentScreen!=="courses")return;renderCourses();courseList.querySelector(`[data-course-id="${courseSelectedId}"]`)?.focus({preventScroll:true});});}

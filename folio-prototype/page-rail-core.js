@@ -9,4 +9,5 @@
   function run(){frame=null;const value=pending;pending=null;if(value!==null)draw(value);}
   return {push(value){pending=value;if(frame===null)frame=request(run);},flush(){if(frame===null)return false;cancel(frame);run();return true;},cancel(){if(frame!==null)cancel(frame);frame=null;pending=null;}};
  }
- const api={progress,destination,scrub,visiblePages,frameQueue};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FolioPageRailCore=api;})(typeof globalThis==='undefined'?this:globalThis);
+ function pages(entries,selected){if(!Array.isArray(selected))return entries.slice();const ids=new Set(selected.filter(x=>typeof x==='string'));ids.add('home');let result=entries.filter(([id])=>ids.has(id));if(result.length<2)result=entries.filter(([id])=>id==='home'||id==='workbench');return result.length>=2?result:entries.slice();}
+ const api={progress,destination,scrub,visiblePages,frameQueue,pages};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FolioPageRailCore=api;})(typeof globalThis==='undefined'?this:globalThis);

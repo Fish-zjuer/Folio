@@ -365,6 +365,15 @@ function field(labelText, type, value = "") {
   input.type = type; input.value = value;
   label.append(make("span", "", labelText), input); return {label,input};
 }
+function returnItemToInbox(item) {
+  try {
+    const next=structuredClone(homeworkState.items),row=next.find(r=>r.id===item.id);
+    if(!row)throw Error("事项已变动，请重新打开");
+    FolioQueue.returnToInbox(row,homeworkState.today);
+    localStorage.setItem(homeworkDemo.storageKey,JSON.stringify({...homeworkState,items:next}));
+    homeworkState.items=next;closeHomeworkSheet();commit("已卸下并收回待贴便签袋，作业和截止时间保留");
+  } catch(error) { announce("未能收回便签："+error.message); }
+}
 function openItem(item, origin) {
   if (item.source==="personal" && typeof openTodoDetail==="function") {openTodoDetail(item,origin);return;}
   openHomeworkSheet(item.title, origin);
@@ -393,6 +402,7 @@ function openItem(item, origin) {
     hangNowButton = action("现在挂上", () => moveControls.moveNow());
     hangNowButton.hidden = Boolean(item.mountedOn);
     actions.append(hangNowButton);
+    if(item.mountedOn)actions.append(action("卸下并收回待贴袋",()=>returnItemToInbox(item),"small-action"));
     actions.append(action("标记完成", () => { FolioQueue.complete(item); closeHomeworkSheet(); commit("已完成，便签已取下"); }, "sheet-submit"));
     homeworkBody.append(actions);
   }

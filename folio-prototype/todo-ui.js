@@ -69,6 +69,7 @@ function openTodoDetail(item,origin) {
     actions.append(action(item.parentId ? "完成本次" : "标记完成",()=>{FolioQueue.complete(item);closeHomeworkSheet();commit(item.parentId ? "本次已完成，后续重复安排仍保留" : "待办已完成");},"sheet-submit"));
     const moveControls=createQueueMoveControls(item);
     if(!item.mountedOn) actions.append(action("现在挂上",()=>moveControls.moveNow()));
+    else actions.append(action("卸下并收回待贴袋",()=>returnItemToInbox(item),"small-action"));
     homeworkBody.append(moveControls.element);
   }
   homeworkBody.append(actions);

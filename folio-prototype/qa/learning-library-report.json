@@ -1,0 +1,31 @@
+{
+  "passed": 23,
+  "checks": [
+    "runtime loads",
+    "diary uses a dedicated page, not a dismissible sheet",
+    "clicking blank space keeps writing; draft is not a confirmed record",
+    "system back retains an accessible draft",
+    "draft survives reload and resumes",
+    "failed native save keeps editor, text and pending draft",
+    "successful save stays in editor",
+    "continued writing updates the same diary without duplicate records",
+    "back during capture finishes audio and keeps editor",
+    "recording draft and IndexedDB blob restore after reload",
+    "recording confirmation retains actual stored audio metadata",
+    "library plays inline with seeking controls",
+    "keyword search locates recording content without opening each item",
+    "date range filters without page transitions",
+    "course and date filters compose",
+    "return preserves list scroll and selected type",
+    "compact library fits 390px light",
+    "writing page fits 390px light",
+    "compact library fits 320px dark",
+    "writing page fits 320px dark",
+    "horizontal navigation opens the right editor and leaves its header accessible",
+    "stale diary draft does not overwrite a concurrent update",
+    "no uncaught runtime errors"
+  ],
+  "limitations": [
+    "Synthetic audio events; no physical microphone, Android process kill or hardware FPS validation."
+  ]
+}

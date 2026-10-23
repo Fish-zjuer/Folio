@@ -86,10 +86,18 @@
     }
     return checked(raw,[...grouped.values()]);
   }
-  function exams(data){const raw=array(data,"items"),out=[];for(const r of raw){if(!text(r.xkkh)||!text(r.kcmc))throw new Error("考试记录缺少课程标识，保留原缓存");for(const [key,type,room,seat] of [["qzkssj","期中","qzjsmc","qzzwxh"],["kssj","期末","jsmc","zwxh"]]){
-      const value=text(r[key]);if(!value)continue;const day=date(value),times=[...value.matchAll(/(\d{1,2}):(\d{2})/g)].map(m=>`${m[1].padStart(2,"0")}:${m[2]}`);
-      out.push({id:`school-exam-${r.xkkh}-${key}`,semesterId:termId(r.xkkh),courseId:courseId(r.kcmc),title:courseName(r.kcmc),type,date:day,start:times[0]||"",end:times[1]||"",room:clean(r[room]),seat:text(r[seat]),source:"school",dateLabel:!day?clean(value):null,unscheduled:!day||times.length<2});
+  function examField(row,keys){for(const key of keys){const raw=row[key];if(typeof raw!=="string"&&typeof raw!=="number")continue;const value=clean(raw).replace(/&(?:#160|ensp|emsp);/gi," ").trim();if(value&&!/^(?:null|undefined|[-—–]+|暂无|未公布|待公布|未安排)$/i.test(value))return {value,key};}return {value:"",key:null};}
+  function exams(data){const raw=array(data,"items"),out=[];for(const r of raw){if(!text(r.xkkh)||!text(r.kcmc))throw new Error("考试记录缺少课程标识，保留原缓存");for(const [key,type,timeKeys,roomKeys,seatKeys] of [["qzkssj","期中",["qzkssj"],["qzjsmc","qzksdd"],["qzzwxh","qzzwh"]],["kssj","期末",["kssj","qmkssj"],["jsmc","qmksdd","ksdd"],["zwxh","qmzwxh","zwh"]]]){
+      const value=examField(r,timeKeys).value.replaceAll("：",":");if(!value)continue;const day=date(value),times=[...value.matchAll(/(\d{1,2}):(\d{2})/g)].map(m=>`${m[1].padStart(2,"0")}:${m[2]}`),room=examField(r,roomKeys),seat=examField(r,seatKeys);
+      out.push({id:`school-exam-${r.xkkh}-${key}`,semesterId:termId(r.xkkh),courseId:courseId(r.kcmc),title:courseName(r.kcmc),type,date:day,start:times[0]||"",end:times[1]||"",room:room.value,seat:seat.value,venueField:room.key,seatField:seat.key,source:"school",dateLabel:!day?clean(value):null,unscheduled:!day||times.length<2});
     }}return out;}
+  async function examPages(fetchPage){let first=null,items=[],previous="";for(let page=1;page<=20;page++){
+    const data=await fetchPage(page),rows=array(data,"items");if(!first)first=data;const expected=number(first.records),pages=number(first.total),signature=JSON.stringify(rows);
+    if(page>1&&(!rows.length||signature===previous))throw new Error("考试分页未完整返回，保留原缓存");previous=signature;items.push(...rows);
+    if(items.length>5000)throw new Error("考试记录超出安全读取上限，保留原缓存");
+    const more=expected!==null?items.length<expected:Number.isInteger(pages)&&pages>page&&number(first.page)!==null;
+    if(!more)return {...first,items};
+  }throw new Error("考试分页过多，保留原缓存");}
   function practice(data){if(!Array.isArray(data)&&(data?.success!==true||Number(data?.code)!==0))throw new Error("实践接口未返回有效业务结果，保留原缓存");const raw=Array.isArray(data)?data:Array.isArray(data?.data)?data.data:null;if(!raw)throw new Error("实践响应缺少项目列表，保留原缓存");
     const groups=[{id:"second",title:"第二课堂",points:0,detailsAvailable:true,items:[]},{id:"third",title:"第三课堂",points:0,detailsAvailable:true,items:[]},{id:"fourth",title:"第四课堂",points:0,detailsAvailable:true,items:[]}];
     for(const r of raw){const p=r.xm||{},category=Number(p.xmfl?.id)||["第二课堂","第三课堂","第四课堂"].indexOf(p.xmfl?.mc)+1;if(category<1||category>3||[true,1,"true","1"].includes(r.sfsc))continue;
@@ -105,7 +113,7 @@
       if(previous&&previous.source!=="school")continue;
       // A refresh must not reopen work the user already completed locally.
       // Only an explicit school completion can add a completion; it never clears one.
-      records.set(r.id,previous?{...r,completed:previous.completed===true||r.completed===true,schoolCompleted:previous.schoolCompleted===true||r.schoolCompleted===true,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,urgent:previous.urgent,manualDate:previous.manualDate,mountClock:previous.mountClock,placements:previous.placements,reminderOffsets:previous.reminderOffsets,reminderMinutes:previous.reminderMinutes??r.reminderMinutes,body:previous.body||r.body}:r);
+      records.set(r.id,previous?{...r,completed:previous.completed===true||r.completed===true,schoolCompleted:previous.schoolCompleted===true||r.schoolCompleted===true,queued:previous.queued,mountDate:previous.mountDate,mountedOn:previous.mountedOn,important:previous.important,urgent:previous.urgent,manualDate:previous.manualDate,mountClock:previous.mountClock,deskPin:previous.deskPin,deskHoldDay:previous.deskHoldDay,placements:previous.placements,reminderOffsets:previous.reminderOffsets,reminderMinutes:previous.reminderMinutes??r.reminderMinutes,body:previous.body||r.body}:r);
     }
     return [...records.values()];
   }
@@ -122,5 +130,5 @@
   }
   function emptyTerm(id=currentTerm()){return {id,label:termLabel(id),calendar:null,courses:[]};}
   function mergeCourses(parts){const map=new Map();for(const part of parts)for(const c of part){if(!map.has(c.id))map.set(c.id,{...c,sessions:[]});const target=map.get(c.id);for(const s of c.sessions)if(!target.sessions.some(v=>v.id===s.id))target.sessions.push(s);}return [...map.values()];}
-  return {restoreCourseCatalog,text,number,clean,today,currentTerm,termId,termLabel,sortTerms,migrateCache,hash,date,decode,array,grades,homework,calendar,timetable,checkTimetableTerm,courseCredits,exams,practice,practiceSummary,mergeHomework,emptyTerm,mergeCourses,defaultTimes};
+  return {restoreCourseCatalog,text,number,clean,today,currentTerm,termId,termLabel,sortTerms,migrateCache,hash,date,decode,array,grades,homework,calendar,timetable,checkTimetableTerm,courseCredits,exams,examPages,practice,practiceSummary,mergeHomework,emptyTerm,mergeCourses,defaultTimes};
 });

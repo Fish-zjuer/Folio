@@ -1,12 +1,12 @@
 /* A quiet weekly sheet beside the conversation, below the shared navigation. */
-.home-week{position:absolute;top:calc(var(--app-bar-height) + 10px);bottom:max(20px,calc(env(safe-area-inset-bottom,0px) + 12px));left:12px;width:calc(30px + var(--home-day-width,46px));z-index:8;display:flex;flex-direction:column;gap:6px;color:#827A68;touch-action:pan-y}
+.home-week{position:absolute;top:calc(var(--app-bar-height) + 10px);bottom:var(--home-composer-bottom,max(20px,calc(env(safe-area-inset-bottom,0px) + 12px)));left:12px;width:calc(30px + var(--home-day-width,46px));z-index:8;display:flex;flex-direction:column;gap:6px;color:#827A68;touch-action:pan-y}
 .home-week-toolbar{position:relative;display:flex;align-items:center;justify-content:center;padding-left:30px;flex:none;min-height:44px}
 .home-week-range{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;flex:1;padding:0;border:0;background:none;text-align:center;color:#756C58;font:400 17px/1.2 var(--font-serif);white-space:nowrap}
 .home-week-range small{font:600 11px/1.3 var(--font-serif);color:#A39983}
 .home-week-nav{position:absolute;left:0;top:0;display:grid;place-items:center;width:28px;height:44px;padding:6px;border:0;background:none;color:#9D9179}
 .home-week-nav svg{width:15px;height:15px;stroke-width:1.8}
-.home-week-table{flex:1;min-height:140px;display:flex;flex-direction:column;padding:4px 0;background:none;border-radius:0}
-.home-week-grid{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);flex:1;min-height:0;margin-bottom:4px}
+.home-week-table{flex:1;min-height:140px;display:flex;flex-direction:column;padding:4px 0 0;background:none;border-radius:0}
+.home-week-grid{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);flex:1;min-height:0}
 .home-week-axis{position:relative;font:10px/1 var(--font-serif);color:#A79E8A}
 .home-week-axis span{position:absolute;right:5px;transform:translateY(-50%)}
 .home-week-axis span:first-child{transform:none}.home-week-axis span:last-child{transform:translateY(-100%)}
@@ -28,6 +28,7 @@
 .home-week-strips{display:flex;flex-direction:column;gap:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .home-week-strip{position:relative;display:block;height:12px;min-height:12px;width:100%;flex:none;padding:0;border:0;background:none;cursor:pointer;--stripe-color:#D5C39E}
 .home-week-strip::before{content:"";position:absolute;left:0;right:0;top:1.5px;height:9px;border-radius:2px;background:var(--stripe-color)}
+.home-week-strip:last-child::before{top:auto;bottom:0}
 .home-week-strip:nth-child(3n+2){--stripe-color:#B8C5A7}.home-week-strip:nth-child(3n){--stripe-color:#D7AE98}
 .home-week-strip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}.home-week-strip small{flex:none;font:10px var(--font-serif);color:#96866D}
 .home-week-strip.is-completed{opacity:.45}

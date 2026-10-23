@@ -21,7 +21,7 @@
     if(!native)return Promise.reject(new Error("此功能需要 Android 测试应用"));
     const id=crypto.randomUUID();return new Promise((resolve,reject)=>{
       if(signal?.aborted){reject(new DOMException("已停止","AbortError"));return;}
-      const timeout=setTimeout(()=>{pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new Error("请求超时，请稍后重试；原来的数据仍保留"));},operation==="provider"||operation==="school"||operation==="school.authenticate"?120000:operation==="app.calendar.export"?300000:50000);
+      const timeout=setTimeout(()=>{pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new Error("请求超时，请稍后重试；原来的数据仍保留"));},operation==="provider"||operation==="school"||operation==="school.authenticate"?120000:(operation==="app.calendar.export"||operation==="app.sync.export.save")?300000:50000);
       const abort=()=>{clearTimeout(timeout);pending.delete(id);window.FolioAndroid.call(id,"cancel","{}");reject(new DOMException("已停止","AbortError"));};signal?.addEventListener("abort",abort,{once:true});
       pending.set(id,{resolve,reject,finish(){clearTimeout(timeout);signal?.removeEventListener("abort",abort);}});
       window.FolioAndroid.call(id,operation,JSON.stringify(data));
@@ -29,6 +29,7 @@
   }
   function receive(id,result){const job=pending.get(id);if(!job)return;pending.delete(id);job.finish();if(result.ok)job.resolve(result.data);else job.reject(new Error(result.error||"请求失败"));}
   function back(){
+    if(window.FolioOfflineSync?.busy)return;
     if(window.FolioSelect?.isOpen()){FolioSelect.close();return;}
     const visible=selector=>[...document.querySelectorAll(selector)].find(el=>!el.closest("[hidden]")&&el.getClientRects().length);
     const close=visible('.chat-panel-close,.workbench-reading-close,.workbench-picker-close,#homework-sheet-close,#sheet-close');

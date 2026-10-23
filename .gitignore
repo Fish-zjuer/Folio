@@ -23,3 +23,9 @@
 *.zip
 .DS_Store
 Thumbs.db
+
+# Local Flutter migration experiment and internal handoff notes (not the Android release)
+/folio-cross-platform/
+/folio-android/TEAM-STATE.md
+/folio-android/USER-FEEDBACK-0.6.md
+/folio-android/START-HERE.md

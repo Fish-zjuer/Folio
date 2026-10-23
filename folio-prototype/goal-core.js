@@ -91,5 +91,20 @@
   }
   // 只有学期与课程 ID 都一致时才返回已选用方案的提醒；草稿不参与。
   function reminder(saved,termId,courseId){if(!saved?.applied||saved.applied.termId!==termId)return null;const c=saved.applied.courses.find(c=>c.id===courseId);if(!c||!c.important)return null;const value=saved.applied.assignments[c.id];return {value,title:c.title,grading:c.grading,important:true};}
-  return {resultRecord,bands,limits,preferred,preserveAssignments,evaluate,allocate,groups,reminder};
+  // A result retires only the same term and course. Keep its former target as history,
+  // never its score: sealed grades must not leak through a target reconciliation.
+  function retirePublished(saved,published){
+    let next=saved;
+    for(const field of ['draft','applied']){
+      const plan=saved?.[field];if(plan?.source!=='academic')continue;
+      const ids=new Set(published.filter(g=>g.termId===plan.termId&&typeof g.courseId==='string').map(g=>g.courseId));
+      const retired=Object.keys(plan.assignments||{}).filter(id=>ids.has(id)),courses=(plan.courses||[]).filter(c=>ids.has(c.id));
+      if(!retired.length&&!courses.length)continue;if(next===saved)next=JSON.parse(JSON.stringify(saved));
+      const target=next[field];target.settledCourses={...target.settledCourses};
+      for(const id of new Set([...retired,...courses.map(c=>c.id)])){target.settledCourses[id]={target:target.assignments?.[id]??null,title:courses.find(c=>c.id===id)?.title||id};delete target.assignments?.[id];}
+      if(Array.isArray(target.courses))target.courses=target.courses.filter(c=>!ids.has(c.id));
+    }
+    return next;
+  }
+  return {resultRecord,bands,limits,preferred,preserveAssignments,evaluate,allocate,groups,reminder,retirePublished};
 });

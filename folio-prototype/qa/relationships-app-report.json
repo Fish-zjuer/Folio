@@ -1,0 +1,97 @@
+{
+  "checks": [
+    {
+      "name": "menu entry and real page are registered",
+      "pass": true
+    },
+    {
+      "name": "production starts with self only, never imports test examples",
+      "pass": true
+    },
+    {
+      "name": "shared view loads without a duplicate page title",
+      "pass": true
+    },
+    {
+      "name": "warm page header and exposed map perimeter share a color",
+      "pass": true
+    },
+    {
+      "name": "map is inset on all sides with matching rounded frame corners",
+      "pass": true
+    },
+    {
+      "name": "light map is brighter than its warm white outer page",
+      "pass": true
+    },
+    {
+      "name": "theme change keeps the central node visibly rendered",
+      "pass": true
+    },
+    {
+      "name": "node actions describe their meaning rather than just circles",
+      "pass": true
+    },
+    {
+      "name": "map writes are stored in app backend, not the lab",
+      "pass": true
+    },
+    {
+      "name": "fuzzy retrieval finds a mistyped name and remains bounded",
+      "pass": true
+    },
+    {
+      "name": "embedded view follows host dark mode",
+      "pass": true
+    },
+    {
+      "name": "agent uses search/read/draft and never receives the whole forest upfront",
+      "pass": true
+    },
+    {
+      "name": "model draft does not write before user confirmation",
+      "pass": true
+    },
+    {
+      "name": "user confirmation persists exactly the proposed note",
+      "pass": true
+    },
+    {
+      "name": "AI writes immediately update the existing map view",
+      "pass": true
+    },
+    {
+      "name": "relationship page can be selected in independent horizontal navigation",
+      "pass": true
+    },
+    {
+      "name": "horizontal header replaces the page header without overlapping the inset map",
+      "pass": true
+    },
+    {
+      "name": "app reload retains user nodes and confirmed AI note",
+      "pass": true
+    },
+    {
+      "name": "320 layout has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "320 inset frame and controls stay inside the panel",
+      "pass": true
+    },
+    {
+      "name": "failed manual save restores authoritative graph without publishing a new node",
+      "pass": true
+    },
+    {
+      "name": "hidden map stops updating",
+      "pass": true
+    },
+    {
+      "name": "no page/embedded runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

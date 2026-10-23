@@ -107,7 +107,7 @@ final class Network {
     switch(module){
       case "grades":url="https://zdbk.zju.edu.cn/jwglxt/cxdy/xscjcx_cxXscjIndex.html?doType=query&queryModel.showCount=5000";break;
       case "major":url="https://zdbk.zju.edu.cn/jwglxt/zycjtj/xszgkc_cxXsZgkcIndex.html?doType=query&queryModel.showCount=5000";break;
-      case "exams":url="https://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&queryModel.showCount=5000";break;
+      case "exams":int page=input.optInt("page",1);if(page<1||page>20)throw new IOException("考试页码超出范围");url="https://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&queryModel.showCount=5000";body="queryModel.showCount=5000&queryModel.currentPage="+page;break;
       case "captcha":url="https://zdbk.zju.edu.cn/jwglxt/kaptcha?time="+System.currentTimeMillis();method="GET";body=null;break;
       case "courses":
         String year=input.optString("year"),season=input.optString("season");

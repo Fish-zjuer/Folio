@@ -1,0 +1,33 @@
+{
+  "checks": [
+    {
+      "name": "bottom outer area reserves 52px and stays outside the interactive iframe",
+      "pass": true
+    },
+    {
+      "name": "real touch swipe from bottom outer area advances to settings",
+      "pass": true
+    },
+    {
+      "name": "bottom outer area can swipe back to home",
+      "pass": true
+    },
+    {
+      "name": "touches inside the map pan the map without changing page",
+      "pass": true
+    },
+    {
+      "name": "320 dark layout retains a full-width swipe strip without horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "320 dark bottom strip also switches pages",
+      "pass": true
+    },
+    {
+      "name": "no runtime exceptions",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

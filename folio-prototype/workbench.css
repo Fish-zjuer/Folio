@@ -103,6 +103,8 @@
   box-shadow: none;
 }
 .workbench-desk { position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); fill: none; stroke: none; pointer-events: none; }
+.workbench-plant-hit{position:absolute;z-index:2;width:54px;height:54px;border:0;padding:0;background:transparent;touch-action:manipulation;cursor:pointer;border-radius:50%}
+.workbench-plant-hit:focus-visible{outline:2px solid var(--accent-brand,#bd795b);outline-offset:1px}
 .workbench-board.has-more-notes::before { content: ""; position: absolute; z-index: 10001; left: calc(50% - 3px); bottom: 14px; width: 6px; height: 6px; border-right: 1.5px solid #65452E; border-bottom: 1.5px solid #65452E; transform: rotate(45deg); pointer-events: none; }
 .workbench-notes {
   position: relative; z-index: 1; flex: 1 1 0; min-width: 0; min-height: 0;

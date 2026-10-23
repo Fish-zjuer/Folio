@@ -1,6 +1,28 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');const A=require('./agent-core.js');
 const tool=(name,args,id='tool-1')=>({id,type:'function',function:{name,arguments:JSON.stringify(args)}});
 const result=(message,usage)=>({choices:[{message}],usage});
+
+test('Agent 可提高请求预算完成超过8轮的任务，耗尽时保留用量并说明设置入口',async()=>{
+ let count=0;const out=await A.run({model:'m',messages:[],options:{maxRounds:10},request:async()=>result(++count<10?{tool_calls:[tool('search_records',{module:'courses'})]}:{content:'完成较长任务'},{prompt_tokens:2,completion_tokens:1}),execute:async()=>({records:[]})});
+ assert.equal(count,10);assert.equal(out.text,'完成较长任务');assert.equal(out.usage.inputTokens,20);
+ await assert.rejects(()=>A.run({model:'m',messages:[],options:{maxRounds:1},request:async()=>result({tool_calls:[tool('search_records',{})]},{prompt_tokens:3}),execute:async()=>({records:[]})}),e=>e.code==='AGENT_ROUND_LIMIT'&&e.message.includes('1轮')&&e.message.includes('Agent 对话')&&e.usage.inputTokens===3);
+ assert.deepEqual(A.limits({maxRounds:100,maxDrafts:0,textChars:'64000',historyTurns:NaN}),{maxRounds:32,maxDrafts:1,textChars:16000,historyTurns:8});
+});
+test('历史按用户轮次裁切，保留最新请求及附件，长度变更不修改原文',()=>{
+ const rows=[{role:'user',content:'old'},{role:'assistant',content:'old answer'},{role:'user',content:'a'.repeat(3000)},{role:'assistant',content:'answer'},{role:'user',content:[{type:'text',text:'b'.repeat(3000)},{type:'image_url',image_url:{url:'data:image/png;base64,AAAA'}}]}];
+ const cut=A.history(rows,{historyTurns:2,textChars:2000});assert.equal(cut.length,3);assert.equal(cut[0].role,'user');assert.equal(cut[0].content.length,2000);assert.equal(cut[2].content[0].text.length,2000);assert.deepEqual(cut[2].content[1],rows[4].content[1]);assert.equal(rows[2].content.length,3000);
+});
+test('公开摘要与工具结果有独立事件，原始推理不进入可见过程',async()=>{
+ const steps=[];let n=0;await A.run({model:'m',messages:[],request:async()=>++n===1?result({reasoning_content:'PRIVATE INTERNAL TEXT',reasoning_summary:'先核对当前记录。',content:'读取这条记录后再拟修改。',tool_calls:[tool('read_record',{module:'homework',id:'x'})]}):result({content:'本次没有修改。'}),execute:async()=>{throw Error('学校原始字段只读');},onStep:s=>steps.push(s)});
+ assert.equal(steps.find(s=>s.phase==='summary').text,'先核对当前记录。');assert.equal(steps.find(s=>s.phase==='plan').text,'读取这条记录后再拟修改。');assert.equal(steps.find(s=>s.phase==='tool_result').ok,false);assert.equal(steps.find(s=>s.phase==='tool_result').error,'学校原始字段只读');assert.ok(!JSON.stringify(steps).includes('PRIVATE INTERNAL TEXT'));
+ assert.equal(A.publicSummary({reasoning_content:'PRIVATE INTERNAL TEXT'}),'');
+});
+test('工具阶段的用户停止不被吞成工具拒绝后继续请求模型',async()=>{
+ let n=0;await assert.rejects(()=>A.run({model:'m',messages:[],request:async()=>{n++;return result({tool_calls:[tool('read_record',{})]});},execute:async()=>{throw new DOMException('停止','AbortError');}}),{name:'AbortError'});assert.equal(n,1);
+});
+test('过大或空的工具结果在可见状态中也标明未完成，与交给模型的错误一致',async()=>{
+ for(const value of [undefined,{body:'a'.repeat(15000)}]){let n=0;const steps=[];const out=await A.run({model:'m',messages:[],onStep:s=>steps.push(s),request:async()=>result(++n===1?{tool_calls:[tool('read_record',{})]}:{content:'请缩小范围'}),execute:async()=>value});assert.equal(out.trace[0].ok,false);assert.equal(steps.find(s=>s.phase==='tool_result').ok,false);assert.ok(steps.find(s=>s.phase==='tool_result').error);}
+});
 test('Agent 首轮只发送工具和用户指令，读取后生成草稿并累计真实用量',async()=>{
   const bodies=[],actions=[],responses=[result({tool_calls:[tool('search_records',{module:'homework',limit:2})]},{prompt_tokens:100,prompt_tokens_details:{cached_tokens:30},completion_tokens:8}),result({tool_calls:[tool('draft_change',{operation:'create_todo',fields:{title:'交作业',deadline:'2026-10-22'}})]},{prompt_tokens:130,prompt_tokens_details:{cached_tokens:60},completion_tokens:9}),result({content:'请确认草稿'},{prompt_tokens:140,prompt_tokens_details:{cached_tokens:80},completion_tokens:7})];
   const out=await A.run({model:'own-model',messages:[{role:'user',content:'设个ddl'}],request:async b=>{bodies.push(structuredClone(b));return responses.shift();},execute:async(n,a)=>{actions.push([n,a]);return n==='draft_change'?{draftId:'p1',status:'待确认'}:{records:[]};}});

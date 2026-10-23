@@ -1,0 +1,252 @@
+[
+  {
+    "file": "academic-core.test.cjs",
+    "tests": 22,
+    "pass": true
+  },
+  {
+    "file": "agent-core.test.cjs",
+    "tests": 11,
+    "pass": true
+  },
+  {
+    "file": "agent-pin-actions.test.cjs",
+    "tests": 6,
+    "pass": true
+  },
+  {
+    "file": "agent-preferences.test.cjs",
+    "tests": 2,
+    "pass": true
+  },
+  {
+    "file": "backend-core.test.cjs",
+    "tests": 16,
+    "pass": true
+  },
+  {
+    "file": "calendar-core.test.cjs",
+    "tests": 10,
+    "pass": true
+  },
+  {
+    "file": "card-pack-core.test.cjs",
+    "tests": 8,
+    "pass": true
+  },
+  {
+    "file": "chat-core.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "course-data.test.cjs",
+    "tests": 9,
+    "pass": true
+  },
+  {
+    "file": "course-overrides.test.cjs",
+    "tests": 3,
+    "pass": true
+  },
+  {
+    "file": "exams-core.test.cjs",
+    "tests": 6,
+    "pass": true
+  },
+  {
+    "file": "focus-session-store.test.cjs",
+    "tests": 2,
+    "pass": true
+  },
+  {
+    "file": "gesture-core.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "goal-core.test.cjs",
+    "tests": 15,
+    "pass": true
+  },
+  {
+    "file": "history-goal-export.test.cjs",
+    "tests": 12,
+    "pass": true
+  },
+  {
+    "file": "home-week-core.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "homework-queue.test.cjs",
+    "tests": 14,
+    "pass": true
+  },
+  {
+    "file": "inbox-undo.test.cjs",
+    "tests": 6,
+    "pass": true
+  },
+  {
+    "file": "item-policy.test.cjs",
+    "tests": 9,
+    "pass": true
+  },
+  {
+    "file": "learning-core.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "live-data-stores.test.cjs",
+    "tests": 3,
+    "pass": true
+  },
+  {
+    "file": "live-integration.test.cjs",
+    "tests": 8,
+    "pass": true
+  },
+  {
+    "file": "markdown-core.test.cjs",
+    "tests": 2,
+    "pass": true
+  },
+  {
+    "file": "native-migration.test.cjs",
+    "tests": 1,
+    "pass": true
+  },
+  {
+    "file": "note-layout-core.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "offline-sync-core.test.cjs",
+    "tests": 5,
+    "pass": true
+  },
+  {
+    "file": "page-rail-core.test.cjs",
+    "tests": 8,
+    "pass": true
+  },
+  {
+    "file": "pixel-avatar.test.cjs",
+    "tests": 2,
+    "pass": true
+  },
+  {
+    "file": "practice-core.test.cjs",
+    "tests": 3,
+    "pass": true
+  },
+  {
+    "file": "preferences-core.test.cjs",
+    "tests": 2,
+    "pass": true
+  },
+  {
+    "file": "public-data-core.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "queue-manual.test.cjs",
+    "tests": 8,
+    "pass": true
+  },
+  {
+    "file": "relationship-agent.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "relationship-archive.test.cjs",
+    "tests": 5,
+    "pass": true
+  },
+  {
+    "file": "relationship-core.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "reminder-core.test.cjs",
+    "tests": 6,
+    "pass": true
+  },
+  {
+    "file": "school-connection-core.test.cjs",
+    "tests": 5,
+    "pass": true
+  },
+  {
+    "file": "snake-progress.test.cjs",
+    "tests": 7,
+    "pass": true
+  },
+  {
+    "file": "study-backend.test.cjs",
+    "tests": 11,
+    "pass": true
+  },
+  {
+    "file": "study-menu-core.test.cjs",
+    "tests": 11,
+    "pass": true
+  },
+  {
+    "file": "study-model.test.cjs",
+    "tests": 9,
+    "pass": true
+  },
+  {
+    "file": "study-widget-core.test.cjs",
+    "tests": 9,
+    "pass": true
+  },
+  {
+    "file": "theme-system.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "timetable-core.test.cjs",
+    "tests": 5,
+    "pass": true
+  },
+  {
+    "file": "todo-core.test.cjs",
+    "tests": 8,
+    "pass": true
+  },
+  {
+    "file": "widget-sdk-core.test.cjs",
+    "tests": 3,
+    "pass": true
+  },
+  {
+    "file": "workbench-overview-core.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "workbench-reorder.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "workbench-slot-core.test.cjs",
+    "tests": 4,
+    "pass": true
+  },
+  {
+    "file": "workbench-stats-core.test.cjs",
+    "tests": 5,
+    "pass": true
+  }
+]

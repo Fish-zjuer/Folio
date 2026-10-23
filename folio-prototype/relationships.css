@@ -1,0 +1,13 @@
+.relationships-screen{display:flex;flex-direction:column;overflow:hidden!important;padding-bottom:0!important;background:var(--bg-canvas)}
+.relationships-screen[hidden]{display:none}
+.relationships-screen>.settings-header{flex-shrink:0;background:var(--bg-canvas)}
+.relationships-screen>.chat-form-error:empty{display:none}
+.relationships-screen>.chat-form-error{font-size:12px;padding:0 24px;margin:0}
+/* The header and perimeter share one warm white; the map sits inside an inset panel. */
+.relationships-map-shell{position:relative;isolation:isolate;flex:1;min-height:0;margin:8px 12px calc(52px + env(safe-area-inset-bottom,0px));border-radius:28px;overflow:hidden;background:#fdfcf9}
+.relationships-map-shell::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 1px 3px #514b3d25,inset 1px 0 1px #6e635a0a,inset -1px 0 1px #ffffffb3,inset 0 -1px 1px #fff;border:1px solid #b9b5a826;z-index:2}
+.relationships-frame{border:0;width:100%;height:100%;min-height:0;display:block;border-radius:inherit;background:#fdfcf9;touch-action:none}
+[data-theme=dark] .relationships-map-shell,[data-theme=dark] .relationships-frame{background:#29272d}
+[data-theme=dark] .relationships-map-shell::after{border-color:#a396ae16;box-shadow:inset 0 2px 4px #0005,inset 0 -1px 1px #c5bad514}
+.phone.rail-active .relationships-screen>.settings-header{visibility:hidden}
+@media(max-width:350px){.relationships-map-shell{margin-inline:10px;border-radius:25px}}

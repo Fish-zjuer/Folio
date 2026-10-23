@@ -62,6 +62,10 @@
   const inboxStack = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const inboxGroup = desk.querySelector(".desk-inbox"); inboxGroup.insertBefore(inboxStack, inboxGroup.querySelector("path"));
   const pencilHit = button("workbench-pencil-hit", "更新学在浙大作业", () => {});
+  let lastPlantTap=0;
+  const plantHit=button('workbench-plant-hit','双击收回从便签袋手动贴出的便签',()=>{
+    const now=performance.now();if(lastPlantTap&&now-lastPlantTap<420){lastPlantTap=0;undoDeskPins();}else{lastPlantTap=now;interactionStatus.textContent='双击花朵可收回从袋中手动贴出的便签';}
+  });plantHit.title='双击收回从便签袋手动贴出的便签';
   let pencilBusy=false;
   pencilHit.addEventListener("click", async()=>{if(pencilBusy)return;pencilBusy=true;pencilHit.disabled=true;try{await refreshHomeworkFromDesk();}finally{pencilBusy=false;pencilHit.disabled=false;}});
   async function refreshHomeworkFromDesk() {
@@ -70,7 +74,7 @@
     try { await window.FolioSchool.refresh("homework"); announce("学在浙大作业已刷新"); }
     catch (error) { announce(error?.message || "刷新学在浙大作业失败"); }
   }
-  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, interactionStatus);window.FolioWidgetPalette?.bind(board); const lessonQueue=el("section","workbench-lesson-queue");lessonQueue.setAttribute("aria-label","课程安排队列");lessonQueue.hidden=true;main.append(grid,lessonQueue,board);
+  board.append(desk, notes, inboxButton, incomingPanel, pencilHit, plantHit, interactionStatus);window.FolioWidgetPalette?.bind(board); const lessonQueue=el("section","workbench-lesson-queue");lessonQueue.setAttribute("aria-label","课程安排队列");lessonQueue.hidden=true;main.append(grid,lessonQueue,board);
   page.append(header, overview, main); phone.insertBefore(page, homeworkLayer);
   const home = previewScreens.home, homeHeader = home.querySelector(".topbar");
   const sharedHeader = homeHeader || header;
@@ -120,6 +124,7 @@
     const direct = webUrl(item.url) || webUrl(item.homeworkUrl) || webUrl(item.sourceUrl);
     const url = direct || (item.source === "school" ? "https://courses.zju.edu.cn/" : null);
     if (url) { const link = el("a", "workbench-reading-link", direct ? "打开作业 ↗" : "打开学在浙大 ↗"); link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer"; readerLinks.append(link); }
+    if(!fromInbox&&item.deskPin){const undo=button('workbench-reading-link','收回到待贴便签袋',()=>{if(undoDeskPins(item.id))closeReader(true);});undo.textContent='收回到待贴便签袋';readerLinks.append(undo);}
     reader.style.setProperty("--reading-paper", origin.style.getPropertyValue("--note-color") || "#F4EEDF");
     reader.hidden = false; setWorkbenchInert(true); readerClose.focus({preventScroll:true});
     readerClose.setAttribute("aria-label", fromInbox ? "返回待贴便签袋" : "关闭便签阅读");
@@ -195,8 +200,10 @@
   function pinIncoming(item, point) {
     if(!incomingItems().includes(item))return {ok:false,message:"这张便签已经不在袋子里"};
     const options=typeof queueManualOptions==="function"?queueManualOptions():{weekdayLimit:1,weekendLimit:homeworkState.weekendLimit||3};
-    const result=FolioQueue.manualMove(homeworkState.items,item,homeworkState.today,homeworkState.today,options);
+    const next=structuredClone(homeworkState),candidate=next.items.find(r=>r.id===item.id);
+    const result=FolioQueue.pinFromDesk(next.items,candidate,homeworkState.today,options);
     if(!result.ok){interactionStatus.textContent=result.message;inboxGroup.animate([{opacity:1},{opacity:.45},{opacity:1}],{duration:350});return result;}
+    try{localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));homeworkState.items=next.items;}catch{interactionStatus.textContent='没有保存成功，便签仍在袋子里';return {ok:false};}
     if(point){
       const r=notes.getBoundingClientRect(),h=Math.max(notes.clientHeight,parseFloat(notes.style.getPropertyValue("--note-field-height"))||0);
       const old=noteShapes.get(item.id)||randomShape([]),clamp=n=>Math.max(0,Math.min(1,n));
@@ -207,6 +214,13 @@
     interactionStatus.textContent="便签已提前贴到书桌";
     requestAnimationFrame(()=>[...notes.querySelectorAll("button")].find(n=>n.dataset.itemId===item.id)?.focus({preventScroll:true}));
     return {ok:true};
+  }
+  function undoDeskPins(itemId=null){
+    const next=structuredClone(homeworkState),ids=next.items.filter(i=>i.deskPin).map(i=>i.id),count=FolioQueue.undoDeskPins(next.items,homeworkState.today,itemId);
+    if(!count){interactionStatus.textContent='没有需要收回的手动便签';return 0;}
+    try{localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));}catch{interactionStatus.textContent='没有保存成功，便签保持原样';return 0;}
+    homeworkState.items=next.items;for(const id of ids)if(!next.items.find(i=>i.id===id)?.mountedOn)noteShapes.delete(id);persist();
+    commit(`已收回 ${count} 张手动便签，事项和队列仍保留`);interactionStatus.textContent=`已收回 ${count} 张手动便签`;return count;
   }
   function bindIncomingDrag(source,getItem,fromReader) {
     let drag=null;
@@ -368,6 +382,7 @@
     pencilHit.style.top=`${10+height-26*scale-pencilHeight/2}px`;
     pencilHit.style.width=`${pencilWidth}px`;pencilHit.style.height=`${pencilHeight}px`;
     desk.querySelector(".desk-plant").setAttribute("transform", `translate(37 ${sceneHeight-30})`);
+    plantHit.style.left=`${10+37*scale-27}px`;plantHit.style.top=`${10+height-30*scale-27}px`;
     desk.querySelector(".desk-inbox").setAttribute("transform", `translate(274 ${sceneHeight-79})`);
     inboxButton.style.left = `${10 + 274 * scale}px`; inboxButton.style.top = `${10 + height - 79 * scale}px`;
     inboxButton.style.width = `${92 * scale}px`; inboxButton.style.height = `${66 * scale}px`;

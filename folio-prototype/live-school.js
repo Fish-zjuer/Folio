@@ -53,7 +53,7 @@
         localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));homeworkState.items=items;homeworkState.today=next.today;commit();store(module,fresh);publish();return homeworkState.items.filter(i=>i.kind==="homework");
       }
       if(module==="exams"){
-        const raw=await request("exams"),data=B.exams(raw);for(const exam of data)term(exam.semesterId);updateCredits(B.courseCredits(raw));officialExamRecords.splice(0,officialExamRecords.length,...data.filter(e=>!e.unscheduled));
+        const raw=await B.examPages(page=>request("exams",{page})),data=B.exams(raw);for(const exam of data)term(exam.semesterId);updateCredits(B.courseCredits(raw));officialExamRecords.splice(0,officialExamRecords.length,...data.filter(e=>!e.unscheduled));
         for(const t of FolioCourses.semesters)for(const c of t.courses)c.exams=data.filter(e=>e.courseId===c.id&&e.semesterId===t.id);
         store(module,data);publish();return data;
       }
@@ -71,7 +71,7 @@
     }catch(error){failed(key,error);throw error;}})();flights.set(key,work);try{return await work;}finally{flights.delete(key);}
   }
   function warnings(){const id=FolioCourses.semesters[0]?.id;return [['grades','成绩'],['major','主修'],[`courses:${id}`,'课表'],['exams','考试'],['homework','作业'],['practice','实践']].map(([key,label])=>({label,warning:state.modules[key]?.warning||(key==='practice'?state.modules.practiceSummary?.warning:null)})).filter(e=>e.warning);}
-  window.FolioSchool={refresh,bindAccount,warnings,cache:()=>state,login:site=>{browserSite=site;return N.call("school.login",{site});},authenticate:site=>N.call("school.authenticate",{site}),setCaptcha:value=>{captcha=String(value).trim().slice(0,20);},
+  window.FolioSchool={idle:()=>Promise.allSettled([...flights.values()]),refresh,bindAccount,warnings,cache:()=>state,login:site=>{browserSite=site;return N.call("school.login",{site});},authenticate:site=>N.call("school.authenticate",{site}),setCaptcha:value=>{captcha=String(value).trim().slice(0,20);},
     setCalendar(dates){if(dates.some(d=>!/^\d{4}-\d{2}-\d{2}$/.test(d))||!(dates[0]<=dates[1]&&dates[1]<dates[2]&&dates[2]<=dates[3]))throw new Error("请填写连续、顺序正确的四个日期");const t=FolioCourses.semesters[0],raw={startEnd:dates,sessionTime:[]};t.calendar={...B.calendar(raw,t.id),manual:true};store(`calendar:${t.id}`,raw);publish();},
     async sync(){const jobs=[...Object.keys({grades:1,courses:1,homework:1,practice:1}).map(m=>FolioAcademicUI.refresh(m)),refresh("exams")];const result=await Promise.allSettled(jobs),warning=FolioSchoolConnection.failureSummary(warnings());if(warning)state.lastLoginWarning=warning;else delete state.lastLoginWarning;localStorage.setItem(N.storageKey,JSON.stringify(state));return result;},
     async setTerm(id){if(!/^20\d{2}-20\d{2}-[12]$/.test(id))throw new Error("学期编号不正确");const existing=term(id);FolioCourses.semesters.splice(FolioCourses.semesters.indexOf(existing),1);FolioCourses.semesters.unshift(existing);store("activeTerm",id);location.reload();}

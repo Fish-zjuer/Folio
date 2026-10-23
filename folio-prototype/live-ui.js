@@ -7,7 +7,7 @@
   function field(parent,label,value,type="text"){const wrap=el("label","chat-field",label),input=el(type==="textarea"?"textarea":"input");if(type!=="textarea")input.type=type;input.value=value??"";input.setAttribute("aria-label",label);wrap.append(input);parent.append(wrap);return input;}
   function panel(title){const box=FolioChatUI.openPanel(title);box.style.height="76dvh";box.style.maxHeight="84%";return box;}
   async function openProvider(){
-    const box=panel("模型与 Agent"),note=el("p","chat-panel-note","兼容 Chat Completions 接口。模型需支持工具调用；图片/PDF还需要相应的视觉能力。按指令读取的数据会发送到你填写的模型地址。"),error=el("p","chat-form-error");box.append(note);
+    const box=panel("模型与 Agent"),note=el("p","chat-panel-note","兼容 Chat Completions 接口。模型需支持工具调用；图片/PDF还需要相应的视觉能力。按指令读取的数据会发送到你填写的模型地址。"),error=el("p","chat-form-error");box.append(note,button('对话长度与任务轮数',()=>FolioChatUI.openAgentSettings()));
     let config;try{config=await FolioNative.call("config.get");}catch(err){error.textContent=err.message;box.append(error);return;}
     if(!box.isConnected)return;
     const base=field(box,"base_url",config.baseUrl||""),key=field(box,config.hasKey?"API Key（留空保留已有密钥）":"API Key","","password"),models=field(box,"models（每行一个模型名）",(config.models||[]).join("\n"),"textarea");

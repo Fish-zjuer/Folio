@@ -1,0 +1,12 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),L=require('./learning-core.js');
+const now='2026-10-21T04:00:00Z',fields={kind:'journal',title:'今天',body:'记录',date:'2026-10-21'};
+test('录音检索组合课程/学期/日期/关键词，不混入同名旧学期或日记',()=>{
+ const row=(id,kind,date,termId='fall')=>L.apply(L.restore(null),{id,fields:{...fields,kind,date,title:'实验记录 '+id,body:'放大电路 重点',courseId:'lab',termId},now}).records[0];
+ const records=[row('a','recording','2026-10-20'),row('b','recording','2026-10-21'),row('c','journal','2026-10-21'),row('old','recording','2026-10-21','spring')];
+ const options={kind:'recording',course:{courseId:'lab',termId:'fall'},query:'电路 控制',from:'2026-10-21',to:'2026-10-21'};
+ assert.deepEqual(L.select(records,options,()=> '控制实验').map(r=>r.id),['b']);assert.equal(L.select(records,{...options,query:'不存在'}).length,0);
+ assert.deepEqual(L.select(records,{kind:'recording'}).map(r=>r.id),['b','old','a']);assert.equal(records[0].id,'a');
+});
+test('日记独立保存、更新保留创建时间，拒绝非法日期和未来格式',()=>{let state=L.apply(L.restore(null),{id:'one',fields,now});assert.equal(state.records.length,1);const row=state.records[0];state=L.apply(state,{id:'one',fields:{body:'新内容'},before:JSON.stringify(row),now:'2026-10-22T04:00:00Z'});assert.equal(state.records[0].createdAt,now);assert.equal(state.records[0].body,'新内容');assert.throws(()=>L.apply(state,{id:'one',fields:{body:'覆盖'},before:JSON.stringify(row)}),/变化/);assert.throws(()=>L.apply(state,{id:'two',fields:{...fields,date:'2026-02-30'},now}));assert.throws(()=>L.restore({version:2,records:[]}));});
+test('多时区课程匹配使用上海时间，边界与冲突不猜',()=>{const sessions=[{id:'a',startAt:'2026-10-21T13:25',endAt:'2026-10-21T15:50'},{id:'b',startAt:'2026-10-21T15:00',endAt:'2026-10-21T16:00'}];assert.deepEqual(L.matching(sessions,'2026-10-21T05:25Z').map(s=>s.id),['a']);assert.equal(L.matching(sessions,'2026-10-21T07:10Z').length,2);assert.deepEqual(L.matching(sessions,'2026-10-21T07:50Z').map(s=>s.id),['b']);assert.equal(L.matching(sessions,'bad').length,0);});
+test('AI只能读取文字、课程关联，无法获取音频路径或二进制',()=>{const r=L.apply(L.restore(null),{id:'rec',fields:{...fields,kind:'recording',audio:{key:'audio-123',durationMs:5000,mime:'audio/webm',size:100}},now}).records[0];assert.equal(L.aiRecord(r).audio,undefined);assert.equal(L.aiRecord(r).body,'记录');assert.throws(()=>L.apply(L.restore(null),{id:'bad',fields:{...fields,audio:{...r.audio,key:'../../secrets'}},now}));});

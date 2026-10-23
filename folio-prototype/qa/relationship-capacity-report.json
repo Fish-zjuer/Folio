@@ -1,0 +1,65 @@
+{
+  "checks": [
+    {
+      "name": "old 250-node data migrates to IndexedDB without losing notes",
+      "pass": true
+    },
+    {
+      "name": "settings entry shows actual used and available node capacity",
+      "pass": true
+    },
+    {
+      "name": "each expansion opens exactly one segment and preserves existing nodes",
+      "pass": true
+    },
+    {
+      "name": "notes larger than localStorage quota live in segmented database, not in the marker",
+      "pass": true
+    },
+    {
+      "name": "1000 nodes occupy exactly four durable segments",
+      "pass": true
+    },
+    {
+      "name": "database remains authoritative after a full localStorage and reload",
+      "pass": true
+    },
+    {
+      "name": "corrupt ZIP cannot enable confirmation or alter stored graph",
+      "pass": true
+    },
+    {
+      "name": "ZIP preflight previews node count and capacity without changing local graph",
+      "pass": true
+    },
+    {
+      "name": "confirmation imports every note/capacity and stores the previous graph as backup",
+      "pass": true
+    },
+    {
+      "name": "native ZIP export stages complete binary chunks with the correct ZIP filename",
+      "pass": true
+    },
+    {
+      "name": "restore action recovers pre-import graph and its original capacity",
+      "pass": true
+    },
+    {
+      "name": "editing capacity after preview invalidates stale ZIP confirmation",
+      "pass": true
+    },
+    {
+      "name": "failed database transaction cannot publish new capacity",
+      "pass": true
+    },
+    {
+      "name": "320 settings dialog has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no unhandled runtime failures",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

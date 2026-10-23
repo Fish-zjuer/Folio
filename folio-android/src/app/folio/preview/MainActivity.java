@@ -21,16 +21,27 @@ public final class MainActivity extends Activity {
   private final ExecutorService jobs=Executors.newFixedThreadPool(5);
   private volatile boolean trusted=false;private ValueCallback<Uri[]> fileCallback;private Uri cameraOutput;
   private Dialog loginDialog;private WebView loginView;private String calendarExportId,calendarExportText;
+  private OfflineTransfer offlineTransfer;private String syncExportId,syncExportToken;private File syncExportFile;
   private volatile boolean resumed=false;private boolean pageReady=false,notificationPermissionPending=false;private JSONObject pendingNotification;private String pendingGradeId="";
   private static final String GRADE_CHANNEL="folio-new-grades",GRADE_EXTRA="folio.gradeId";
   private String pendingReminder="";
+  private PermissionRequest pendingMicrophone;
+  private boolean trustedMicrophone(PermissionRequest request){
+    Uri origin=request.getOrigin();
+    return trusted&&"https".equals(origin.getScheme())&&HOST.equals(origin.getHost())&&(origin.getPort()==-1||origin.getPort()==443)&&request.getResources().length==1&&PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(request.getResources()[0]);
+  }
+  private void microphone(PermissionRequest request){
+    if(!resumed||!trustedMicrophone(request)||pendingMicrophone!=null){request.deny();return;}
+    if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED)request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+    else{pendingMicrophone=request;requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},202);}
+  }
   public void onCreate(Bundle state){
     super.onCreate(state);vault=new Vault(this);records=new RecordRepository(new RecordRepository.Storage(){public String read(String key)throws Exception{return vault.get(key);}public void write(String key,String value)throws Exception{vault.put(key,value);}public void delete(String key)throws Exception{vault.remove(key);}});schoolSession=new SchoolSession(network,vault);pendingGradeId=getIntent().getStringExtra(GRADE_EXTRA);if(pendingGradeId==null)pendingGradeId="";
     String colorMode=getPreferences(MODE_PRIVATE).getString("colorMode","system");boolean dark=colorMode.equals("dark")||colorMode.equals("system")&&(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;int canvas=dark?Color.rgb(36,37,33):Color.rgb(249,249,247);
     getWindow().setStatusBarColor(canvas);getWindow().setNavigationBarColor(canvas);getWindow().getDecorView().setBackgroundColor(canvas);if(Build.VERSION.SDK_INT>=29)getWindow().setNavigationBarContrastEnforced(false);
     getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
     pendingReminder=getIntent().getStringExtra(LocalReminders.EXTRA);if(pendingReminder==null)pendingReminder="";
-    web=new WebView(this);web.setBackgroundColor(canvas);
+    offlineTransfer=new OfflineTransfer(new File(getCacheDir(),"offline-sync"));web=new WebView(this);web.setBackgroundColor(canvas);
     WebSettings settings=web.getSettings();settings.setTextZoom(100);settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setSafeBrowsingEnabled(true);
     web.addJavascriptInterface(new Bridge(),"FolioAndroid");
     web.setWebViewClient(new WebViewClient(){
@@ -46,13 +57,15 @@ public final class MainActivity extends Activity {
         try{
           String asset=path.substring(8);String mime=mime(asset);
           Map<String,String> headers=new HashMap<>();headers.put("Cache-Control","no-cache");headers.put("X-Content-Type-Options","nosniff");
-          headers.put("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'");
+          headers.put("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'none'; frame-src https://appassets.androidplatform.net/assets/relationship-view.html; object-src 'none'; base-uri 'none'; form-action 'none'");
           return new WebResourceResponse(mime,"UTF-8",200,"OK",headers,getAssets().open("www/"+asset));
         }catch(IOException e){return response("text/plain",404,"Not found");}
       }
       public void onPageFinished(WebView view,String url){if(trusted){pageReady=true;view.evaluateJavascript("window.dispatchEvent(new Event('folio-native-ready'))",null);sendSystemTheme();deliverGrade();deliverReminder();}}
     });
     web.setWebChromeClient(new WebChromeClient(){
+      public void onPermissionRequest(PermissionRequest request){runOnUiThread(()->microphone(request));}
+      public void onPermissionRequestCanceled(PermissionRequest request){runOnUiThread(()->{if(pendingMicrophone==request)pendingMicrophone=null;});}
       public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){chooseFile(callback,params);return true;}
       public boolean onCreateWindow(WebView view,boolean dialog,boolean userGesture,Message result){
         WebView temp=new WebView(MainActivity.this);temp.setWebViewClient(new WebViewClient(){public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){openExternal(r.getUrl());v.destroy();return true;}});
@@ -83,7 +96,7 @@ public final class MainActivity extends Activity {
     try{if(params.isCaptureEnabled())startActivityForResult(camera,100);else if(image)startActivityForResult(pick,100);else startActivityForResult(Intent.createChooser(pick,"选择文件"),100);}
     catch(ActivityNotFoundException e){fileCallback.onReceiveValue(null);fileCallback=null;}
   }
-  protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==101){String id=calendarExportId,text=calendarExportText;calendarExportId=null;calendarExportText=null;if(id==null)return;if(result!=RESULT_OK||data==null||data.getData()==null){calendarExportReply(id,false,true,null);return;}Uri output=data.getData();jobs.execute(()->{try(OutputStream stream=getContentResolver().openOutputStream(output,"wt")){if(stream==null)throw new IOException("无法写入所选位置");stream.write(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));calendarExportReply(id,true,false,null);}catch(Exception error){calendarExportReply(id,false,false,"日历文件未能保存，请重试");}});return;}if(request!=100||fileCallback==null)return;
+  protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==102){String id=syncExportId,token=syncExportToken;File staged=syncExportFile;syncExportId=null;syncExportToken=null;syncExportFile=null;if(id==null)return;if(result!=RESULT_OK||data==null||data.getData()==null){offlineTransfer.clear(token);calendarExportReply(id,false,true,null);return;}Uri output=data.getData();jobs.execute(()->{try(InputStream source=new FileInputStream(staged);OutputStream target=getContentResolver().openOutputStream(output,"wt")){if(target==null)throw new IOException();byte[] buffer=new byte[65536];int count;while((count=source.read(buffer))!=-1)target.write(buffer,0,count);calendarExportReply(id,true,false,null);}catch(Exception error){calendarExportReply(id,false,false,"同步文件未能保存，请重试");}finally{offlineTransfer.clear(token);}});return;}if(request==101){String id=calendarExportId,text=calendarExportText;calendarExportId=null;calendarExportText=null;if(id==null)return;if(result!=RESULT_OK||data==null||data.getData()==null){calendarExportReply(id,false,true,null);return;}Uri output=data.getData();jobs.execute(()->{try(OutputStream stream=getContentResolver().openOutputStream(output,"wt")){if(stream==null)throw new IOException("无法写入所选位置");stream.write(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));calendarExportReply(id,true,false,null);}catch(Exception error){calendarExportReply(id,false,false,"日历文件未能保存，请重试");}});return;}if(request!=100||fileCallback==null)return;
     Uri[] values=null;if(result==RESULT_OK){if(data!=null&&data.getClipData()!=null){ClipData clip=data.getClipData();values=new Uri[clip.getItemCount()];for(int i=0;i<values.length;i++)values[i]=clip.getItemAt(i).getUri();}else if(data!=null&&data.getData()!=null)values=new Uri[]{data.getData()};else if(cameraOutput!=null)values=new Uri[]{cameraOutput};}
     fileCallback.onReceiveValue(values);fileCallback=null;cameraOutput=null;
   }
@@ -123,7 +136,7 @@ public final class MainActivity extends Activity {
     Notification notification=new Notification.Builder(this,GRADE_CHANNEL).setSmallIcon(getApplicationInfo().icon).setContentTitle("Folio · 有新成绩").setContentText("有课程成绩更新，点按查看").setAutoCancel(true).setContentIntent(open).setVisibility(Notification.VISIBILITY_PRIVATE).build();manager.notify(grade.hashCode(),notification);
   }
   private void requestGradePermission(){if(Build.VERSION.SDK_INT>=33&&!canNotify()&&!notificationPermissionPending){notificationPermissionPending=true;requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},201);}}
-  public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==201){notificationPermissionPending=false;JSONObject pending=pendingNotification;pendingNotification=null;if(pending!=null&&canNotify())gradeNotification(pending);if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(trusted)web.evaluateJavascript("window.dispatchEvent(new Event('folio-notification-permission'))",null);}}
+  public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==202){PermissionRequest pending=pendingMicrophone;pendingMicrophone=null;if(pending!=null){if(grants.length>0&&grants[0]==PackageManager.PERMISSION_GRANTED&&trustedMicrophone(pending)){if(resumed)pending.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});else pendingMicrophone=pending;}else pending.deny();}return;}if(request==201){notificationPermissionPending=false;JSONObject pending=pendingNotification;pendingNotification=null;if(pending!=null&&canNotify())gradeNotification(pending);if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(trusted)web.evaluateJavascript("window.dispatchEvent(new Event('folio-notification-permission'))",null);}}
   private void deliverGrade(){if(!pageReady||!trusted||pendingGradeId.isEmpty())return;String id=pendingGradeId;pendingGradeId="";web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-grade',{detail:{gradeId:"+JSONObject.quote(id)+"}}))",null);}
   private void deliverReminder(){if(!pageReady||!trusted||pendingReminder.isEmpty())return;String raw=pendingReminder;pendingReminder="";try{JSONObject target=new JSONObject(raw);if(target.optBoolean("summary")){web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-reminder',{detail:{summary:true}}))",null);return;}String id=target.optString("itemId");if(id.isEmpty()||id.length()>300)return;web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-open-reminder',{detail:{itemId:"+JSONObject.quote(id)+"}}))",null);}catch(JSONException ignored){}}
   protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String grade=intent.getStringExtra(GRADE_EXTRA);if(grade!=null){pendingGradeId=grade;deliverGrade();}String reminder=intent.getStringExtra(LocalReminders.EXTRA);if(reminder!=null){pendingReminder=reminder;deliverReminder();}}
@@ -141,6 +154,16 @@ public final class MainActivity extends Activity {
           case "records.save":{
             JSONObject value=input.getJSONObject("data");if(!(value.opt("version") instanceof Number)||value.getDouble("version")!=1)throw new Exception("不支持的记录格式");
             RecordRepository.Snapshot snapshot=records.save(input.optString("name"),input.getLong("expectedRevision"),value.toString());data=new JSONObject().put("revision",snapshot.revision).put("data",new JSONObject(snapshot.data));break;
+          }
+          case "sync.records.replace":{
+            String account=input.optString("accountId");if(account.isEmpty()||!account.equals(schoolSession.account().optString("accountId")))throw new Exception("当前学校账号与同步文件不一致");
+            JSONObject values=input.getJSONObject("data"),expected=input.getJSONObject("expected");if(values.length()!=4||expected.length()!=4)throw new Exception("同步记录不完整");Map<String,String> all=new LinkedHashMap<>();Map<String,Long> versions=new LinkedHashMap<>();for(String name:Arrays.asList("study","pomodoro","focus","learning")){JSONObject value=values.getJSONObject(name);if(!(value.opt("version") instanceof Number)||value.getDouble("version")!=1)throw new Exception("同步记录版本无效");all.put(name,value.toString());if(!(expected.opt(name) instanceof Number)||expected.getDouble(name)!=expected.getLong(name)||expected.getLong(name)<0)throw new Exception("同步记录版本无效");versions.put(name,expected.getLong(name));}records.replace(versions,all,account,input.optString("transactionId"));data=new JSONObject().put("saved",true);break;
+          }
+          case "app.sync.export.begin":data=new JSONObject().put("token",offlineTransfer.begin(input.optString("filename")));break;
+          case "app.sync.export.chunk":data=new JSONObject().put("offset",offlineTransfer.append(input.optString("token"),input.getLong("offset"),input.getString("chunk")));break;
+          case "app.sync.export.cancel":offlineTransfer.clear(input.optString("token"));data=new JSONObject();break;
+          case "app.sync.export.save":{
+            final String token=input.getString("token");final File staged=offlineTransfer.finish(token);final String filename=offlineTransfer.filename(token);runOnUiThread(()->{if(syncExportId!=null){calendarExportReply(id,false,false,"已有同步文件正在保存");return;}syncExportId=id;syncExportToken=token;syncExportFile=staged;try{startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(filename.endsWith(".zip")?"application/zip":"application/octet-stream").putExtra(Intent.EXTRA_TITLE,filename),102);}catch(ActivityNotFoundException error){syncExportId=null;syncExportToken=null;syncExportFile=null;offlineTransfer.clear(token);calendarExportReply(id,false,false,"系统没有可用的文件保存入口");}});return;
           }
           case "config.get":data=publicConfig(new JSONObject(vault.get("provider")));break;
           case "config.save":
@@ -183,7 +206,7 @@ public final class MainActivity extends Activity {
   public void onBackPressed(){handleBack();}
   private void sendSystemTheme(){if(web!=null&&pageReady&&trusted){boolean dark=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-system-theme',{detail:{dark:"+dark+"}}))",null);}}
   public void onConfigurationChanged(android.content.res.Configuration config){super.onConfigurationChanged(config);sendSystemTheme();}
-  protected void onResume(){super.onResume();resumed=true;if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(web!=null&&pageReady&&trusted){sendSystemTheme();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-resume'))",null);}}
+  protected void onResume(){super.onResume();resumed=true;if(pendingMicrophone!=null&&checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){PermissionRequest pending=pendingMicrophone;pendingMicrophone=null;if(trustedMicrophone(pending))pending.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});else pending.deny();}if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(web!=null&&pageReady&&trusted){sendSystemTheme();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-resume'))",null);}}
   protected void onPause(){resumed=false;super.onPause();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-background'))",null);CookieManager.getInstance().flush();}
-  protected void onDestroy(){trusted=false;if(loginDialog!=null&&loginDialog.isShowing())loginDialog.dismiss();network.close();jobs.shutdownNow();web.removeJavascriptInterface("FolioAndroid");web.destroy();super.onDestroy();}
+  protected void onDestroy(){if(pendingMicrophone!=null){pendingMicrophone.deny();pendingMicrophone=null;}trusted=false;if(loginDialog!=null&&loginDialog.isShowing())loginDialog.dismiss();network.close();jobs.shutdownNow();web.removeJavascriptInterface("FolioAndroid");web.destroy();super.onDestroy();}
 }

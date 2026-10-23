@@ -23,11 +23,16 @@ if older.exists():
     previous=re.search(r'certificate SHA-256 digest: ([a-f0-9]+)',output(sdk/'apksigner.bat','verify','--print-certs',older)).group(1)
     if previous!=cert:raise RuntimeError('Existing APK has a different signing certificate')
 sources=web_sources(web);validate_entry(web,sources)
+activity=(root/'src/app/folio/preview/MainActivity.java').read_text(encoding='utf-8')
+asset_csp=re.search(r'headers\.put\("Content-Security-Policy","([^"]+)"\)',activity).group(1)
+expected_frame="frame-src https://appassets.androidplatform.net/assets/relationship-view.html"
+if expected_frame not in asset_csp.split('; '):raise RuntimeError('Relationship view missing from native frame policy')
 with zipfile.ZipFile(apk) as bundle:
+    if asset_csp.encode('utf-8') not in bundle.read('classes.dex'):raise RuntimeError('Packaged native content policy differs from source')
     for path in sources:
         if bundle.read('assets/www/'+path.relative_to(web).as_posix())!=path.read_bytes():raise RuntimeError('Packaged file differs: '+path.name)
     forbidden=[n for n in bundle.namelist() if n.startswith('assets/www/qa/') or n.endswith(('.cjs','.jks')) or 'fixture' in n.lower() or n.startswith('assets/www/design-lab/') and n.endswith('.html')]
     if forbidden:raise RuntimeError('Test/private files in APK: '+str(forbidden))
-report={'version':version,'versionCode':version_code,'package':package,'minSdk':28,'targetSdk':34,'portrait':True,'signatureVerified':True,'certificateSha256':cert,'sameCertificateAs06':older.exists(),'matchedWebFiles':len(sources),'noFixturesOrPrivateKeys':True,'bytes':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest()}
+report={'version':version,'versionCode':version_code,'package':package,'minSdk':28,'targetSdk':34,'portrait':True,'signatureVerified':True,'certificateSha256':cert,'sameCertificateAs06':older.exists(),'matchedWebFiles':len(sources),'nativeAssetCspMatched':True,'noFixturesOrPrivateKeys':True,'bytes':apk.stat().st_size,'sha256':hashlib.sha256(apk.read_bytes()).hexdigest()}
 (root/f'dist/verification-{version}.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
 print(json.dumps(report,ensure_ascii=False,indent=2))

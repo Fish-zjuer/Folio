@@ -10,6 +10,8 @@
   if(store.draft.coreMultiplier&&store.draft.type==="major")store.draft.type="weighted";
   store.draft.coreMultiplier=store.draft.type==="weighted";
   let d=store.draft,calculation=null,input=null,data=null,warning="",dirty=false;
+  const currentTargets=()=>G.retirePublished(store,FolioAcademicUI.publishedCourses());
+  function retireResults(){const next=currentTargets();if(next===store)return false;const previous=store;store=next;d=store.draft;if(!persist()){store=previous;d=store.draft;return false;}sync();return true;}
   const page=make("section","settings-screen goal-screen");page.id="goals-screen";page.hidden=true;page.setAttribute("aria-label","课程目标页");
   const header=make("header","goal-header"),back=action("",()=>goBack("menu"),"detail-back");back.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>';back.setAttribute("aria-label","返回上一页");
   const titleBlock=make("div","goal-heading"),title=make("h1","","目标调试"),reconfigure=action("重新调试",()=>{d.phase="setup";persist();render();},"goal-text-button");titleBlock.append(title,reconfigure);
@@ -123,6 +125,9 @@
   function renderPlan(){
     const head=make("div","goal-plan-meta");head.append(make("span","",`${types[d.type]}目标 ${fmt(d.target)}`),make("span","",`底线 ${fmt(d.floor)} · 重要 ≥ ${fmt(d.threshold)}`));body.append(head);
     const status=make("p","goal-status-copy",warning?"":statusText());body.append(status);
+    const retired=Object.keys(store.applied?.settledCourses||{}).length;
+    if(retired)body.append(make('p','goal-instruction',`${retired} 门课程已出分，已撤下它们的目标和提醒。剩余课程沿用原目标；预计均绩已计入实际成绩。`));
+    if(d.source==='academic'&&data?.courses?.length)body.append(action('按实绩重新分配剩余目标',()=>{try{const next=G.allocate(makeInput());d.assignments=next.assignments;dirty=true;persist();render();announce('已更新目标草稿，应用后生效');}catch(problem){error.textContent=problem.message;}},'goal-text-button'));
     const note=make("p","goal-instruction","右侧直接调目标；同学分课程可交换。改变不会自动重分配其他课。"),list=make("div","goal-course-list");body.append(note,list);
     if(!data?.courses)return;
     for(const c of data.courses){
@@ -159,10 +164,10 @@
     if(!persist()){store.applied=before;return;}dirty=false;sync();announce(calculation.reached?"课程目标已保存，重要课提醒已更新":"方案已保存；当前预计仍低于目标");render();
   }
   function removeApplied(){openHomeworkSheet("停用课程目标提醒？",document.activeElement);homeworkBody.append(make("p","goal-instruction","保留目标草稿，停用上课和作业优先提醒。已挂出的作业不会取下，手动日期不会改变。"),action("确认停用",()=>{const old=store.applied;store.applied=null;if(!persist()){store.applied=old;return;}closeHomeworkSheet();sync();render();},"goal-primary"));}
-  function queueOptions(){const a=store.applied;if(!a)return {};const t=FolioCourses.semesters.find(t=>t.id===a.termId),parts=t?.calendar?.periods||[],start=parts.map(p=>p.start).sort()[0],end=parts.map(p=>p.end).sort().at(-1);return {importantCourses:a.courses.filter(c=>c.important).map(c=>({id:c.id,title:c.title,termId:a.termId,start,end,requireTerm:!start||!end,allowTitle:a.courses.filter(p=>p.title===c.title).length===1}))};}
-  function label(termId,id){const r=G.reminder(store,termId,id);return r?`目标 ${fmt(r.value)} · 这节课认真听`:null;}
+  function queueOptions(){const a=currentTargets().applied;if(!a)return {};const t=FolioCourses.semesters.find(t=>t.id===a.termId),parts=t?.calendar?.periods||[],start=parts.map(p=>p.start).sort()[0],end=parts.map(p=>p.end).sort().at(-1);return {importantCourses:a.courses.filter(c=>c.important).map(c=>({id:c.id,title:c.title,termId:a.termId,start,end,requireTerm:!start||!end,allowTitle:a.courses.filter(p=>p.title===c.title).length===1}))};}
+  function label(termId,id){const r=G.reminder(currentTargets(),termId,id);return r?`目标 ${fmt(r.value)} · 这节课认真听`:null;}
   function sync(){commit();document.dispatchEvent(new Event("folio-goals-change"));}
-  window.FolioGoalUI={queueOptions,label,courseTarget:(termId,id)=>{const a=store.applied;if(a?.termId!==termId)return null;const c=a.courses.find(c=>c.id===id),value=a.assignments[id];return c&&Number.isFinite(value)?{value,important:!!c.important}:null;},reminder:(termId,id)=>G.reminder(store,termId,id)};
+  window.FolioGoalUI={queueOptions,label,courseTarget:(termId,id)=>{const a=currentTargets().applied;if(a?.termId!==termId)return null;const c=a.courses.find(c=>c.id===id),value=a.assignments[id];return c&&Number.isFinite(value)?{value,important:!!c.important}:null;},reminder:(termId,id)=>G.reminder(currentTargets(),termId,id)};
   window.FolioGoalUI.overview=()=>{
     if(!localStorage.getItem(KEY))return null;
     const oldData=data;
@@ -173,8 +178,9 @@
   };
   document.addEventListener("preview-screen-change",e=>{if(e.detail.screen==="goals")render();});
   document.addEventListener("folio-grade-visibility-change",()=>{if(currentScreen==="goals")render();});
-  document.addEventListener("folio-school-change",()=>{if(currentScreen==="goals")render();});
+  document.addEventListener("folio-school-change",()=>{retireResults();if(currentScreen==="goals")render();});
+  document.addEventListener('folio-grade-visibility-change',retireResults);
   function checkMounts(){const count=homeworkState.items.filter(i=>i.mountedOn&&!i.completed).length,clock=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Shanghai",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date());FolioQueue.advance(homeworkState.items,homeworkState.today,clock);if(homeworkState.items.filter(i=>i.mountedOn&&!i.completed).length!==count)commit();}
   setInterval(checkMounts,60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkMounts();});
-  render();if(store.applied)sync();
+  retireResults();render();if(store.applied)sync();
 })();

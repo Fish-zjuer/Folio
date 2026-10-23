@@ -1,0 +1,31 @@
+{
+  "passed": 23,
+  "checks": [
+    "offline sync modules load",
+    "UI exports encrypted file through chunked native save bridge",
+    "export includes confirmed learning records and audio bytes",
+    "preflight does not overwrite device B or call a write",
+    "another school account cannot import the file",
+    "changed local state invalidates the confirmation preview",
+    "native import failure restores original device B data and clears pending state",
+    "local cache failure after native commit rolls back both stores",
+    "confirmed replacement imports A while retaining B-only chat data",
+    "import remaps audio IDs and preserves the actual bytes",
+    "restore point restores both WebView cache and native record sets",
+    "new process-style reload reads imported native data",
+    "interrupted import restores from its journal before normal use",
+    "import tab previews chosen file without writing until its confirmation button",
+    "explicit import confirmation reloads with the transferred data",
+    "offline transfer contains full segmented relationship data and capacity, not its local locator",
+    "transferred hidden recording draft remains valid after audio IDs are remapped",
+    "sync panel fits a phone",
+    "ungraded course still has its applied target",
+    "published result retires target, lesson reminder and queue priority while goal page is closed",
+    "original overall GPA target remains; retired assignment is persisted",
+    "sealed result does not leak its score through the recalculated GPA",
+    "no uncaught runtime errors"
+  ],
+  "limitations": [
+    "Separate simulated device states, synthetic bytes and native bridge fixture; no two physical devices, Android document picker or real school account."
+  ]
+}

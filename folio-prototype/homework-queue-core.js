@@ -70,7 +70,7 @@
   function advance(items, today, clock = "23:59") {
     dateValue(today);
     items.forEach(item => {
-      if (!item.repeatTemplate && item.kind!=="lesson" && item.queued && !item.completed && !item.mountedOn && item.mountDate && (item.mountDate < today || item.mountDate===today&&(!item.mountClock||clock>=item.mountClock))) item.mountedOn = today;
+      if (!item.repeatTemplate && item.kind!=="lesson" && item.queued && !item.completed && !item.mountedOn && item.deskHoldDay!==today && item.mountDate && (item.mountDate < today || item.mountDate===today&&(!item.mountClock||clock>=item.mountClock))) item.mountedOn = today;
     });
     items.filter(item=>item.kind==="lesson"&&!item.repeatTemplate&&item.queued&&!item.completed&&!item.manualDate).forEach(item=>{item.mountDate=dateFor(item)||today;item.mountedOn=item.mountDate&&item.mountDate<=today?item.mountDate:null;});
     return items;
@@ -78,16 +78,25 @@
   function move(item, date, today) {
     dateValue(date); dateValue(today);
     if (item.completed) throw new Error("已完成的条目不能挂载");
+    delete item.deskPin;delete item.deskHoldDay;
     item.queued = true;
     item.manualDate = true;
     item.mountDate = date;
     item.mountClock = null;
     item.mountedOn = date <= today ? today : null;
   }
-  function complete(item) { item.completed = true; item.mountedOn = null; }
+  function complete(item) { item.completed = true; item.mountedOn = null;delete item.deskPin;delete item.deskHoldDay; }
   function setQueued(item, queued) {
+    delete item.deskPin;delete item.deskHoldDay;
     item.queued = Boolean(queued);
     if (!queued) { item.mountedOn = null; item.mountDate = null; item.mountClock = null; item.manualDate = false; }
+  }
+  // An explicit unmount is local presentation state, even for school homework.
+  // Keep queue membership; clear the schedule so a timer/refresh cannot repin it.
+  function returnToInbox(item, today) {
+    dateValue(today);delete item.deskPin;
+    item.queued=true;item.mountedOn=null;item.mountDate=null;item.mountClock=null;
+    item.manualDate=true;item.deskHoldDay=today;
   }
   function urgency(item, today, options = {}) {
     if (item.completed || !item.deadline) return "normal";
@@ -146,7 +155,7 @@
   }
   function manualMove(items, item, date, today, options = {}, partnerId = null) {
     const check = manualCheck(items,item,date,today,options);
-    if (check.ok) { if (check.code !== "same" || (!item.mountedOn && date <= today)) move(item,date,today); return {ok:true,swapped:false}; }
+    if (check.ok) { if (check.code !== "same" || (!item.mountedOn && date <= today)) move(item,date,today);else {delete item.deskPin;delete item.deskHoldDay;} return {ok:true,swapped:false}; }
     if (check.code !== "swap") return check;
     const partner = swapCandidates(items,item,date,today,options).find(candidate => candidate.id === partnerId);
     if (!partner) return {ok:false,code:"partner",message:"请选择那天可交换的一项；冒烟或着火的不能交换。"};
@@ -154,6 +163,26 @@
     if (dayLoad(items,earlier,[item.id,partner.id]) >= manualLimit(items,earlier,options)) return {ok:false,code:"full",message:"原来的日期已排满，无法放入交换的便签。"};
     move(partner,earlier,today); move(item,date,today);
     return {ok:true,swapped:true};
+  }
+  // Only pins explicitly pulled from the desk inbox carry an undo token.
+  // Preserve the original plan; after undo, suppress automatic re-pin for today.
+  function pinState(item){return {queued:!!item.queued,manualDate:!!item.manualDate,mountDate:item.mountDate||null,mountClock:item.mountClock||null,mountedOn:item.mountedOn||null};}
+  function pinFromDesk(items,item,today,options={}){
+    if(!items.includes(item)||item.mountedOn||item.kind==='lesson')return {ok:false,message:'这张便签已经不在袋子里'};
+    const before=pinState(item),result=manualMove(items,item,today,today,options);
+    if(result.ok)item.deskPin={version:1,before,applied:pinState(item)};
+    return result;
+  }
+  function undoDeskPins(items,today,id=null){
+    dateValue(today);let count=0;
+    for(const item of items){const token=item.deskPin;
+      if((id!==null&&item.id!==id)||!token||token.version!==1||!token.before||!token.applied||item.completed||item.schoolCompleted===true||item.kind==='lesson'||!item.mountedOn||JSON.stringify(token.applied)!==JSON.stringify(pinState(item)))continue;
+      const before=token.before;
+      if(before.queued!==true||before.mountedOn!==null||typeof before.manualDate!=='boolean'||before.mountClock!==null&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(before.mountClock))continue;
+      try{if(before.mountDate!==null)dateValue(before.mountDate);}catch{continue;}
+      Object.assign(item,{queued:true,manualDate:before.manualDate,mountDate:before.mountDate,mountClock:before.mountClock,mountedOn:null,deskHoldDay:today});delete item.deskPin;count++;
+    }
+    return count;
   }
   function lessonRail(items,today){return items.filter(i=>i.kind==="lesson"&&!i.repeatTemplate&&i.queued&&!i.completed&&i.mountedOn&&(!dateFor(i)||dateFor(i)>=today)).sort((a,b)=>(a.startAt||a.scheduledDay||"~").localeCompare(b.startAt||b.scheduledDay||"~"));}
   function rail(items) {
@@ -177,7 +206,7 @@
   function homeworkSubject(item) { return item.source === "personal" ? "自定义" : item.course || "其他"; }
   function dateFor(item) {return item.startAt?.slice(0,10) || item.deadline || item.scheduledDay || null;}
   function pendingOn(items, date) { return items.filter(item => !item.completed && item.schoolCompleted !== true && dateFor(item) === date); }
-  const api = {dateValue, weekendFor, weekFor, normalize, quotas, plan, advance, move, complete, setQueued, urgency, important, usableDays, noticeStage, dayLoad, manualLimit, manualCheck, swapCandidates, manualMove, rail, lessonRail, calendarEntries, homeworkItems, homeworkSubject, pendingOn, dateFor};
+  const api = {dateValue, weekendFor, weekFor, normalize, quotas, plan, advance, move, complete, setQueued, returnToInbox, urgency, important, usableDays, noticeStage, dayLoad, manualLimit, manualCheck, swapCandidates, manualMove, pinFromDesk, undoDeskPins, rail, lessonRail, calendarEntries, homeworkItems, homeworkSubject, pendingOn, dateFor};
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.FolioQueue = api;
 })(typeof globalThis === "undefined" ? this : globalThis);

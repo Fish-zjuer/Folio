@@ -1,0 +1,58 @@
+{
+  "apk": "C:\\Users\\29927\\Desktop\\工作区\\Projects\\folio-android\\dist/folio-1.0.1.apk",
+  "checks": [
+    {
+      "name": "policy in compiled APK matches native source and allows only the packaged relationship frame",
+      "pass": true
+    },
+    {
+      "name": "old Android policy reproduces the reported CSP frame rejection",
+      "pass": true
+    },
+    {
+      "name": "packaged index loads and relation map initializes under native HTTPS origin",
+      "pass": true
+    },
+    {
+      "name": "relationship frame remains same origin and production starts with self only",
+      "pass": true
+    },
+    {
+      "name": "allowed frame has no CSP violations",
+      "pass": true
+    },
+    {
+      "name": "node creation persists through the packaged iframe and parent store",
+      "pass": true
+    },
+    {
+      "name": "embedded dark palette follows the host",
+      "pass": true
+    },
+    {
+      "name": "reload restores saved node under the native asset origin",
+      "pass": true
+    },
+    {
+      "name": "foreign iframe is still blocked",
+      "pass": true
+    },
+    {
+      "name": "unrelated same-origin iframe is still blocked",
+      "pass": true
+    },
+    {
+      "name": "direct web connections remain blocked",
+      "pass": true
+    },
+    {
+      "name": "all loaded app resources came from the APK and no foreign request escaped CSP",
+      "pass": true
+    },
+    {
+      "name": "no runtime exceptions with the corrected native policy",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

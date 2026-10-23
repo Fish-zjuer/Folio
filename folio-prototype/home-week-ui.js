@@ -11,11 +11,17 @@
   toolbar.append(range,nav('收起周历','m14 6-6 6 6 6',()=>close()));panel.append(toolbar,table,bottom);
   const returnButton=el('button','home-week-return');returnButton.type='button';returnButton.hidden=true;returnButton.setAttribute('aria-label','收起周历，返回对话');returnButton.onclick=()=>close();phone.append(panel,returnButton);
   function sizeColumn(){panel.style.setProperty('--home-day-width',`${Math.max(32,(phone.clientWidth-62)/7)}px`);}
+  const composer=home.querySelector('.composer');
+  function alignBottom(){
+    if(!visible||!composer)return;
+    const frame=phone.getBoundingClientRect(),box=composer.getBoundingClientRect(),scale=frame.height/phone.offsetHeight;
+    if(scale>0&&box.height>0)panel.style.setProperty('--home-composer-bottom',`${Math.max(0,(frame.bottom-box.bottom)/scale-phone.clientTop)}px`);
+  }
   sizeColumn();
   const width=()=>panel.offsetWidth+24,reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   function offset(){return visible?Math.max(0,new DOMMatrixReadOnly(getComputedStyle(home).transform).m41):0;}
   function position(x){home.style.transform=`translateX(${x}px)`;panel.style.transform=`translateX(${-18*(1-x/width())}px)`;returnButton.style.width=Math.max(0,phone.clientWidth-width())+'px';}
-  function reveal(){if(visible)return;visible=true;panel.hidden=false;phone.classList.add('is-home-week-visible');render();}
+  function reveal(){if(visible)return;visible=true;panel.hidden=false;phone.classList.add('is-home-week-visible');alignBottom();render();}
   function drag(x){
     clearTimeout(timer);timer=null;settling=false;reveal();home.style.transition='none';panel.style.transition='none';home.inert=true;returnButton.hidden=true;
     position(Math.max(0,Math.min(width(),x)));
@@ -74,6 +80,7 @@
   for(const name of ['folio-data-change','folio-school-change','folio-exams-change','folio-schedule-overrides-change'])document.addEventListener(name,()=>{if(visible)render();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&visible&&!document.querySelector('.sheet-layer:not([hidden]),.chat-layer:not([hidden])')){e.preventDefault();e.stopImmediatePropagation();close();}},true);
   new ResizeObserver(()=>{sizeColumn();if(visible&&!settling)position(opened?width():Math.min(offset(),width()));}).observe(phone);
+  const bottomObserver=new ResizeObserver(alignBottom);bottomObserver.observe(phone);bottomObserver.observe(home);if(composer)bottomObserver.observe(composer);
   setInterval(()=>{if(visible&&!document.hidden)render();},60000);
   window.FolioHomeWeek=Object.freeze({open(){if(currentScreen==='home')settle(true);},close,drag,settle,offset,width,get visible(){return visible;},get opened(){return opened;},contains:target=>panel.contains(target)||returnButton.contains(target)});
 })();

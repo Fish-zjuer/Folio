@@ -62,7 +62,7 @@
     const first=anchor(parent), shift=(value(date)-value(first))/DAY;
     const item={...parent,id:`${parent.id}@${date}`,parentId:parent.id,occurrenceDay:date,scheduledDay:date,repeatTemplate:false,
       completed:existing?.completed||false,queued:existing ? existing.queued : parent.queued,
-      mountedOn:existing?.mountedOn||null,mountDate:existing?.mountDate||null,manualDate:existing?.manualDate||false};
+      mountedOn:existing?.mountedOn||null,mountDate:existing?.mountDate||null,mountClock:existing?existing.mountClock??null:parent.mountClock??null,manualDate:existing?.manualDate||false};
     if (mode(parent)==="deadline") item.deadline=date;
     if (mode(parent)==="pending") item.scheduledDay=date;
     if (mode(parent)==="range") {

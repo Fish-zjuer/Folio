@@ -1,6 +1,10 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const B=require('./backend-core.js'),C=require('./course-data.js'),A=require('./academic-core.js');
+
+test('考试地点兼容旧接口字段，空占位回退，数字座位号和期中期末不串',()=>{const exams=B.exams({items:[{xkkh:'2026-2027-1-x',kcmc:'电路',qzkssj:'2026-11-01(09:00-11:00)',qzjsmc:'--',qzksdd:'<b>东1-302</b>',qzzwxh:0,kssj:'2027-01-05(14：00-16：00)',jsmc:'null',qmksdd:'玉泉教4-301',zwxh:' 23 '}]});assert.equal(exams[0].room,'东1-302');assert.equal(exams[0].seat,'0');assert.equal(exams[0].venueField,'qzksdd');assert.equal(exams[1].room,'玉泉教4-301');assert.equal(exams[1].seat,'23');assert.equal(exams[1].start,'14:00');assert.equal(exams[0].type,'期中');assert.equal(exams[1].type,'期末');});
+test('旧版期末时间及通用地点字段可读，未返回字段不虚构',()=>{const [exam]=B.exams({items:[{xkkh:'2026-2027-1-x',kcmc:'电路',qmkssj:'2027-01-05(14:00-16:00)',ksdd:'紫金港东2-101',zwh:12}]});assert.equal(exam.room,'紫金港东2-101');assert.equal(exam.seat,'12');const [missing]=B.exams({items:[{xkkh:'2026-2027-1-x',kcmc:'电路',kssj:'2027-01-05(14:00-16:00)',jsmc:'待公布',zwxh:'--'}]});assert.equal(missing.room,'');assert.equal(missing.seat,'');});
+test('考试分页完整读取后才交给缓存，漏页或重复页明确失败',async()=>{const rows=[{id:1},{id:2},{id:3}],seen=[];const result=await B.examPages(async page=>{seen.push(page);return{items:rows.slice((page-1)*2,page*2),records:3,page,total:2};});assert.deepEqual(seen,[1,2]);assert.deepEqual(result.items,rows);await assert.rejects(B.examPages(async()=>({items:[rows[0]],records:3,page:1,total:3})),/分页/);await assert.rejects(B.examPages(async page=>({items:page===1?[rows[0]]:[],records:3,page,total:3})),/分页/);});
 test('学校错误、登录 HTML、验证码和缺失列表不会当作有效空数据',()=>{
   for(const response of [{status:500,body:'{}'},{status:200,body:'<html>login</html>'},{status:200,body:'captcha_error'},{status:200,body:'{"success":false}'},{status:200,body:'not-json'}])assert.throws(()=>B.decode(response));
   assert.throws(()=>B.grades({}));assert.throws(()=>B.timetable({kbList:[{}]},'2026-2027-1','1|秋'));

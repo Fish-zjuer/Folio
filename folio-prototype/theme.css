@@ -122,3 +122,5 @@
 :root[data-theme=dark] .goal-primary{background:#4C5741;color:#E2DBC7;box-shadow:inset 0 0 0 1px #6D785E}
 :root[data-theme=dark] .goal-primary:active{background:#5B674B}
 :root[data-theme=dark] .goal-primary:disabled{background:#373E30;color:#9BA38D;box-shadow:inset 0 0 0 1px #505A44;opacity:.65}
+:root[data-theme=dark] .chat-camera{background:#D59173;color:#242521}
+.rail-pages-form{display:grid;gap:10px}.rail-pages-form>.chat-check{padding:8px 0;margin:0}.rail-pages-form>.chat-primary{margin-top:12px}

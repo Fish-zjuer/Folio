@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><base href="../"><script src="qa/native-fixture.js"></script><script src="qa/offline-sync-fixture.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#F9F9F7">
+    <meta name="description" content="Folio 的手机首页视觉原型。">
+    <title>Folio · 首页</title>
+    <link rel="icon" type="image/svg+xml" href="assets/folio-icon.svg">
+    <link rel="stylesheet" href="offline-sync.css?v=offline1">
+    <script src="offline-sync-guard.js?v=offline1"></script>
+    <script src="theme-init.js?v=system-night22"></script>
+    <link rel="stylesheet" href="styles.css?v=todo-gap23">
+    <link rel="stylesheet" href="chat.css?v=process-chevron1">
+    <link rel="stylesheet" href="academic.css?v=history-goal-export1">
+    <link rel="stylesheet" href="goals.css?v=history-goal-export1">
+    <link rel="stylesheet" href="workbench.css?v=next2">
+    <link rel="stylesheet" href="workbench-overviews.css?v=app-20261019-live1">
+    <link rel="stylesheet" href="workbench-stats.css?v=app-20261019-live1">
+    <link rel="stylesheet" href="android.css?v=app-20261019-live1">
+    <link rel="stylesheet" href="gesture.css?v=app-20261019-live1">
+    <link rel="stylesheet" href="polish.css?v=app-20261019-live1">
+    <script src="backend-core.js?v=next3" defer></script>
+    <script src="native-bridge.js?v=sync-results1" defer></script>
+    <script src="public-data-core.js?v=live-services1" defer></script>
+    <script src="public-data-store.js?v=live-services1" defer></script>
+    <script src="phone-usage-store.js?v=live-services1" defer></script>
+    <script src="item-policy-core.js?v=placement1" defer></script>
+    <script src="learning-core.js?v=library2" defer></script>
+    <script src="preferences-core.js?v=relationships1" defer></script>
+    <script src="relationship-core.js?v=capacity1" defer></script>
+    <script src="relationship-storage.js?v=capacity1" defer></script>
+    <script src="relationship-store.js?v=capacity1" defer></script>
+    <script src="agent-core.js?v=relationships1" defer></script>
+    <script src="content.js?v=relationships1" defer></script>
+    <script src="settings-details.js?v=app-20261019-live1" defer></script>
+    <script src="homework-queue-core.js?v=next2" defer></script>
+    <script src="todo-core.js?v=next3" defer></script>
+    <script src="date-controls.js?v=app-20261019-live1" defer></script>
+    <script src="homework.js?v=item-routing1" defer></script>
+    <script src="queue-move-ui.js?v=app-20261019-live1" defer></script>
+    <script src="item-policy-ui.js?v=placement1" defer></script>
+    <script src="todo-ui.js?v=todo-gap23" defer></script>
+    <script src="schedule-overrides-ui.js?v=app-20261019-live1" defer></script>
+    <script src="calendar-core.js?v=app-20261019-live1" defer></script>
+    <script src="timetable-core.js?v=app-20261019-live1" defer></script>
+    <script src="pixel-avatar-core.js?v=app-20261019-live1" defer></script>
+    <script src="snake-progress.js?v=academic-dark21" defer></script>
+    <script src="course-data.js?v=item-routing1" defer></script>
+    <script src="course-overrides.js?v=app-20261019-live1" defer></script>
+    <script src="exams-core.js?v=app-20261019-live1" defer></script>
+    <script src="exams-store.js?v=app-20261019-live1" defer></script>
+    <script src="calendar-ui.js?v=course-progress2" defer></script>
+    <script src="gesture-core.js?v=packs1" defer></script>
+    <script src="calendar-fold.js?v=resize-frame1" defer></script>
+    <script src="timetable-ui.js?v=item-routing1" defer></script>
+    <script src="pixel-editor.js?v=academic-dark21" defer></script>
+    <script src="courses-ui.js?v=next1" defer></script>
+    <script src="exams-ui.js?v=app-20261019-live1" defer></script>
+    <script src="markdown-core.js?v=app-20261019-live1" defer></script>
+    <script src="chat-core.js?v=app-20261019-live1" defer></script>
+    <script src="model-profile-core.js?v=study1" defer></script>
+    <script src="agent-progress-ui.js?v=relationships1" defer></script>
+    <script src="chat-ui.js?v=relationships1" defer></script>
+    <script src="academic-core.js?v=app-20261019-live1" defer></script>
+    <script src="academic-data.js?v=app-20261019-live1" defer></script>
+    <script src="practice-core.js?v=app-20261019-live1" defer></script>
+    <script src="academic-ui.js?v=sync-results1" defer></script>
+    <script src="goal-core.js?v=sync-results1" defer></script>
+    <script src="goal-ui.js?v=sync-results1" defer></script>
+    <script src="note-layout-core.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-slot-core.js?v=menu-catalog2" defer></script>
+    <script src="workbench-reorder.js?v=app-20261019-live1" defer></script>
+    <script src="widget-palette.js?v=system-night22" defer></script>
+    <script src="workbench-ui.js?v=next2" defer></script>
+    <script src="weather-ui.js?v=origami2" defer></script>
+    <script src="home-week-core.js?v=item-routing1" defer></script>
+    <script src="home-week-ui.js?v=item-routing1" defer></script>
+    <script src="workbench-components.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-overview-core.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-overviews.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-stats-core.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-stats.js?v=menus1" defer></script>
+    <script src="design-lab/focus-core.js?v=app-20261019-live1" defer></script>
+    <script src="design-lab/focus-building-core.js?v=app-20261019-live1" defer></script>
+    <script src="design-lab/focus-building-art.js?v=app-20261019-live1" defer></script>
+    <script src="design-lab/daily-pressure-core.js?v=app-20261019-live1" defer></script>
+    <script src="record-store-core.js?v=study-backend1" defer></script>
+    <script src="focus-session-store.js?v=study-backend1" defer></script>
+    <script src="workbench-live.js?v=menus1" defer></script>
+    <script src="focus-native-sync.js?v=study-backend1" defer></script>
+    <script src="workbench-art.js?v=app-20261019-live1" defer></script>
+    <script src="workbench-extended.js?v=settings-rail1" defer></script>
+    <link rel="stylesheet" href="widgets/study/study.css?v=menus1">
+    <script src="study-core.js?v=item-routing1" defer></script>
+    <script src="study-domain-core.js?v=study-backend1" defer></script>
+    <script src="study-widget-core.js?v=item-routing1" defer></script>
+    <script src="study-store.js?v=study-backend1" defer></script>
+    <script src="pomodoro-core.js?v=study-backend1" defer></script>
+    <script src="pomodoro-store.js?v=sync-results1" defer></script>
+    <script src="pomodoro-ui.js?v=study-backend1" defer></script>
+    <script src="study-ai-core.js?v=study-backend1" defer></script>
+    <script src="study-ai-service.js?v=study-backend1" defer></script>
+    <script src="widget-sdk-core.js?v=dark-local-final2" defer></script>
+    <script src="widget-sdk.js?v=dark-local-final2" defer></script>
+    <script src="study-menu-core.js?v=menus1" defer></script>
+    <script src="study-menu-hit.js?v=menus1" defer></script>
+    <script src="study-menu-ui.js?v=menus1" defer></script>
+    <script src="study-ui.js?v=menus1" defer></script>
+    <script src="study-tools-ui.js?v=menus1" defer></script>
+    <script src="widgets/study/single-reference.js?v=study-style4" defer></script>
+    <script src="widgets/study/single-bindings.js?v=feedback7" defer></script>
+    <script src="widgets/study/bento-reference.js?v=study-style3" defer></script>
+    <script src="widgets/study/bento-art.js?v=feedback7" defer></script>
+    <script src="widgets/study/library.js?v=dark-pigments1" defer></script>
+    <link rel="stylesheet" href="card-pack.css?v=frame-selection1">
+    <script src="card-pack-core.js?v=packs1" defer></script>
+    <script src="card-pack-ui.js?v=frame-selection1" defer></script>
+    <script src="widgets/catalog.js?v=app-20261019-1" defer></script>
+    <script src="school-connection-core.js?v=direct-login1" defer></script>
+    <script src="live-school.js?v=sync-results1" defer></script>
+    <link rel="stylesheet" href="learning.css?v=library2">
+    <script src="learning-ui.js?v=notes-only1" defer></script>
+    <link rel="stylesheet" href="relationships.css?v=inset2">
+    <script src="relationship-ui.js?v=capacity1" defer></script>
+    <link rel="stylesheet" href="relationship-settings.css?v=capacity1">
+    <script src="relationship-archive.js?v=capacity1" defer></script>
+    <script src="relationship-settings.js?v=capacity1" defer></script>
+    <script src="agent-runtime.js?v=capacity1-relationships1" defer></script>
+    <script src="live-ui.js?v=direct-login1" defer></script>
+    <script src="controls-ui.js?v=app-20261019-live1" defer></script>
+    <script src="calendar-export-core.js?v=item-routing1" defer></script>
+    <script src="calendar-export-ui.js?v=history-goal-export1" defer></script>
+    <script src="public-ui.js?v=personal-mark1" defer></script>
+    <script src="theme-ui.js?v=next2" defer></script>
+    <script src="page-rail-core.js?v=next1" defer></script>
+    <script src="page-rail.js?v=relationships1" defer></script>
+    <script src="preferences-ui.js?v=relationships1" defer></script>
+      <link rel="stylesheet" href="workbench-extended.css?v=app-20261019-live1">
+      <link rel="stylesheet" href="weather.css?v=live-services1">
+      <link rel="stylesheet" href="home-week.css?v=app-20261019-live1">
+      <link rel="stylesheet" href="workbench-live.css?v=app-20261019-live1">
+    <link rel="stylesheet" href="settings-connect.css?v=settings-rail1">
+    <link rel="stylesheet" href="theme.css?v=next1">
+    <link rel="stylesheet" href="page-rail.css?v=history-goal-export1">
+      <script src="reminder-core.js?v=dark-local-final2" defer></script>
+    <script src="reminder-ui.js?v=dark-local-final2" defer></script>
+    <script src="offline-sync-core.js?v=relationships1" defer></script>
+    <script src="offline-sync.js?v=capacity1-relationships1" defer></script>
+  </head>
+  <body>
+    <main class="preview" aria-label="Folio 手机首页视觉预览">
+      <section class="phone" aria-label="首页">
+        <section class="home-screen" id="home-screen" aria-label="对话首页">
+        <header class="topbar">
+          <button class="menu-button" id="open-menu" type="button" aria-label="打开功能菜单" aria-expanded="false" aria-controls="function-menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 5.5h18M3 12h18M3 18.5h9"/>
+            </svg>
+          </button>
+          <p class="brand" data-copy="appName">Folio</p>
+          <span class="topbar-balance" aria-hidden="true"></span>
+        </header>
+
+        <h1 class="greeting" data-copy="greeting">下午好</h1>
+
+        <section class="composer" aria-label="对话输入卡片（仅视觉预览）">
+          <button class="course-strip" type="button" aria-label="下一节课：30 分钟后，东 1－302（示例，仅视觉预览）" disabled>
+            <span class="course-time" data-copy="nextClass">下一节课：30 分钟后</span>
+            <span class="course-room" data-copy="classroom">东 1－302</span>
+          </button>
+
+          <p class="composer-placeholder" data-copy="placeholder">与 Folio 对话…</p>
+
+          <div class="composer-tools" aria-label="附件与模型">
+            <button class="tool-circle" type="button" aria-label="添加附件" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4v16M4 12h16"/>
+              </svg>
+            </button>
+            <button class="model-pill" type="button" aria-label="选择模型与思考强度" disabled>
+              <span>选择模型</span>
+            </button>
+            <span class="toolbar-space" aria-hidden="true"></span>
+            <button class="tool-circle" type="button" aria-label="从相册添加图片" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m4 17 5-5 4 4 3-3 5 5"/>
+              </svg>
+            </button>
+            <button class="tool-circle voice-button" type="button" aria-label="拍照" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 5 9.5 3h5L16 5h4a2 2 0 0 1 2 2v12H2V7a2 2 0 0 1 2-2Z"/><circle cx="12" cy="12" r="4"/>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        </section>
+
+        <aside class="sidebar" id="function-menu" aria-label="功能菜单" hidden>
+          <header class="sidebar-header">
+            <p class="sidebar-brand" data-copy="appName">Folio</p>
+            <button class="close-menu" id="close-menu" type="button" aria-label="返回首页">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+          </header>
+
+          <nav class="sidebar-scroll" aria-label="应用功能">
+            <ul class="nav-list primary-nav" id="primary-menu"></ul>
+            <section class="study-section" aria-labelledby="study-title">
+              <h2 class="nav-section-title" id="study-title">学业工具</h2>
+              <ul class="nav-list study-nav" id="study-menu"></ul>
+            </section>
+          </nav>
+
+          <footer class="sidebar-footer">
+            <button class="settings-link menu-entry" id="open-settings" type="button" aria-label="打开设置页">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9.5 3-.7 2.1-2 .9-2.1-.5L3 8.5l1.5 1.7v2.2L3 14.2l1.7 3 2.1-.5 2 .9.7 2.1h3l.7-2.1 2-.9 2.1.5 1.7-3-1.5-1.8v-2.2L19 8.5l-1.7-3-2.1.5-2-.9-.7-2.1Z"/>
+                <circle cx="11" cy="11.5" r="3"/>
+              </svg>
+              <span>设置</span>
+            </button>
+            <div class="sidebar-footer-row">
+              <button class="profile-badge" type="button" aria-label="设置姓氏或首字母"></button>
+              <button class="new-chat" id="new-chat" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                <span>新建对话</span>
+              </button>
+            </div>
+          </footer>
+        </aside>
+
+        <section class="settings-screen" id="settings-screen" aria-label="设置页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" id="settings-menu" type="button" aria-label="返回功能菜单">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg>
+            </button>
+            <h1 class="settings-page-title">设置</h1>
+            <button class="settings-info" id="settings-about" type="button" aria-label="关于 Folio">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.2"/></svg>
+            </button>
+          </header>
+
+          <div class="settings-scroll" id="settings-scroll" aria-label="设置列表">
+            <section class="account-card" aria-labelledby="account-title">
+              <h2 id="account-title">教务账号</h2>
+              <p>登录后同步课表、作业和成绩。</p>
+              <button class="account-login" id="preview-login" type="button" aria-label="查看教务登录画面">登录教务系统</button>
+            </section>
+            <div id="settings-groups"></div>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="about-screen" aria-label="关于与致谢页" hidden>
+          <header class="settings-header">
+            <button class="detail-back" data-back-settings type="button" aria-label="从关于返回设置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>
+            </button>
+            <h1 class="settings-page-title">关于</h1>
+            <span aria-hidden="true"></span>
+          </header>
+          <div class="settings-scroll about-scroll">
+            <div class="about-brand">
+              <h2>Folio</h2>
+              <p>版本 1.0.1 · 设计 © 2026 Fish</p>
+            </div>
+            <p class="about-note">原始界面、交互与图形设计归 Fish 所有。代码以 GPL-3.0 开源；名称与图标不随代码授权。</p>
+            <section class="about-group" aria-labelledby="about-project-title">
+              <a class="about-project" href="https://github.com/Celechron/Celechron" target="_blank" rel="noopener noreferrer">
+                <div><span class="about-caption" id="about-project-title">基于开源项目</span><strong>Celechron</strong></div>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+              <p class="about-note">感谢原项目团队，让校园里的安排有了更好的起点。</p>
+            </section>
+            <section class="about-group" aria-labelledby="about-thanks-title">
+              <h2 id="about-thanks-title">致谢</h2>
+              <div class="about-credit-row"><span class="about-caption">原项目设计</span><p>nosig <span class="about-separator">/</span> 空之探险队的 Kate</p></div>
+              <details class="about-contributors">
+                <summary><span>原项目开发</span><span class="about-expand" aria-hidden="true">＋</span></summary>
+                <ul><li>nosig</li><li>iotang</li><li>cxz66666</li><li>Azuk 443</li><li>FoggyDawn</li><li>poormonitor</li><li>heddxh</li><li>ChenyuHeee</li></ul>
+                <p class="about-source-note">名单来自本地源码记录；最新贡献者见原项目。</p>
+              </details>
+            </section>
+            <section class="about-group" aria-labelledby="about-license-title">
+              <h2 id="about-license-title">许可、条款与署名</h2>
+              <a class="about-license-row" href="https://github.com/Fish-zjuer/Folio/blob/main/LICENSE" target="_blank" rel="noopener noreferrer"><span>Folio 代码</span><span>GPL v3 <span aria-hidden="true">↗</span></span></a>
+              <a class="about-license-row" href="https://github.com/Fish-zjuer/Folio/blob/main/NOTICE.md" target="_blank" rel="noopener noreferrer"><span>设计归属与署名</span><span>NOTICE <span aria-hidden="true">↗</span></span></a>
+              <a class="about-license-row" href="https://github.com/Fish-zjuer/Folio/blob/main/TERMS.md" target="_blank" rel="noopener noreferrer"><span>服务条款</span><span>TERMS <span aria-hidden="true">↗</span></span></a>
+              <a class="about-license-row" href="https://github.com/Fish-zjuer/Folio/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer"><span>隐私说明</span><span>PRIVACY <span aria-hidden="true">↗</span></span></a>
+              <a class="about-license-row" href="assets/licenses/Celechron-GPL-3.0.txt" target="_blank" rel="noopener noreferrer"><span>Celechron</span><span>GPL v3 <span aria-hidden="true">↗</span></span></a>
+              <a class="about-license-row" href="assets/fonts/JetBrainsMono-OFL.txt" target="_blank" rel="noopener noreferrer"><span>JetBrains Mono</span><span>OFL 1.1 <span aria-hidden="true">↗</span></span></a>
+            </section>
+            <p class="about-footer">Folio · 本地界面原型</p>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="ecard-screen" aria-label="校园卡付款码页" hidden>
+          <header class="settings-header">
+            <button class="detail-back" data-back-settings type="button" aria-label="从校园卡返回设置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>
+            </button>
+            <h1 class="settings-page-title">校园卡</h1>
+            <span aria-hidden="true"></span>
+          </header>
+          <div class="settings-scroll ecard-scroll">
+            <section class="ecard-placeholder" aria-labelledby="ecard-title">
+              <h2 id="ecard-title">付款码</h2>
+              <div class="ecard-code-space"><span>暂未接入</span></div>
+              <button class="ecard-refresh" type="button" disabled aria-label="刷新付款码，暂未接入">刷新</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="mapping-screen" aria-label="课程代码映射" hidden>
+          <header class="settings-header">
+            <button class="detail-back" data-back-settings type="button" aria-label="从课程映射返回设置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg>
+            </button>
+            <h1 class="settings-page-title detail-title">课程代码映射</h1>
+            <span aria-hidden="true"></span>
+          </header>
+          <div class="settings-scroll detail-scroll" aria-label="课程映射列表">
+            <p class="detail-intro">将不同课号关联起来，用于重修绩点计算。</p>
+            <section class="mapping-empty" aria-labelledby="mapping-empty-title">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7-5 5 5 5M17 7l5 5-5 5M14 3l-4 18"/></svg>
+              <h2 id="mapping-empty-title">暂无课程代码映射</h2>
+              <p>添加后，原课号、新课号和备注名会显示在这里。</p>
+            </section>
+            <button class="detail-add" id="add-mapping" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              <span>添加新的映射关系</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="homework-screen" aria-label="作业页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" data-back-menu type="button" aria-label="从作业返回功能菜单">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg>
+            </button>
+            <h1 class="settings-page-title">作业</h1>
+            <button class="sheet-close" id="queue-options" type="button" aria-label="调整便签分配比例">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v5M5 12v9M12 3v10M12 17v4M19 3v2M19 9v12"/><circle cx="5" cy="10" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="19" cy="7" r="2"/></svg>
+            </button>
+          </header>
+          <div class="settings-scroll homework-scroll">
+            <div class="demo-clock"><span>示例日期</span><button id="demo-day" type="button" aria-label="切换示例日期"><span id="demo-day-value">2026 / 10 / 14</span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></button></div>
+            <div class="homework-overview"><p id="homework-count"></p><p id="weekend-summary"></p></div>
+            <div class="homework-view-tools">
+              <div class="view-toggle" role="group" aria-label="作业显示方式"><button type="button" data-homework-view="list" aria-pressed="false">列表</button><button type="button" data-homework-view="compact" aria-pressed="true">热力图</button></div>
+              <button type="button" class="small-action" id="homework-to-tasks"><span aria-hidden="true">＋</span> 去待办添加</button>
+            </div>
+            <div class="homework-filters" id="homework-status-filters" role="group" aria-label="作业状态筛选" hidden>
+              <button type="button" data-homework-filter="all" aria-pressed="true">全部</button>
+              <button type="button" data-homework-filter="pending" aria-pressed="false">未完成</button>
+              <button type="button" data-homework-filter="completed" aria-pressed="false">已完成</button>
+            </div>
+            <div id="homework-list"></div>
+          </div>
+        </section>
+
+        <section class="settings-screen schedule-screen" id="calendar-screen" aria-label="日程页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" data-back-menu type="button" aria-label="从日程返回功能菜单">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg>
+            </button>
+            <h1 class="settings-page-title"><span class="schedule-view-tabs" role="tablist" aria-label="日程视图">
+              <button id="calendar-tab-month" role="tab" aria-selected="true" aria-controls="schedule-month-view" type="button">日程</button>
+              <button id="calendar-tab-week" role="tab" aria-selected="false" aria-controls="schedule-week-view" tabindex="-1" type="button">课表</button>
+            </span></h1>
+            <button class="sheet-close" id="calendar-add" type="button" aria-label="在选中日期添加待办">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+            </button>
+          </header>
+          <div class="schedule-pager" id="schedule-pager" data-view="month">
+            <div class="schedule-panels">
+              <div class="schedule-panel" id="schedule-month-view" role="tabpanel" aria-labelledby="calendar-tab-month">
+          <section class="schedule-month" aria-label="月历">
+            <div class="schedule-month-tools">
+              <h2><button id="schedule-month-toggle" class="schedule-month-title-button" type="button" aria-expanded="true" aria-controls="schedule-month-window" aria-label="收起月历，只看选中的这一周"><span id="schedule-month-title"></span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 10 4-4 4 4"/></svg></button></h2>
+              <button id="schedule-today" class="schedule-text-button" type="button">今天</button>
+              <button id="schedule-prev" class="schedule-month-nav" type="button" aria-label="上个月"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+              <button id="schedule-next" class="schedule-month-nav" type="button" aria-label="下个月"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+            </div>
+            <div class="schedule-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div id="schedule-month-window" class="schedule-month-window"><div id="schedule-month-grid" aria-label="日期、课程和考试"></div></div>
+          </section>
+          <section class="schedule-day" aria-labelledby="schedule-day-title">
+            <div class="schedule-day-heading">
+              <h2 id="schedule-day-title"></h2>
+              <button class="schedule-text-button" id="schedule-locate" type="button">定位现在</button>
+            </div>
+            <p id="schedule-day-summary" class="schedule-day-summary"></p>
+            <button id="schedule-more-above" class="schedule-more" type="button" aria-label="查看前面的安排"></button>
+            <div id="schedule-agenda" class="schedule-agenda" tabindex="0" role="region" aria-label="当天安排，可上下滚动"></div>
+            <button id="schedule-more-below" class="schedule-more" type="button" aria-label="查看后面的安排"></button>
+          </section>
+              </div>
+              <section class="schedule-panel timetable-panel" id="schedule-week-view" role="tabpanel" aria-labelledby="calendar-tab-week" aria-hidden="true" inert>
+                <div class="timetable-tools">
+                  <div class="timetable-heading"><h2 id="timetable-range"></h2><p id="timetable-teaching-week"></p></div><button id="timetable-this-week" class="schedule-text-button" type="button">本周</button>
+                  <button id="timetable-prev" class="schedule-month-nav" type="button" aria-label="上一周"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+                  <button id="timetable-next" class="schedule-month-nav" type="button" aria-label="下一周"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+                </div>
+                <div id="timetable-days" class="timetable-days" aria-label="这一周的日期"></div>
+                <div id="timetable-scroll" class="timetable-scroll" tabindex="0" role="region" aria-label="一周课表，可上下滚动">
+                  <div id="timetable-grid" class="timetable-grid"></div>
+                </div>
+                <button id="timetable-more" class="schedule-more" type="button" aria-label="查看下方的课程"></button>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="tasks-screen" aria-label="个人待办页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" data-back-menu type="button" aria-label="从待办返回功能菜单">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg>
+            </button>
+            <h1 class="settings-page-title">待办</h1>
+            <button class="sheet-close" id="add-todo" type="button" aria-label="添加待办">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>
+            </button>
+          </header>
+          <div class="settings-scroll homework-scroll">
+            <div class="todo-page-tools"><p class="detail-intro">自己安排，按自己的节奏。</p><button id="todo-reminders" class="small-action" type="button">提醒</button></div>
+            <div id="todo-list"></div>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="courses-screen" aria-label="课程页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" data-back-menu type="button" aria-label="从课程返回功能菜单"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg></button>
+            <h1 class="settings-page-title">课程</h1>
+            <button id="course-view-toggle" class="course-view-toggle" type="button" aria-label="切换为双列布局" aria-pressed="false" aria-controls="course-list" title="切换为双列布局"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+          </header>
+          <div class="course-list-tools">
+            <button id="course-semester" class="course-semester" type="button" aria-label="选择课程学期"><span></span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+            <span class="course-sample">示例</span>
+            <div id="course-list-total" role="group" aria-label="学期摘要"></div>
+          </div>
+          <div class="settings-scroll course-list-scroll"><ul class="course-list" id="course-list"></ul></div>
+        </section>
+
+        <section class="settings-screen" id="exams-screen" aria-label="考试页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" data-back-menu type="button" aria-label="从考试返回功能菜单"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5h18M3 12h18M3 18.5h9"/></svg></button>
+            <h1 class="settings-page-title">考试</h1>
+            <button class="sheet-close" id="exam-add" type="button" aria-label="添加自定义考试"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
+          </header>
+          <div class="settings-scroll exams-scroll">
+            <div class="exam-term-heading"><button id="exam-term-label" class="exam-term-picker" type="button" aria-label="切换考试学期"></button><span class="course-sample">示例</span></div>
+            <div class="exam-countdown" id="exam-countdown" role="group" aria-label="最近一场考试倒计时"></div>
+            <div class="exam-list-heading"><h3>本学期考试</h3><button type="button" id="exam-ai-add" disabled title="接入模型后可用">AI 添加 · 待接入</button></div>
+            <div id="exam-list"></div>
+          </div>
+        </section>
+
+        <section class="settings-screen" id="course-detail-screen" aria-label="课程详情页" hidden>
+          <header class="settings-header">
+            <button class="menu-button" id="course-detail-back" type="button" aria-label="返回课程列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+            <h1 class="settings-page-title">课程详情</h1><span class="settings-header-spacer" aria-hidden="true"></span>
+          </header>
+          <div id="course-detail-content" class="settings-scroll course-detail-scroll"></div>
+        </section>
+
+        <section class="settings-screen" id="pixel-screen" aria-label="像素形象编辑页" hidden>
+          <header class="settings-header pixel-header">
+            <button class="menu-button" id="pixel-back" type="button" aria-label="返回上一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+            <h1 class="settings-page-title">像素形象</h1>
+            <button id="pixel-apply" class="pixel-apply" type="button">应用</button>
+          </header>
+          <div class="settings-scroll pixel-scroll">
+            <div class="pixel-preview"><span id="pixel-miniature"></span><div><p id="pixel-name">小书本</p><p class="pixel-caption">课程卡片中的大小 · 24×24</p></div></div>
+            <div id="pixel-presets" class="pixel-presets" role="group" aria-label="形象预设"></div>
+            <div class="pixel-canvas-card">
+              <div class="pixel-canvas-heading"><span>16×16 画布</span><button id="pixel-clear" type="button">清空</button></div>
+              <canvas id="pixel-canvas" width="256" height="256" tabindex="0" role="application" aria-label="16×16像素画布，方向键选格，空格绘制"></canvas>
+            </div>
+            <div class="pixel-tools" role="group" aria-label="绘制工具">
+              <button id="pixel-pencil" type="button" aria-pressed="true">画笔</button><button id="pixel-eraser" type="button" aria-pressed="false">橡皮</button>
+              <span></span><button id="pixel-undo" type="button" disabled>撤销</button><button id="pixel-redo" type="button" disabled>重做</button>
+            </div>
+            <div id="pixel-palette" class="pixel-palette" role="group" aria-label="画笔颜色"></div>
+            <div class="pixel-color-row"><label class="pixel-color-picker">自选颜色<input id="pixel-color" type="color" value="#C97963" aria-label="自选画笔颜色"></label><label class="pixel-hex-field"><span class="sr-only">颜色色值</span><input id="pixel-hex" type="text" value="#C97963" aria-label="颜色色值" maxlength="7" spellcheck="false"></label></div>
+            <p id="pixel-feedback" class="pixel-feedback" role="status">选择预设，或直接画一个自己的形象。</p>
+          </div>
+        </section>
+
+        <div class="sheet-layer" id="homework-sheet-layer" hidden>
+          <button class="sheet-shade" id="homework-shade" type="button" aria-label="关闭作业弹层"></button>
+          <section class="preview-sheet" role="dialog" aria-modal="true" aria-labelledby="homework-sheet-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <header class="sheet-header"><h2 id="homework-sheet-title"></h2>
+              <button class="sheet-close" id="homework-sheet-close" type="button" aria-label="关闭详情"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </header>
+            <div id="homework-sheet-content"></div>
+          </section>
+        </div>
+
+        <p class="demo-toast" id="homework-feedback" role="status" hidden></p>
+
+        <div class="sheet-layer" id="preview-sheet-layer" hidden>
+          <button class="sheet-shade" id="sheet-shade" type="button" aria-label="关闭弹层"></button>
+          <section class="preview-sheet" role="dialog" aria-modal="true" aria-labelledby="preview-sheet-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <header class="sheet-header">
+              <h2 id="preview-sheet-title"></h2>
+              <button class="sheet-close" id="sheet-close" type="button" aria-label="关闭表单">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+              </button>
+            </header>
+            <div id="preview-sheet-fields"></div>
+            <div class="sheet-actions">
+              <button class="sheet-cancel" id="sheet-cancel" type="button">取消</button>
+              <button class="sheet-submit" id="sheet-submit" type="button" disabled>保存</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="gesture-indicator" aria-hidden="true"></div>
+      </section>
+    </main>
+  </body>
+</html>
+
+
+

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1eb">
+  <title>关系网 · Folio 设计试验</title>
+  <link rel="stylesheet" href="../relationship-view.css?v=inset2">
+  <script src="../relationship-view.js?v=capacity1" defer></script>
+</head>
+<body>
+  <main id="network" aria-label="可缩放的关系备忘网">
+    <svg id="map" role="group" aria-label="以自己为中心的关系网；拖动空白移动，双指或滚轮缩放">
+      <defs>
+        <pattern id="paper-dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#8e8578" opacity=".18"/></pattern>
+        <filter id="node-shadow" x="-60%" y="-60%" width="220%" height="240%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#403344" flood-opacity=".08"/></filter>
+      </defs>
+      <rect id="paper" width="100%" height="100%" fill="url(#paper-dots)"/>
+      <g id="scene"><g id="threads"></g><g id="thread-ghosts"></g><g id="circles"></g></g>
+    </svg>
+    <header class="masthead">
+      <div class="wordmark"><span class="brand-mark" aria-hidden="true">✳</span><div><h1>关系网</h1><p>人、物和事情，都有来处。</p></div></div>
+      <button id="about-toggle" class="icon-button" aria-label="操作说明" aria-expanded="false">?</button>
+    </header>
+    <div class="breadcrumb" id="breadcrumb" aria-label="当前位置"></div>
+    <aside id="about" class="about" hidden>
+      <h2>建立自己的关系网</h2>
+      <p>双指缩放，拖动空白移动视野。点按节点查看备注和子节点；拖动节点会带着它的子节点一起移动。</p>
+      <p>节点可以记录人、地点、物品或事情。例如：寝室 → 桌子 → 充电器。</p>
+      <small>独立试验 · 示例内容 · 仅保存在此浏览器</small>
+      <button id="reset" class="text-button">重置示例</button>
+    </aside>
+    <div class="map-tools" aria-label="视野控制">
+      <button id="home" class="icon-button" aria-label="回到自己"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></button>
+      <span class="tool-divider"></span>
+      <button id="zoom-out" class="icon-button" aria-label="缩小">−</button>
+      <output id="zoom-value" aria-label="缩放比例">100%</output>
+      <button id="zoom-in" class="icon-button" aria-label="放大">+</button>
+    </div>
+    <div id="gesture-hint" class="gesture-hint"><span class="hint-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="hint-text">放大查看节点名称</span></div>
+    <button id="resume" class="resume" hidden>定位当前节点 <span>↗</span></button>
+    <nav id="loose-list" class="loose-list" aria-label="独立分支" hidden></nav>
+    <section id="inspector" class="inspector" aria-labelledby="node-title" hidden>
+      <div class="inspector-heading"><span id="node-swatch" aria-hidden="true"></span><div><p id="node-parent">自己</p><h2 id="node-title">自己</h2></div><button id="close-inspector" class="icon-button" aria-label="收起备注">×</button></div>
+      <label class="sr-only" for="node-note">备注</label>
+      <textarea id="node-note" placeholder="记点什么。比如放在哪里，或还没说完的话……" maxlength="3000" rows="3"></textarea>
+      <div class="note-meta"><span id="save-state" role="status">仅保存在此浏览器</span><button id="rename" class="text-button">改名</button></div>
+      <div class="inspector-actions"><button id="add-child" class="primary-button"><span>+</span> 添加子节点</button><button id="fold" class="secondary-button">收起分支</button></div>
+      <div id="branch-actions" class="branch-actions" hidden><button id="detach" class="text-button">脱离父节点 <span>↗</span></button><button id="connect" class="text-button" hidden>连接到其他节点 <span>↗</span></button><span id="branch-help">保留所有子节点及备注</span></div>
+      <div id="child-list" class="child-list" aria-label="直属子节点"></div>
+    </section>
+    <dialog id="node-dialog">
+      <form id="node-form">
+        <p id="dialog-context">上级节点：自己</p><h2 id="dialog-title">添加子节点</h2>
+        <label class="sr-only" for="node-name">名称</label><input id="node-name" maxlength="24" placeholder="比如：寝室、室友、桌子" autocomplete="off" required>
+        <p id="dialog-error" role="alert"></p>
+        <div class="dialog-actions"><button type="button" id="dialog-cancel" class="text-button">取消</button><button type="submit" id="dialog-submit" class="primary-button">添加节点</button></div>
+      </form>
+    </dialog>
+    <dialog id="connect-dialog" class="connect-dialog" aria-labelledby="connect-title">
+      <div class="connect-heading"><div><p id="connect-context"></p><h2 id="connect-title">选择上级节点</h2></div><button id="connect-cancel" class="icon-button" aria-label="取消连接">×</button></div>
+      <label class="sr-only" for="parent-search">查找新的父节点</label><input id="parent-search" placeholder="搜索节点名称或路径" autocomplete="off">
+      <p class="connect-guide">当前节点及其所有子节点、备注将整体移动</p>
+      <div id="parent-options" class="parent-options" aria-label="可连接的父节点"></div>
+    </dialog>
+    <div id="toast" class="toast" role="status"></div>
+  </main>
+</body>
+</html>

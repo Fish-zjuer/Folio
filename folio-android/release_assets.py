@@ -17,7 +17,7 @@ def release_identity(root):
     return name, int(manifest.attrib[namespace+"versionCode"]), manifest.attrib["package"]
 
 def web_sources(web):
-    files = [web/"index.html", *web.glob("*.js"), *web.glob("*.css")]
+    files = [web/"index.html", web/"relationship-view.html", *web.glob("*.js"), *web.glob("*.css")]
     files.extend(web/"design-lab"/name for name in RUNTIME_ART)
     for directory, extensions in [("assets", {".woff2", ".svg", ".txt"}), ("widgets", {".js", ".css", ".svg", ".woff2"})]:
         files.extend(p for p in (web/directory).rglob("*") if p.is_file() and p.suffix in extensions)
@@ -39,5 +39,6 @@ def validate_entry(web, files):
             name = unquote(u.path)
             if u.scheme or u.netloc or name.startswith("/") or ".." in Path(name).parts or name not in included:
                 raise RuntimeError("Entrypoint dependency is not packaged locally: " + ref)
-    Dependencies().feed((web/"index.html").read_text(encoding="utf-8"))
+    for entry in [web/"index.html", web/"relationship-view.html"]:
+        Dependencies().feed(entry.read_text(encoding="utf-8"))
 
