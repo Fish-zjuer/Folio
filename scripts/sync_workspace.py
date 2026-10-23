@@ -19,7 +19,7 @@ for folder in ['src','res','tests','branding']:
  files.extend(path for path in (native/folder).rglob('*') if path.is_file())
 files.extend(native.glob('*.py'));files.extend([native/'AndroidManifest.xml',native/'LICENSE'])
 files.extend(native.glob('RELEASE-*.md'))
-for name in ['APP-INTEGRATION.md','ROADMAP.md']:
+for name in ['APP-INTEGRATION.md','ROADMAP.md','README.md']:
  files.append(native/name)
 for name in ['NEXT-STAGE-20261022.md','ELYCHRON-REVIEW.md']:
  files.append(native/name)
