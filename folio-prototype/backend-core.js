@@ -24,7 +24,8 @@
   function decode(response){
     if(!response||response.status<200||response.status>=300)throw new Error(`读取失败（HTTP ${response?.status||"未知"}），保留原缓存`);
     const body=text(response.body);if(/captcha_error/i.test(body))throw new Error("课表需要验证码，请在教务连接中展开“课表验证码”，填写后重试");
-    if(body.startsWith("<")||/zjuam\.zju\.edu\.cn\/cas\/login/.test(body))throw new Error("登录已过期，请重新登录对应学校平台");
+    if(/zjuam\.zju\.edu\.cn\/cas\/login/.test(body)||body.startsWith("<")&&/<input\b[^>]*(?:type|name)\s*=\s*['"]?password/i.test(body))throw new Error("登录已过期，请重新登录对应学校平台");
+    if(body.startsWith("<"))throw new Error("学校接口返回了网页而非数据（HTTP 200）；原缓存保留，请复制连接诊断排查");
     let data;try{data=JSON.parse(body);}catch{throw new Error("学校返回的数据格式不正确，保留原缓存");}
     if(data&&((data.code===401||data.code===403)||data.isLogin===false||data.success===false))throw new Error("学校拒绝了这次请求，请重新登录或稍后重试");
     return data;

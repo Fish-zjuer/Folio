@@ -57,3 +57,12 @@ test('新增作业有独立草稿操作，强制本机 homework 类型且仍需�
   assert.equal(draft.fields.deadline,'2026-10-29');
   assert.throws(()=>A.validateDraft({operation:'create_homework',fields:{deadline:'2026-10-29'}}));
 });
+
+test('实际模型请求带时间协议及字段说明，工具格式错误后可纠正再生成草稿',async()=>{
+ const bodies=[],actions=[];let round=0;
+ const out=await A.run({model:'m',messages:[{role:'user',content:'明天晚上安排实验'}],now:'2026-10-23 17:30',request:async body=>{bodies.push(structuredClone(body));return result(++round===1?{tool_calls:[tool('draft_change',{operation:'create_lesson',fields:{title:'实验',kind:'lesson',timeMode:'range',startAt:'2026-10-24T23:30',endAt:'2026-10-25T00:30',reminderOffsets:'60,10,0'}})]}:round===2?{tool_calls:[tool('draft_change',{operation:'create_lesson',fields:{title:'实验',kind:'lesson',timeMode:'range',startAt:'2026-10-24T23:30',endAt:'2026-10-25T00:30',reminderOffsets:[60,10,0]}})]}:{content:'已准备草稿，待你确认。'});},execute:async(name,args)=>{actions.push(args);return {status:'待用户确认'};}});
+ const prompt=bodies[0].messages[0].content,fields=bodies[0].tools.find(t=>t.function.name==='draft_change').function.parameters.properties.fields.properties;
+ for(const text of ['YYYY-MM-DDTHH:mm','不要带秒','跨午夜','21:15之后','不猜00:00','pending','[60,10,0]','工具返回error'])assert.ok(prompt.includes(text),text);
+ assert.ok(fields.clock.description.includes('HH:mm'));assert.ok(fields.timeMode.description.includes('range'));assert.ok(fields.reminderOffsets.description.includes('0=到时'));
+ assert.ok(JSON.parse(bodies[1].messages.findLast(m=>m.role==='tool').content).error.includes('数组'));assert.equal(actions.length,1);assert.deepEqual(actions[0].fields.reminderOffsets,[60,10,0]);assert.equal(actions[0].fields.endAt,'2026-10-25T00:30');assert.ok(out.text.includes('待你确认'));
+});

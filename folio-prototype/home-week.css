@@ -5,6 +5,11 @@
 .home-week-range small{font:600 11px/1.3 var(--font-serif);color:#A39983}
 .home-week-nav{position:absolute;left:0;top:0;display:grid;place-items:center;width:28px;height:44px;padding:6px;border:0;background:none;color:#9D9179}
 .home-week-nav svg{width:15px;height:15px;stroke-width:1.8}
+.home-week-toolbar .home-day-prev,.home-week-toolbar .home-day-next{top:-4px;left:auto;width:calc(var(--home-day-width,46px)/2);height:25px;padding:5px 0}
+.home-week-toolbar .home-day-prev{right:calc(var(--home-day-width,46px)/2);justify-items:start;padding-left:1px}
+.home-week-toolbar .home-day-next{right:0;justify-items:end;padding-right:1px}
+.home-day-prev svg,.home-day-next svg{width:11px;height:11px}
+.home-week-range.is-other-day>span{color:var(--accent-brand)}
 .home-week-table{flex:1;min-height:140px;display:flex;flex-direction:column;padding:4px 0 0;background:none;border-radius:0}
 .home-week-grid{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);flex:1;min-height:0}
 .home-week-axis{position:relative;font:10px/1 var(--font-serif);color:#A79E8A}
@@ -14,7 +19,7 @@
 .home-week-hour{position:absolute;left:0;right:0;height:1px;background:#DFDFD25C;pointer-events:none}
 .home-week-night{position:absolute;left:0;right:0;background:#DFDFD247;pointer-events:none}
 .home-week-column{position:relative;min-width:0;border-left:1px solid #DFDFD24D}
-.home-week-column.is-today{background:#F3F1EB}
+.home-week-column{background:#F3F1EB}
 .home-week-event{position:absolute;display:flex;flex-direction:column;min-width:0;overflow:hidden;border:0;border-radius:5px;padding:4px 3px;background:color-mix(in srgb,var(--entry-color,#CFD2BB) 45%,#FAF9F5);color:#514F43;text-align:left;cursor:pointer}
 .home-week-event span{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font:11px/1.3 var(--font-sans)}
 .home-week-room{display:block;flex:none;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:auto;font:8px/1.2 var(--font-sans);color:#8A806B}

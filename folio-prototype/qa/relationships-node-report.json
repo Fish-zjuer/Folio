@@ -21,7 +21,7 @@
   },
   {
     "file": "backend-core.test.cjs",
-    "tests": 16,
+    "tests": 17,
     "pass": true
   },
   {

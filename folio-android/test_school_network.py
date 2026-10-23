@@ -9,6 +9,6 @@ compiled=subprocess.run([str(java/'javac.exe'),'--release','8','-encoding','UTF-
 if compiled.returncode:
     raise RuntimeError('School transport fixture compilation failed: '+compiled.stderr)
 result=subprocess.run([str(java/'java.exe'),'-cp',str(out),'app.folio.preview.SchoolNetworkTest'],check=True,capture_output=True,text=True)
-if 'PASS 19 offline school network checks' not in result.stdout:
+if 'PASS 28 offline school network checks' not in result.stdout:
     raise RuntimeError('School transport tests did not return a success receipt: '+result.stderr)
 print(result.stdout.strip())

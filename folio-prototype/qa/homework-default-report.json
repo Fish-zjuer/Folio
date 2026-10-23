@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "name": "manual new homework defaults to queued",
+      "pass": true
+    },
+    {
+      "name": "manual default is persisted on the actual homework record",
+      "pass": true
+    },
+    {
+      "name": "ordinary todo default is unchanged",
+      "pass": true
+    },
+    {
+      "name": "choosing custom homework applies its queue default",
+      "pass": true
+    },
+    {
+      "name": "changing a fresh record to an event resets the untouched default",
+      "pass": true
+    },
+    {
+      "name": "manual opt-out survives further type changes",
+      "pass": true
+    },
+    {
+      "name": "manual opt-out is persisted",
+      "pass": true
+    },
+    {
+      "name": "editing an existing unqueued homework never re-enqueues it",
+      "pass": true
+    },
+    {
+      "name": "AI omitted queue becomes an explicit checked pending draft",
+      "pass": true
+    },
+    {
+      "name": "AI confirmation saves queued homework without forcing a mount",
+      "pass": true
+    },
+    {
+      "name": "new AI homework is reachable in the existing incoming note bag",
+      "pass": true
+    },
+    {
+      "name": "AI explicit opt-out stays unchecked",
+      "pass": true
+    },
+    {
+      "name": "AI explicit opt-out is saved unchanged",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

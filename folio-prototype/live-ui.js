@@ -32,24 +32,24 @@
     const box=panel("教务连接");box.classList.add("school-connect-panel");
     const error=el("p","chat-form-error school-connect-error");error.setAttribute("role","status");
     let account;try{account=await FolioNative.call("school.account.get");}catch(err){box.append(el("p","chat-form-error",err.message));return;}if(!box.isConnected)return;
-    const overview=el("div","school-connect-overview"),accountCopy=el("div"),accountTitle=el("strong","",account.username?"学校账号已保存":"连接学校账号"),accountHint=el("p","chat-panel-note",account.hasPassword?"直接更新，登录过期会自动重连":"登录后自动更新课表、成绩和作业");accountCopy.append(accountTitle,accountHint);
-    const edit=button(account.username?"更换账号":"填写账号",()=>{credentials.open=!credentials.open;});overview.append(accountCopy,edit);box.append(overview);
-    const credentials=el("details","school-account-fields");credentials.open=!account.hasPassword;const credentialTitle=el("summary","school-account-summary","账号与密码");credentials.append(credentialTitle);box.append(credentials);
-    const inputs=el("div","school-credential-grid"),username=field(inputs,"学号",account.username),password=field(inputs,account.hasPassword?"密码 · 留空沿用":"密码","","password");username.autocapitalize="none";username.autocomplete="username";password.autocomplete="current-password";credentials.append(inputs,el("p","chat-panel-note","账号密码加密留在本机，供自动重连使用。"));
-    const term=FolioCourses.semesters[0],termRow=el("div","school-term-compact"),termLabel=el("span","",term.label||term.id),termEdit=button("切换学期",()=>{advanced.open=true;termSettings.open=true;termSettings.scrollIntoView({block:"nearest",behavior:"smooth"});});termRow.append(termLabel,termEdit);box.append(termRow);
-    const sync=button(account.hasPassword?"一键更新":"登录并同步",async()=>{
-      sync.disabled=true;error.textContent="";sync.textContent="连接并更新中…";
+    const overview=el('div','school-connect-overview'),accountCopy=el('div'),accountTitle=el('strong'),accountHint=el('p','chat-panel-note'),accountDetail=el('p','school-account-entry-note');accountCopy.append(accountTitle,accountHint);
+    const edit=button('填写账号',()=>connect(true));overview.append(accountCopy,edit);box.append(overview,accountDetail);
+    function accountStatus(){accountTitle.textContent=account.hasPassword?'学校账号已保存':'连接学校账号';accountHint.textContent=account.hasPassword?'登录过期会自动重连':'填写后自动登录并同步';accountDetail.textContent=account.hasPassword?`学号 ${account.username} · 密码已保存在本机`:'使用独立输入窗口填写学号和密码';edit.textContent=account.hasPassword?'更换账号':'填写账号';}
+    accountStatus();let connecting=false,entryAbort=null;document.addEventListener('folio-panel-closing',()=>entryAbort?.abort(),{once:true});
+    const term=FolioCourses.semesters[0],termRow=el('div','school-term-compact'),termLabel=el('span','',term.label||term.id),termEdit=button('切换学期',()=>{advanced.open=true;termSettings.open=true;termSettings.scrollIntoView({block:'nearest',behavior:'smooth'});});termRow.append(termLabel,termEdit);box.append(termRow);
+    const sync=button(account.hasPassword?'一键更新':'登录并同步',()=>connect(false),'chat-primary school-connect-submit');box.append(sync,error);
+    async function connect(forceEdit){
+      if(connecting)return;connecting=true;sync.disabled=edit.disabled=true;error.textContent='';
       try{
-        if(!account.hasPassword||password.value||username.value.trim()!==account.username){
-          const input={username:username.value.trim(),login:false};if(password.value)input.password=password.value;
-          const saved=await FolioNative.call("school.account.save",input);password.value="";
-          if(FolioSchool.bindAccount({...saved,initialSync:true}))return;account=saved;credentials.open=false;accountTitle.textContent="学校账号已保存";accountHint.textContent="登录过期会自动重连";
+        if(forceEdit||!account.hasPassword){
+          sync.textContent='正在填写账号…';entryAbort=new AbortController();const result=await FolioNative.call('school.account.edit',{},entryAbort.signal);entryAbort=null;
+          if(result.cancelled)return;if(!result.saved||!result.account?.hasPassword)throw Error('账号尚未保存，请重新填写');
+          const saved=result.account;if(FolioSchool.bindAccount({...saved,initialSync:true}))return;account=saved;accountStatus();
         }
-        await FolioSchool.sync();status();
-        error.textContent=FolioSchoolConnection.failureSummary(FolioSchool.warnings())||"已更新";
-      }catch(err){error.textContent=err.message;credentials.open=!account.hasPassword;}
-      finally{sync.disabled=false;sync.textContent=account.hasPassword?"一键更新":"登录并同步";}
-    },"chat-primary school-connect-submit");box.append(sync,error);password.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();sync.click();}});
+        sync.textContent='连接并更新中…';await FolioSchool.sync();if(box.isConnected){status();error.textContent=FolioSchoolConnection.failureSummary(FolioSchool.warnings())||'已更新';}
+      }catch(err){if(err.name!=='AbortError'&&box.isConnected)error.textContent=err.message;}
+      finally{connecting=false;entryAbort=null;sync.disabled=edit.disabled=false;sync.textContent=account.hasPassword?'一键更新':'登录并同步';}
+    }
     error.textContent=FolioSchoolConnection.failureSummary(FolioSchool.warnings())||FolioSchool.cache().lastLoginWarning||"";
     const rows=el("div","school-sync-grid");box.append(rows);
     function status(){rows.replaceChildren();for(const [module,label]of [["grades","成绩"],["major","主修"],["courses","课表"],["exams","考试"],["homework","作业"],["practice","实践"]]){
@@ -62,7 +62,7 @@
     const advanced=el("details","school-advanced"),advancedTitle=el("summary","chat-panel-note","更多连接选项");advanced.append(advancedTitle);box.append(advanced);
     const termSettings=el("details"),termHeading=el("summary","chat-panel-note","目标学期");termSettings.append(termHeading);advanced.append(termSettings);
     const year=field(termSettings,"学年开始年份",term.id.slice(0,4),"number"),seasonWrap=el("label","chat-field","学期"),season=el("select");for(const [v,label]of [["1","秋冬"],["2","春夏"]]){const o=el("option","",label);o.value=v;season.append(o);}season.value=term.id.endsWith("2")?"2":"1";seasonWrap.append(season);termSettings.append(seasonWrap,button("保存学期",async()=>{try{const y=Number(year.value);if(!Number.isInteger(y)||y<2000||y>2100)throw Error("请填写有效学年");await FolioSchool.setTerm(`${y}-${y+1}-${season.value}`);}catch(err){error.textContent=err.message;}}));
-    advanced.append(button("删除本机账号密码",async()=>{try{await FolioNative.call("school.account.forget");account={};username.value=password.value="";credentials.open=true;accountTitle.textContent="连接学校账号";accountHint.textContent="缓存仍保留，可重新连接";sync.textContent="登录并同步";}catch(err){error.textContent=err.message;}},"chat-secondary danger"));
+    advanced.append(button("删除本机账号密码",async()=>{try{await FolioNative.call("school.account.forget");account={};accountStatus();accountHint.textContent="缓存仍保留，可重新连接";sync.textContent="登录并同步";}catch(err){error.textContent=err.message;}},"chat-secondary danger"));
     const captcha=el("details"),captchaTitle=el("summary","chat-panel-note","课表验证码（提示需要时）"),image=el("img");image.alt="教务网验证码";image.hidden=true;image.style="display:block;max-width:180px;margin:12px 0";captcha.append(captchaTitle,image);const code=field(captcha,"验证码",""),reloadCode=button("获取／换一张",async()=>{try{const reply=await FolioNative.call("school",{module:"captcha"});if(reply.status!==200||!reply.image?.startsWith("data:image/"))throw new Error("未能取得验证码，请先重新登录教务网");image.src=reply.image;image.hidden=false;}catch(err){error.textContent=err.message;}});captcha.append(reloadCode,button("使用验证码并刷新课表",async()=>{FolioSchool.setCaptcha(code.value);await FolioAcademicUI.refresh("courses");status();}));advanced.append(captcha);
     const diagnostic=el("details","school-diagnostics"),diagnosticTitle=el("summary","chat-panel-note","连接诊断"),diagnosticText=el("pre","school-diagnostic-text"),diagnosticActions=el("div","chat-panel-actions");diagnostic.append(diagnosticTitle,diagnosticText,diagnosticActions);let report="";
     const loadDiagnostic=async()=>{try{const data=await FolioNative.call("school.diagnostics");report=(data.lines||[]).join("\n");diagnosticText.textContent=report||"当前进程还没有连接记录。";}catch(e){diagnosticText.textContent=e.message;}};diagnostic.addEventListener("toggle",()=>{if(diagnostic.open)loadDiagnostic();});diagnosticActions.append(button("更新记录",loadDiagnostic),button("复制诊断",async()=>{try{await loadDiagnostic();await navigator.clipboard.writeText(report);announce("脱敏连接记录已复制");}catch(e){error.textContent=e.message;}}));diagnostic.append(el("p","chat-panel-note","仅记录站点、路径、状态码与 Cookie 名称；不包含账号、密码、Cookie 值或跳转参数。"));advanced.append(diagnostic);

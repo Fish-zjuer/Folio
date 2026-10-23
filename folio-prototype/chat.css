@@ -88,16 +88,20 @@
 .chat-pending { flex:none;margin:0 16px 4px;padding:9px 11px;border:1px solid #E9D8CA;border-radius:12px;background:#F6EFE6;text-align:left;font-size:12px;cursor:pointer; }
 .chat-pending strong { color:#A95C42;font-weight:500; }
 .chat-storage-error { font-size:12px;color:var(--accent-destructive);padding:4px 18px; }
-/* Parallel review cards use the same canvas, typography and controls as the app. */
+/* The review card is the only paper surface; its status belongs inside it. */
+.phone.is-reviewing-proposal .notice-stack{visibility:hidden;pointer-events:none}
 .chat-layer.is-proposal-deck{align-items:center}
-.chat-panel.chat-deck{max-height:calc(100% - var(--app-bar-height) - 36px);padding:12px 0 18px;border:1px solid var(--border-subtle);border-radius:24px 24px 0 0;background:var(--bg-canvas);box-shadow:0 -8px 36px rgb(20 20 19 / 8%);overflow:hidden;display:flex;flex-direction:column}
-.chat-deck .chat-panel-header{padding:0 26px;margin-bottom:10px;flex:none}
-.chat-deck-track{display:flex;gap:16px;overflow-x:auto;overscroll-behavior:contain;scroll-snap-type:x mandatory;scrollbar-width:none;padding:6px 26px 26px;min-height:0}
-.chat-deck-card{flex:0 0 calc(100% - 24px);min-width:0;min-height:min(58dvh,520px);max-height:72dvh;display:flex;flex-direction:column;padding:22px 18px;border:6px solid #DED7C8;border-radius:26px;background:var(--bg-canvas);box-shadow:5px 7px 0 #B8AD965C;scroll-snap-align:center;transition:opacity 180ms,transform 180ms}
+.chat-panel.chat-deck{max-height:calc(100% - var(--app-bar-height) - 36px);padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden;display:flex;flex-direction:column}
+.chat-deck-track{display:flex;gap:16px;overflow-x:auto;overscroll-behavior:contain;scroll-snap-type:x mandatory;scrollbar-width:none;padding:12px 22px 20px;min-height:0}
+.chat-deck-card{flex:0 0 calc(100% - 12px);min-width:0;min-height:min(58dvh,520px);max-height:72dvh;display:flex;flex-direction:column;padding:19px 18px;border:3px solid #DED7C8;border-radius:24px;background:var(--bg-canvas);box-shadow:0 5px 12px rgb(40 35 26 / 10%);scroll-snap-align:center;transition:opacity 180ms,transform 180ms}
+.chat-deck-card:only-child{flex-basis:100%}
+.chat-deck-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;margin-bottom:20px}
+.chat-deck-status{margin:0;color:var(--text-secondary);font:500 15px/1.4 var(--font-sans)}
+.chat-deck-header .chat-panel-close{padding:4px 0 4px 8px;min-height:28px}
 .chat-deck-card.is-leaving{opacity:0;transform:translateY(24px);pointer-events:none}
 .chat-deck-card h3{margin:0 0 12px;font:500 20px/1.4 var(--font-serif);overflow-wrap:anywhere}
 .chat-deck-operation{margin:0 0 5px;color:var(--text-secondary);font-size:12px}
-.chat-deck-details{display:grid;grid-template-columns:6em minmax(0,1fr);gap:8px 10px;overflow-y:auto;overscroll-behavior:contain;min-height:60px;margin:0 0 10px;font-size:13px;line-height:1.6}
+.chat-deck-details{display:grid;grid-template-columns:5.7em minmax(0,1fr);gap:8px 10px;overflow-y:auto;overscroll-behavior:contain;min-height:0;margin:0 0 10px;font-size:13px;line-height:1.6}
 .chat-deck-details dt{color:var(--text-secondary)}
 .chat-deck-details dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .chat-deck-actions{display:flex;gap:8px;justify-content:flex-end;flex:none;margin-top:auto;padding-top:12px}
@@ -138,7 +142,22 @@
 @media(max-height:740px) { .home-screen .topbar{margin-top:24px;}.home-screen .composer{margin-bottom:28px;}.chat-entry{padding-top:13px;padding-bottom:10px;}.chat-input{height:45px;} }
 @media(prefers-reduced-motion:reduce) { .chat-panel{animation:none;} }
 
-@media(max-height:550px){.chat-deck-card{min-height:55dvh;padding:14px}.chat-deck .chat-panel-header{margin-bottom:4px}.chat-deck-track{padding-bottom:16px}}
+@media(max-height:550px){.chat-deck-card{min-height:55dvh;padding:14px}.chat-deck-header{margin-bottom:10px}.chat-deck-track{padding-bottom:16px}}
 
 .chat-panel.chat-deck:focus{outline:none}
 .chat-panel:focus,.chat-panel:focus-visible{outline:none}
+
+/* Compact tool sheets keep actions on a readable baseline at phone widths. */
+.compact-tools-panel .chat-panel-header h2{font:500 22px/1.3 var(--font-serif)}
+.compact-tools-panel .chat-primary,.compact-tools-panel .chat-secondary{border-radius:13px;padding:12px 16px;line-height:1.3;font-size:14px;white-space:nowrap}
+.reminder-settings-panel{padding-bottom:max(24px,env(safe-area-inset-bottom,0px))}
+.reminder-enable{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 0 18px;border-bottom:1px solid var(--border-subtle);margin-bottom:16px;cursor:pointer}
+.reminder-enable-copy{display:flex;flex-direction:column;gap:5px}.reminder-enable-copy strong{font:500 16px/1.4 var(--font-sans)}.reminder-enable-copy small{font:12px/1.5 var(--font-sans);color:var(--text-muted)}
+.reminder-enable input{position:absolute;right:0;width:44px;height:26px;opacity:0;margin:0;cursor:pointer}
+.reminder-toggle{flex:none;width:42px;height:24px;background:var(--border-subtle);border-radius:14px;pointer-events:none;transition:background 160ms}
+.reminder-toggle::after{content:'';display:block;width:18px;height:18px;border-radius:50%;margin:3px;background:var(--bg-canvas);transition:transform 160ms}
+.reminder-enable input:checked+.reminder-toggle{background:var(--accent-brand)}.reminder-enable input:checked+.reminder-toggle::after{transform:translateX(18px)}.reminder-enable input:focus-visible+.reminder-toggle{outline:2px solid var(--accent-brand);outline-offset:3px}
+.reminder-status{margin:8px 0 16px;padding:12px 14px;border-radius:12px;background:var(--bg-subtle);color:var(--text-secondary);font:12px/1.6 var(--font-sans)}
+.reminder-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.reminder-action{display:flex;align-items:center;gap:10px;min-height:48px;padding:12px 14px;border:1px solid var(--border-subtle);border-radius:13px;background:var(--bg-surface);color:var(--text-primary);font:14px/1.3 var(--font-sans);white-space:nowrap;text-align:left}.reminder-action svg{flex:none;width:19px;height:19px;stroke:var(--text-muted);stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}.reminder-action:active{background:var(--bg-subtle)}.reminder-action:disabled{opacity:.5}
+.reminder-help{margin-top:18px;color:var(--text-muted);font:12px/1.6 var(--font-sans)}.reminder-help summary{padding:4px 0}.reminder-help p{margin:10px 0 0}
+@media(prefers-reduced-motion:reduce){.reminder-toggle,.reminder-toggle::after{transition:none}}

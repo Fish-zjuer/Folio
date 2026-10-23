@@ -171,3 +171,10 @@
 @media(prefers-reduced-motion:reduce) { .academic-status.success,.academic-status.is-popping,.academic-burst i { animation:none; }.academic-spinner { animation-duration:2s; } }
 
 .course-refresh{margin-left:10px;padding:6px 10px;flex-shrink:0;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-surface);color:var(--text-secondary);font:inherit;font-size:12px}.course-source-note{margin:8px 0 12px;color:var(--text-muted);font-size:11px;line-height:1.6}.course-source-note:empty{display:none}
+
+.academic-peek-bar{display:flex;justify-content:flex-end;margin:0 0 12px;position:sticky;top:0;z-index:2;pointer-events:none}
+.academic-peek-button{pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;min-height:42px;border:1px solid var(--border-subtle);border-radius:22px;background:var(--bg-canvas);padding:9px 17px;color:var(--text-secondary);font:13px var(--font-sans);transition:background 160ms,color 160ms,transform 160ms}
+.academic-peek-button[aria-pressed=true]{background:var(--bg-subtle);color:var(--accent-brand);transform:scale(.97)}
+.is-grade-peeking :is(.academic-hero,.academic-metrics,.academic-grade-value){animation:academic-peek-in 180ms ease-out both}
+@keyframes academic-peek-in{from{opacity:.25;transform:translateY(2px);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){.academic-peek-button{transition:none}.is-grade-peeking :is(.academic-hero,.academic-metrics,.academic-grade-value){animation:none}}

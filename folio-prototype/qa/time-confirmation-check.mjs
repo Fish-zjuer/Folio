@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+const debug='http://127.0.0.1:9224',checks=[],errors=[];
+async function client(url){const ws=new WebSocket(url);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j});let seq=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(JSON.stringify(m.error))):p.resolve(m.result)}};return{ws,send:(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))})}}
+const browser=await client((await(await fetch(debug+'/json/version')).json()).webSocketDebuggerUrl);
+const {browserContextId}=await browser.send('Target.createBrowserContext');
+const {targetId}=await browser.send('Target.createTarget',{url:'about:blank',browserContextId});
+const target=(await(await fetch(debug+'/json')).json()).find(t=>t.id===targetId),c=await client(target.webSocketDebuggerUrl),send=c.send;
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+async function run(expression){const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,userGesture:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result?.value}
+async function check(name,expression){const pass=!!await run(expression);checks.push({name,pass});if(!pass)throw Error(name)}
+async function shot(name){const r=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(new URL(name,import.meta.url),Buffer.from(r.data,'base64'))}
+try{
+ await send('Page.enable');await send('Runtime.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await send('Page.navigate',{url:'http://127.0.0.1:4215/qa/relationships-app.html?v=time-minutes15'});await pause(1500);
+ await run(`showPreviewScreen('home',{focus:false});document.getElementById('qa-native-status')?.parentElement?.setAttribute('hidden','');window.__conversation=FolioChat.conversation(FolioChatUI.state());window.__draft=(id,fields)=>{const p={id,messageId:'qa-time',operation:'create_todo',status:'pending',fields:{title:'QA图书馆安排',kind:'event',timeMode:'range',startAt:'2026-10-24T09:00:00',endAt:'2026-10-24T21:15:00',location:'图书馆',reminderOffsets:[0],placements:['calendar','home'],queued:false,...fields},before:null};__conversation.proposals.push(p);return p;};window.__field=label=>[...document.querySelectorAll('.chat-field')].find(n=>n.firstChild.textContent===label)?.querySelector('input,select');window.__p=__draft('qa-seconds');FolioChatUI.openProposal(__conversation,__p)`);await pause(200);
+ await check('existing pending draft and displayed inputs now agree on minute values',`__p.fields.startAt==='2026-10-24T09:00'&&__field('开始时间').value===__p.fields.startAt&&__p.fields.endAt==='2026-10-24T21:15'&&__field('结束时间').value===__p.fields.endAt`);
+ await check('opening the draft never saves an item',`!homeworkState.items.some(i=>i.id==='chat-qa-seconds')`);
+ await run(`document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(350);
+ await check('unchanged visible times save without the screenshot error',`__p.status==='confirmed'&&document.querySelector('.chat-layer').hidden`);
+ await check('local storage retains time, location, display choices and arrival reminder',`(()=>{const i=JSON.parse(localStorage.getItem(homeworkDemo.storageKey)).items.find(i=>i.id==='chat-qa-seconds');return i.startAt==='2026-10-24T09:00'&&i.endAt==='2026-10-24T21:15'&&i.location==='图书馆'&&i.placements.join(',')==='calendar,home'&&FolioTodo.reminderAt(i)==='2026-10-24T09:00'&&!i.queued})()`);
+ await run(`__p=__draft('qa-picker-change',{endAt:'2026-10-24T21:15:00.000'});FolioChatUI.openProposal(__conversation,__p);__field('结束时间').value='2026-10-24T22:30';__field('结束时间').dispatchEvent(new Event('change',{bubbles:true}))`);
+ await check('native picker change event updates the draft without relying on input',`__p.fields.endAt==='2026-10-24T22:30'`);
+ await run(`document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(350);
+ await check('edited time after 21:15 is the value actually saved',`__p.status==='confirmed'&&homeworkState.items.find(i=>i.id==='chat-qa-picker-change').endAt==='2026-10-24T22:30'`);
+ await run(`__p=__draft('qa-deck-seconds',{startAt:'2026-10-24 23:30:00.000',endAt:'2026-10-25T00:30:00'});FolioChatUI.openProposalDeck([{conversation:__conversation,proposal:__p}]);document.querySelector('.chat-deck-actions .chat-primary').click()`);await pause(500);
+ await check('direct deck confirmation also canonicalizes seconds and crosses midnight',`__p.status==='confirmed'&&homeworkState.items.find(i=>i.id==='chat-qa-deck-seconds').startAt==='2026-10-24T23:30'&&homeworkState.items.find(i=>i.id==='chat-qa-deck-seconds').endAt==='2026-10-25T00:30'`);
+ await run(`__p=__draft('qa-deadline-seconds',{timeMode:'deadline',startAt:null,endAt:null,deadline:'2026-10-24',clock:'09:00:00.000'});FolioChatUI.openProposal(__conversation,__p);document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(350);
+ await check('deadline clock uses the same minute normalization',`__p.status==='confirmed'&&homeworkState.items.find(i=>i.id==='chat-qa-deadline-seconds').deadlineClock==='09:00'`);
+ await run(`__p=__draft('qa-invalid-end',{startAt:'2026-10-24T09:00',endAt:'2026-10-24T08:00'});FolioChatUI.openProposal(__conversation,__p);document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(60);
+ await check('reversed range still rejects without losing the draft or writing partial data',`__p.status==='pending'&&!homeworkState.items.some(i=>i.id==='chat-qa-invalid-end')&&document.querySelector('.chat-form-error').textContent==='结束时间必须晚于开始时间'`);
+ await run(`__field('结束时间').value='';__field('结束时间').dispatchEvent(new Event('change',{bubbles:true}));document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(60);
+ await check('missing end time reports the field instead of generic 09:00',`__p.status==='pending'&&document.querySelector('.chat-form-error').textContent.startsWith('结束时间的日期或时间格式不正确')`);
+ await shot('time-confirmation-invalid-end.png');
+ await run(`(async()=>{FolioChatUI.closePanel(true,false);await FolioAgentRuntime.execute('draft_change',{operation:'create_lesson',fields:{title:'QA时间待定实验',timeMode:'range',startAt:'2026-10-24T--:--',endAt:'2026-10-24T--:--',reminderOffsets:[60,0]}},__conversation,'qa-pending','时间待定');__p=__conversation.proposals.at(-1);FolioChatUI.openProposal(__conversation,__p);document.querySelector('.chat-proposal-form').requestSubmit()})()`);await pause(350);
+ await check('unspecified times remain pending with no fabricated midnight or reminders',`(()=>{const i=homeworkState.items.find(i=>i.id==='chat-'+__p.id);return __p.status==='confirmed'&&i.timeMode==='pending'&&i.scheduledDay==='2026-10-24'&&i.startAt==null&&FolioTodo.reminderTimes(i).length===0&&i.reminderOffsets.join(',')==='60,0'})()`);
+ await run(`(async()=>{await FolioAgentRuntime.execute('draft_change',{operation:'create_todo',fields:{title:'QA新AI草稿',kind:'event',timeMode:'range',startAt:'2026-10-24 09:00:00',endAt:'2026-10-24T21:15:00.000'}},__conversation,'qa-new','添加安排');__p=__conversation.proposals.at(-1);FolioChatUI.openProposal(__conversation,__p)})()`);
+ await check('new AI tool results are already normalized before entering editor',`__p.fields.startAt==='2026-10-24T09:00'&&__p.fields.endAt==='2026-10-24T21:15'&&!homeworkState.items.some(i=>i.id==='chat-'+__p.id)`);
+ await run(`document.querySelector('.chat-proposal-form').requestSubmit()`);await pause(350);
+ await check('new AI draft saves through actual confirm and storage chain',`__p.status==='confirmed'&&homeworkState.items.some(i=>i.id==='chat-'+__p.id&&i.endAt==='2026-10-24T21:15')`);
+ await check('no browser runtime errors',`true`);checks.at(-1).pass=errors.length===0;if(errors.length)throw Error(JSON.stringify(errors));console.log(JSON.stringify({checks,errors},null,2));
+}finally{fs.writeFileSync(new URL('time-confirmation-report.json',import.meta.url),JSON.stringify({checks,errors},null,2));c.ws.close();await browser.send('Target.disposeBrowserContext',{browserContextId});browser.ws.close()}

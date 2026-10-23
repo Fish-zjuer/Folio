@@ -27,7 +27,9 @@
     if (mode(draft)==="deadline") {
       value(draft.deadline); if (draft.deadlineClock && !validClock(draft.deadlineClock)) throw new Error("截止时间格式应为 09:00");
     } else if (mode(draft)==="range") {
-      if (minuteValue(draft.endAt)<=minuteValue(draft.startAt)) throw new Error("结束时间必须晚于开始时间");
+      const read=(at,label)=>{try{return minuteValue(at);}catch{throw new Error(`${label}的日期或时间格式不正确，请重新选择（例如 2026-10-24 09:00）`);}};
+      const start=read(draft.startAt,"开始时间"),end=read(draft.endAt,"结束时间");
+      if (end<=start) throw new Error("结束时间必须晚于开始时间");
     }
     const repeat=draft.repeat || {kind:"none",interval:1};
     if (!["none","daily","weekly","monthly"].includes(repeat.kind)) throw new Error("请选择有效重复周期");

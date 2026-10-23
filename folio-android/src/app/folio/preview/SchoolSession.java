@@ -99,7 +99,7 @@ final class SchoolSession {
     String user=raw.optString("userId").trim();Object anonymous=raw.opt("anonymous");boolean nonAnonymous=Boolean.FALSE.equals(anonymous)||"false".equals(anonymous)||"0".equals(anonymous)||Integer.valueOf(0).equals(anonymous);
     return nonAnonymous&&!user.isEmpty()&&!user.equalsIgnoreCase("ANONYMOUS")&&!String.valueOf(raw.opt("roles")).contains("ANONYMOUS_USER_ROLE");
   }catch(Exception e){return false;}}
-  private boolean expired(JSONObject response){int status=response.optInt("status");String body=response.optString("body");if(SchoolProtocol.authStatus(status)||SchoolProtocol.authEndpoint(response.optString("url"))||SchoolProtocol.authBody(body)||status==200&&body.trim().startsWith("<"))return true;try{JSONObject json=new JSONObject(body);int code=json.optInt("code",json.optInt("status"));if(code==401||code==403||code==901||json.optInt("kickout")==1||json.optBoolean("isLogin",true)==false)return true;String message=json.optString("message",json.optString("msg"));return (message.contains("登录")||message.contains("认证")||message.contains("token"))&&(!json.optBoolean("success",true)||code!=0&&code!=200);}catch(Exception e){return false;}}
+  private boolean expired(JSONObject response){int status=response.optInt("status");String body=response.optString("body");if(SchoolProtocol.authStatus(status)||SchoolProtocol.authEndpoint(response.optString("url"))||SchoolProtocol.authBody(body))return true;if(status>=300&&status<400){try{String target=new URL(new URL(response.optString("url")),response.optString("location")).toString();if(SchoolProtocol.authEndpoint(target)||new URL(target).getPath().contains("login_"))return true;}catch(Exception ignored){}}try{JSONObject json=new JSONObject(body);int code=json.optInt("code",json.optInt("status"));if(code==401||code==403||code==901||json.optInt("kickout")==1||json.optBoolean("isLogin",true)==false)return true;String message=json.optString("message",json.optString("msg"));return (message.contains("登录")||message.contains("认证")||message.contains("token"))&&(!json.optBoolean("success",true)||code!=0&&code!=200);}catch(Exception e){return false;}}
   JSONObject school(String id,JSONObject input) throws Exception {
     String module=input.optString("module");if(module.equals("calendar"))return network.school(id,input);
     String site=module.equals("homework")?"homework":module.startsWith("practice")?"practice":"academic";
@@ -118,6 +118,6 @@ final class SchoolSession {
       JSONObject retry=network.school(id,input);if(!expired(retry))return retry;
       sso(id,false);try{businessLogin(id,site);}catch(AuthExpired e){sso(id,true);businessLogin(id,site);}
     }
-    JSONObject retried=network.school(id,input);if(expired(retried))throw new IOException(retried.optInt("status")==901?"教务网重建会话后仍被拒绝（HTTP 901）；原缓存保留，请复制连接诊断排查":"登录仍未完成，请使用官方网页登录；原数据已保留");return retried;
+    JSONObject retried=network.school(id,input);if(expired(retried))throw new IOException(retried.optInt("status")==901?"教务网重建会话后仍被拒绝（HTTP 901）；原缓存保留，请复制连接诊断排查":"学校接口重建会话后仍要求认证（HTTP "+retried.optInt("status")+"）；原缓存保留，请复制连接诊断排查");return retried;
   }
 }

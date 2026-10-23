@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "name": "existing pending draft and displayed inputs now agree on minute values",
+      "pass": true
+    },
+    {
+      "name": "opening the draft never saves an item",
+      "pass": true
+    },
+    {
+      "name": "unchanged visible times save without the screenshot error",
+      "pass": true
+    },
+    {
+      "name": "local storage retains time, location, display choices and arrival reminder",
+      "pass": true
+    },
+    {
+      "name": "native picker change event updates the draft without relying on input",
+      "pass": true
+    },
+    {
+      "name": "edited time after 21:15 is the value actually saved",
+      "pass": true
+    },
+    {
+      "name": "direct deck confirmation also canonicalizes seconds and crosses midnight",
+      "pass": true
+    },
+    {
+      "name": "deadline clock uses the same minute normalization",
+      "pass": true
+    },
+    {
+      "name": "reversed range still rejects without losing the draft or writing partial data",
+      "pass": true
+    },
+    {
+      "name": "missing end time reports the field instead of generic 09:00",
+      "pass": true
+    },
+    {
+      "name": "unspecified times remain pending with no fabricated midnight or reminders",
+      "pass": true
+    },
+    {
+      "name": "new AI tool results are already normalized before entering editor",
+      "pass": true
+    },
+    {
+      "name": "new AI draft saves through actual confirm and storage chain",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

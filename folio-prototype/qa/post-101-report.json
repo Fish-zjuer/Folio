@@ -1,0 +1,89 @@
+{
+  "checks": [
+    {
+      "name": "selected page order is retained rather than sorted back to defaults",
+      "pass": true
+    },
+    {
+      "name": "short timetable drag snaps back completely without a second gesture",
+      "pass": true
+    },
+    {
+      "name": "drag never rebuilds the active timetable under the finger",
+      "pass": true
+    },
+    {
+      "name": "one completed timetable swipe reaches grades",
+      "pass": true
+    },
+    {
+      "name": "cancelled timetable drag also clears its intermediate transforms",
+      "pass": true
+    },
+    {
+      "name": "reordering in settings preserves selected subset and saves the new order",
+      "pass": true
+    },
+    {
+      "name": "grouped semester backgrounds stay transparent in dark mode",
+      "pass": true
+    },
+    {
+      "name": "grade values start concealed and hold control is available",
+      "pass": true
+    },
+    {
+      "name": "holding reveals scores and GPA on grades page only",
+      "pass": true
+    },
+    {
+      "name": "release immediately removes actual grades from rendered page",
+      "pass": true
+    },
+    {
+      "name": "holding never persists privacy changes or marks a grade revealed",
+      "pass": true
+    },
+    {
+      "name": "touch cancellation restores hidden grades",
+      "pass": true
+    },
+    {
+      "name": "navigation away clears temporary peek and scholar remains hidden",
+      "pass": true
+    },
+    {
+      "name": "keyboard hold is supported",
+      "pass": true
+    },
+    {
+      "name": "window blur immediately clears keyboard peek",
+      "pass": true
+    },
+    {
+      "name": "school credentials stay outside HTML input forms",
+      "pass": true
+    },
+    {
+      "name": "official-login completion waits for the request made with old cookies",
+      "pass": true
+    },
+    {
+      "name": "official login then issues a fresh exam request instead of reusing the failed flight",
+      "pass": true
+    },
+    {
+      "name": "original non-rail timetable swipe returns to month in one gesture",
+      "pass": true
+    },
+    {
+      "name": "320px grade page has no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

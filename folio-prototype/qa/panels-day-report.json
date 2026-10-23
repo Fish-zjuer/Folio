@@ -1,0 +1,101 @@
+{
+  "checks": [
+    {
+      "name": "reminder actions use two readable compact columns",
+      "pass": true
+    },
+    {
+      "name": "redesigned controls still save the switch and call all four native actions",
+      "pass": true
+    },
+    {
+      "name": "sorting has one three-line handle per row with no arrow buttons",
+      "pass": true
+    },
+    {
+      "name": "pressed handle lifts a detached visual row and dims the rest",
+      "pass": true
+    },
+    {
+      "name": "finger placement reorders locally and removes lifted visuals",
+      "pass": true
+    },
+    {
+      "name": "dragging alone does not write saved page preferences",
+      "pass": true
+    },
+    {
+      "name": "save preserves subset with newly dragged order",
+      "pass": true
+    },
+    {
+      "name": "cancel restores original draft order without saving",
+      "pass": true
+    },
+    {
+      "name": "swiping the row label scrolls instead of starting drag",
+      "pass": true
+    },
+    {
+      "name": "drag near list edge automatically scrolls to offscreen positions",
+      "pass": true
+    },
+    {
+      "name": "closing sheet during drag removes floating row and keeps saved order",
+      "pass": true
+    },
+    {
+      "name": "day column opens at today with previous and next controls",
+      "pass": true
+    },
+    {
+      "name": "next day changes queried date and hides the now marker",
+      "pass": true
+    },
+    {
+      "name": "previous day can return to today and restores the current-time marker",
+      "pass": true
+    },
+    {
+      "name": "opening full calendar uses the selected day while leaving home resets it",
+      "pass": true
+    },
+    {
+      "name": "reopening home drawer defaults back to today",
+      "pass": true
+    },
+    {
+      "name": "light bottom edge aligns with composer, lower items false",
+      "pass": true
+    },
+    {
+      "name": "light bottom edge aligns with composer, lower items true",
+      "pass": true
+    },
+    {
+      "name": "dark bottom edge aligns with composer, lower items false",
+      "pass": true
+    },
+    {
+      "name": "dark bottom edge aligns with composer, lower items true",
+      "pass": true
+    },
+    {
+      "name": "dark drawer blends with the canvas and avoids a separate green slab",
+      "pass": true
+    },
+    {
+      "name": "320px sorting footer fits without overflow or tall buttons",
+      "pass": true
+    },
+    {
+      "name": "320px dark reminder buttons fit on one line",
+      "pass": true
+    },
+    {
+      "name": "no browser errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

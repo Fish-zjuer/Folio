@@ -10,6 +10,7 @@
     else if(op==='app.calendar.export')result={saved:true};
     else if(op==='config.get')result=config;
     else if(op==='school.account.get')result=window.FolioQA.demoAccount||account;
+    else if(op==='school.account.edit'){result=window.FolioQA.accountEditResult||{saved:false,cancelled:true};if(result.saved&&result.account){account=result.account;localStorage.setItem('qa-account',JSON.stringify(account));}}
     else if(op==='school.account.save'){account={username:input.username,hasPassword:true,accountId:'fixture-account',authenticated:true};localStorage.setItem('qa-account',JSON.stringify(account));result=account;}
     else if(op==='school.account.forget'){account={};localStorage.removeItem('qa-account');}
     else if(op==='school.authenticate')result={authenticated:true};

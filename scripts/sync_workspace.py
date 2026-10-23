@@ -13,7 +13,7 @@ for path in web.iterdir():
 for folder in ['assets','widgets','design-lab','qa']:
  for path in (web/folder).rglob('*'):
   if path.is_file() and path.suffix in {'.html','.css','.js','.cjs','.mjs','.svg','.woff2','.txt','.md','.ts'}:files.append(path)
-for name in ['offline-sync-report.json','learning-library-report.json','relationships-node-report.json','relationships-app-report.json','relationship-network-radial-report.json','relationships-native-csp-report.json','relationship-capacity-report.json','relationship-bottom-swipe-report.json']:
+for name in ['offline-sync-report.json','learning-library-report.json','relationships-node-report.json','relationships-app-report.json','relationship-network-radial-report.json','relationships-native-csp-report.json','relationship-capacity-report.json','relationship-bottom-swipe-report.json','post-101-report.json','panels-day-report.json','account-entry-report.json','confirmation-card-report.json','time-confirmation-report.json','time-confirmation-node-report.json','homework-default-report.json','v101-update-node-report.json']:
  if (web/'qa'/name).is_file():files.append(web/'qa'/name)
 for folder in ['src','res','tests','branding']:
  files.extend(path for path in (native/folder).rglob('*') if path.is_file())

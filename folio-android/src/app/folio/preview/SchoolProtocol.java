@@ -70,7 +70,8 @@ final class SchoolProtocol {
     // Successful JSON may contain course titles and links mentioning login. Inspect JSON status in SchoolSession instead.
     if(s.startsWith("{")||s.startsWith("["))return false;
     boolean password=Pattern.compile("<input\\b[^>]*(?:type|name)\\s*=\\s*['\"]?password",Pattern.CASE_INSENSITIVE).matcher(s).find();
-    return password&&(s.contains("execution")||s.contains("username")||s.contains("cas/login"))||s.equals("请先登录")||s.equals("未登录")||s.equals("登录已失效")||s.equals("unauthorized");
+    boolean redirect=s.contains("zjuam.zju.edu.cn/cas/login")&&(s.contains("location")||s.contains("http-equiv"));
+    return redirect||password&&(s.contains("execution")||s.contains("username")||s.contains("cas/login"))||s.equals("请先登录")||s.equals("未登录")||s.equals("登录已失效")||s.equals("unauthorized");
   }
   static boolean authEndpoint(String address){try{URL u=new URL(address);return u.getHost().equals("identity.zju.edu.cn")||u.getHost().equals("zjuam.zju.edu.cn")&&u.getPath().startsWith("/cas/login");}catch(Exception e){return false;}}
   static String safeEndpoint(String address){try{URL u=new URL(address);return u.getHost()+u.getPath().replaceAll("[A-Za-z0-9_-]{24,}","[omitted]");}catch(Exception e){return "unknown";}}

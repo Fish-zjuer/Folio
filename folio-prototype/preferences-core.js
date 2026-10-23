@@ -6,7 +6,7 @@
   if(key==='colorMode'&&!['system','light','dark'].includes(value)||key==='retakeMode'&&!['first','highest'].includes(value))throw Error('设置选项不正确');
   if(['horizontalMode','hideGrades'].includes(key)&&typeof value!=='boolean')throw Error('设置需要开关值');
   if(key==='weekendLimit'&&(!Number.isInteger(value)||value<1||value>12))throw Error('周末上限应为1至12');
-  if(key==='horizontalPages'){if(!Array.isArray(value)||value.some(v=>!pageIds.includes(v)))throw Error('页面选项不正确');value=pageIds.filter(id=>id==='home'||value.includes(id));if(value.length<2)throw Error('横向浏览至少保留两页');}
+  if(key==='horizontalPages'){if(!Array.isArray(value)||value.some(v=>!pageIds.includes(v)))throw Error('页面选项不正确');value=[...new Set(value)];if(!value.includes('home'))value.unshift('home');if(value.length<2)throw Error('横向浏览至少保留两页');}
   if(key==='queueWeights'){if(!Array.isArray(value)||value.length!==7||value.some(v=>!Number.isInteger(v)||v<0||v>100)||value.reduce((n,v)=>n+v,0)!==100)throw Error('需要7个非负整数百分比，合计100');value=[...value];}
   return {key,value};
  }

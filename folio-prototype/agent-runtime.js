@@ -94,7 +94,7 @@
     let nextRecord;
     if(!remove&&exam){nextRecord={...(previous||{}),id:targetId,semesterId:previous?.semesterId||examSemester.id,source:"custom",title:f.title??previous?.title,type:f.type??previous?.type??"小测",date:f.date??previous?.date,start:f.start??previous?.start,end:f.end??previous?.end,room:f.room??previous?.room??"",seat:f.seat??previous?.seat??"",note:f.note??previous?.note??"",courseId:previous?.courseId||null};const error=FolioExams.validate(nextRecord);if(error)throw new Error(error);}
     if(!remove&&!exam){
-      const base=previous||{id:targetId,title:"",body:"",kind:p.operation==="create_lesson"?"lesson":p.operation==="create_homework"?"homework":"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:false,completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
+      const base=previous||{id:targetId,title:"",body:"",kind:p.operation==="create_lesson"?"lesson":p.operation==="create_homework"?"homework":"todo",course:"",source:"personal",important:false,urgent:false,timeMode:"none",deadline:"",deadlineClock:null,repeat:{kind:"none",interval:1,weekdays:[],until:null},reminderMinutes:null,queued:create&&FolioItemPolicy.initialQueued({...f,kind:p.operation==="create_homework"?"homework":f.kind}),completed:false,createdDay:B.today(),mountDate:null,mountedOn:null};
       nextRecord={...base};for(const key of ["title","body","kind","course","location","timeMode","deadline","startAt","endAt","important","urgent","queued","completed","reminderMinutes","reminderOffsets","placements","scheduledDay","courseId","termId"])if(key in f)nextRecord[key]=f[key];
       if(p.operation==="create_homework")nextRecord.kind="homework";
       if(p.operation==="create_lesson")nextRecord.kind="lesson";
@@ -106,7 +106,7 @@
       if("reminderOffsets" in f)nextRecord.reminderMinutes=FolioItemPolicy.offsets(nextRecord)[0]??null;
       if(f.repeatKind){nextRecord.repeat={...base.repeat,kind:f.repeatKind};if(f.repeatKind==="weekly"&&!nextRecord.repeat.weekdays?.length)nextRecord.repeat.weekdays=[(new Date(`${FolioTodo.anchor(nextRecord)}T00:00:00Z`).getUTCDay()+6)%7+1];}
       if(nextRecord.kind==="homework"&&!nextRecord.course)nextRecord.course="自定义";
-      FolioTodo.validate(nextRecord);
+      nextRecord=FolioItemPolicy.normalizeTime(nextRecord);FolioTodo.validate(nextRecord);
       if("queued" in f)FolioQueue.setQueued(nextRecord,f.queued);if(nextRecord.completed)FolioQueue.complete(nextRecord);
       if(f.pinAction==="return_to_inbox")FolioQueue.returnToInbox(nextRecord,B.today());
       else if(f.pinAction==="hang_now")FolioQueue.move(nextRecord,B.today(),B.today());

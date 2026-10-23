@@ -1,0 +1,57 @@
+{
+  "checks": [
+    {
+      "name": "school connection no longer exposes HTML login inputs",
+      "pass": true
+    },
+    {
+      "name": "empty account opens native editor without sending credentials",
+      "pass": true
+    },
+    {
+      "name": "cancelling editor performs no login or local account replacement",
+      "pass": true
+    },
+    {
+      "name": "confirmed native save reconnects account profiles and triggers one sync",
+      "pass": true
+    },
+    {
+      "name": "saved state displays metadata only and keeps the existing one-click update",
+      "pass": true
+    },
+    {
+      "name": "saved account refresh never reopens credential editor",
+      "pass": true
+    },
+    {
+      "name": "change-account control explicitly opens the native editor again",
+      "pass": true
+    },
+    {
+      "name": "no username or password entry value is sent through JavaScript write calls",
+      "pass": true
+    },
+    {
+      "name": "repeated edit clicks create only one pending editor",
+      "pass": true
+    },
+    {
+      "name": "closing parent panel cancels the pending native editor bridge request",
+      "pass": true
+    },
+    {
+      "name": "late editor completion after cancellation cannot start a login",
+      "pass": true
+    },
+    {
+      "name": "malformed save response cannot silently enter a sync",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

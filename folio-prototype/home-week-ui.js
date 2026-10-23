@@ -3,19 +3,22 @@
   'use strict';
   const home=previewScreens.home,phone=home.closest('.phone'),L=FolioHomeWeekLayout;
   const el=(tag,cls,text)=>{const n=document.createElement(tag);n.className=cls;if(text!=null)n.textContent=text;return n;};
-  const panel=el('section','home-week');panel.hidden=true;panel.setAttribute('aria-label','首页今日周历');
+  const panel=el('section','home-week');panel.hidden=true;panel.setAttribute('aria-label','首页单日日程');
   const toolbar=el('div','home-week-toolbar'),range=el('button','home-week-range');range.type='button';range.setAttribute('aria-label','查看今天日程');
   const nav=(label,path,action)=>{const b=el('button','home-week-nav');b.type='button';b.setAttribute('aria-label',label);b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;b.onclick=action;return b;};
-  let opened=false,settling=false,timer=null,visible=false,projectedItems=new Map();
+  let opened=false,settling=false,timer=null,visible=false,projectedItems=new Map(),selectedDay=homeworkState.today,lastToday=homeworkState.today;
   const table=el('div','home-week-table'),bottom=el('section','home-week-bottom'),strips=el('div','home-week-strips');bottom.setAttribute('aria-label','独立于时间表的事项');bottom.append(strips);
-  toolbar.append(range,nav('收起周历','m14 6-6 6 6 6',()=>close()));panel.append(toolbar,table,bottom);
+  const previous=nav('前一天','m14 6-6 6 6 6',()=>changeDay(-1)),next=nav('后一天','m10 6 6 6-6 6',()=>changeDay(1));previous.classList.add('home-day-prev');next.classList.add('home-day-next');
+  toolbar.append(range,nav('收起周历','m14 6-6 6 6 6',()=>close()),previous,next);panel.append(toolbar,table,bottom);
   const returnButton=el('button','home-week-return');returnButton.type='button';returnButton.hidden=true;returnButton.setAttribute('aria-label','收起周历，返回对话');returnButton.onclick=()=>close();phone.append(panel,returnButton);
   function sizeColumn(){panel.style.setProperty('--home-day-width',`${Math.max(32,(phone.clientWidth-62)/7)}px`);}
   const composer=home.querySelector('.composer');
   function alignBottom(){
     if(!visible||!composer)return;
     const frame=phone.getBoundingClientRect(),box=composer.getBoundingClientRect(),scale=frame.height/phone.offsetHeight;
-    if(scale>0&&box.height>0)panel.style.setProperty('--home-composer-bottom',`${Math.max(0,(frame.bottom-box.bottom)/scale-phone.clientTop)}px`);
+    // Align the visible timeline, or the last item strip, with the composer's
+    // border box in both palettes. Keep a 1px optical inset from its lower edge.
+    if(scale>0&&box.height>0)panel.style.setProperty('--home-composer-bottom',`${Math.max(0,phone.clientHeight-(box.bottom-frame.top)/scale+phone.clientTop+1)}px`);
   }
   sizeColumn();
   const width=()=>panel.offsetWidth+24,reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,7 +32,7 @@
   function finish(open){
     settling=false;timer=null;opened=open;returnButton.hidden=!open;home.inert=open;
     home.style.removeProperty('transition');panel.style.removeProperty('transition');
-    if(!open){visible=false;panel.hidden=true;phone.classList.remove('is-home-week-visible');home.style.removeProperty('transform');panel.style.removeProperty('transform');}
+    if(!open){visible=false;selectedDay=homeworkState.today;lastToday=homeworkState.today;panel.hidden=true;phone.classList.remove('is-home-week-visible');home.style.removeProperty('transform');panel.style.removeProperty('transform');}
   }
   function settle(open,immediate=false){
     clearTimeout(timer);timer=null;if(!visible&&!open)return;if(open)reveal();
@@ -40,15 +43,17 @@
     if(!duration)finish(open);else timer=setTimeout(()=>finish(open),duration);
   }
   function close(immediate=false){settle(false,immediate);}
-  range.onclick=()=>{selectCalendarDay(homeworkState.today);showCalendarView('month');showPreviewScreen('calendar');};
+  range.onclick=()=>{selectCalendarDay(selectedDay);showCalendarView('month');showPreviewScreen('calendar');};
+  function changeDay(delta){selectedDay=L.add(selectedDay,delta);render();if(!reduced())table.animate([{opacity:.35,transform:`translateX(${delta>0?4:-4}px)`},{opacity:1,transform:'none'}],{duration:180,easing:'ease-out'});}
   function render(){
+    if(selectedDay===lastToday)selectedDay=homeworkState.today;lastToday=homeworkState.today;
     projectedItems=new Map(homeworkState.items.map(i=>[i.id,i]));
-    const data=L.collectDay(homeworkState.today,{
+    const data=L.collectDay(selectedDay,{
       coursesOn:date=>FolioCourses.semesters.flatMap(term=>FolioCourses.onDate(term,date,undefined,"home").map(e=>({...e,semesterId:term.id}))),
       examsOn:date=>FolioCourses.semesters.flatMap(term=>FolioExams.entries(currentExams(term.id).filter(e=>!e.unscheduled),date)),
       itemsFor:date=>{const items=FolioTodo.materialize(structuredClone(homeworkState.items),date);items.forEach(i=>projectedItems.set(i.id,i));return items;},items:homeworkState.items
     });
-    range.replaceChildren(el('small','',['日','一','二','三','四','五','六'][new Date(data.date+'T00:00:00Z').getUTCDay()]),el('span','',Number(data.date.slice(8))));range.title=data.date;
+    range.replaceChildren(el('small','',['日','一','二','三','四','五','六'][new Date(data.date+'T00:00:00Z').getUTCDay()]),el('span','',Number(data.date.slice(8))));range.title=data.date;range.setAttribute('aria-label',`${data.date}，打开当日日程`);range.classList.toggle('is-other-day',data.date!==homeworkState.today);panel.dataset.date=data.date;
     const grid=el('div','home-week-grid'),axis=el('div','home-week-axis'),columns=el('div','home-week-columns');
     for(const h of [0,6,8,10,12,14,16,18,20,22,24]){const label=el('span','',String(h).padStart(2,'0')+':00');label.style.top=L.at(h*60)*100+'%';axis.append(label);}
     for(const day of [{date:data.date,entries:data.entries}]){
@@ -76,11 +81,12 @@
     if(entry.itemId){const item=projectedItems.get(entry.itemId);if(item)openItem(item,origin);}
     else {const term=FolioCourses.semesters.find(t=>t.id===entry.semesterId)||calendarSemester;openCalendarEvent(entry,origin,term);}
   }
-  document.addEventListener('preview-screen-change',()=>{if(visible)close(true);});
+  document.addEventListener('preview-screen-change',()=>{selectedDay=homeworkState.today;lastToday=homeworkState.today;if(visible)close(true);});
+  document.addEventListener('folio-theme-change',()=>{if(visible)requestAnimationFrame(alignBottom);});
   for(const name of ['folio-data-change','folio-school-change','folio-exams-change','folio-schedule-overrides-change'])document.addEventListener(name,()=>{if(visible)render();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&visible&&!document.querySelector('.sheet-layer:not([hidden]),.chat-layer:not([hidden])')){e.preventDefault();e.stopImmediatePropagation();close();}},true);
   new ResizeObserver(()=>{sizeColumn();if(visible&&!settling)position(opened?width():Math.min(offset(),width()));}).observe(phone);
   const bottomObserver=new ResizeObserver(alignBottom);bottomObserver.observe(phone);bottomObserver.observe(home);if(composer)bottomObserver.observe(composer);
   setInterval(()=>{if(visible&&!document.hidden)render();},60000);
-  window.FolioHomeWeek=Object.freeze({open(){if(currentScreen==='home')settle(true);},close,drag,settle,offset,width,get visible(){return visible;},get opened(){return opened;},contains:target=>panel.contains(target)||returnButton.contains(target)});
+  window.FolioHomeWeek=Object.freeze({open(){if(currentScreen==='home')settle(true);},close,drag,settle,offset,width,get date(){return selectedDay;},get visible(){return visible;},get opened(){return opened;},contains:target=>panel.contains(target)||returnButton.contains(target)});
 })();

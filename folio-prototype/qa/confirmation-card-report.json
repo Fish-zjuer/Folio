@@ -1,0 +1,77 @@
+{
+  "checks": [
+    {
+      "name": "pending drafts remain reachable before opening",
+      "pass": true
+    },
+    {
+      "name": "only the card has a paper surface",
+      "pass": true
+    },
+    {
+      "name": "review title and close control live inside the card",
+      "pass": true
+    },
+    {
+      "name": "pending banner is hidden during review",
+      "pass": true
+    },
+    {
+      "name": "rerender and toast cannot overlap the confirmation card",
+      "pass": true
+    },
+    {
+      "name": "placement values are human readable",
+      "pass": true
+    },
+    {
+      "name": "card and actions stay inside viewport",
+      "pass": true
+    },
+    {
+      "name": "minimizing preserves draft and restores its entry point",
+      "pass": true
+    },
+    {
+      "name": "editing continues to suppress duplicate notices",
+      "pass": true
+    },
+    {
+      "name": "multiple cards each own their status and close button",
+      "pass": true
+    },
+    {
+      "name": "deck still scrolls to the next card",
+      "pass": true
+    },
+    {
+      "name": "dark mode keeps the outer panel transparent",
+      "pass": true
+    },
+    {
+      "name": "discard removes one card and keeps other drafts without banner",
+      "pass": true
+    },
+    {
+      "name": "confirm saves the real local lesson and keeps remaining review clean",
+      "pass": true
+    },
+    {
+      "name": "resolving last draft closes review without a stale pending entry",
+      "pass": true
+    },
+    {
+      "name": "small phone keeps footer accessible and details independently scrollable",
+      "pass": true
+    },
+    {
+      "name": "Escape minimizes and restores access to the unresolved draft",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

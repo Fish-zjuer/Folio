@@ -21,6 +21,8 @@ public final class MainActivity extends Activity {
   private final ExecutorService jobs=Executors.newFixedThreadPool(5);
   private volatile boolean trusted=false;private ValueCallback<Uri[]> fileCallback;private Uri cameraOutput;
   private Dialog loginDialog;private WebView loginView;private String calendarExportId,calendarExportText;
+  private SchoolAccountEditor accountEditor;private String accountEditorRequest="";
+  private final Map<String,java.util.concurrent.atomic.AtomicBoolean> accountEditRequests=new ConcurrentHashMap<>();
   private OfflineTransfer offlineTransfer;private String syncExportId,syncExportToken;private File syncExportFile;
   private volatile boolean resumed=false;private boolean pageReady=false,notificationPermissionPending=false;private JSONObject pendingNotification;private String pendingGradeId="";
   private static final String GRADE_CHANNEL="folio-new-grades",GRADE_EXTRA="folio.gradeId";
@@ -42,7 +44,12 @@ public final class MainActivity extends Activity {
     getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
     pendingReminder=getIntent().getStringExtra(LocalReminders.EXTRA);if(pendingReminder==null)pendingReminder="";
     offlineTransfer=new OfflineTransfer(new File(getCacheDir(),"offline-sync"));web=new WebView(this);web.setBackgroundColor(canvas);
+    // Credentials are managed explicitly by Folio's encrypted vault. Android autofill
+    // can repeatedly take focus from dynamically created WebView account fields.
+    // Keep the separate official-site login WebView eligible for system autofill.
+    web.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
     WebSettings settings=web.getSettings();settings.setTextZoom(100);settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setSafeBrowsingEnabled(true);
+    settings.setSaveFormData(false);
     web.addJavascriptInterface(new Bridge(),"FolioAndroid");
     web.setWebViewClient(new WebViewClient(){
       public void onPageStarted(WebView view,String url,android.graphics.Bitmap icon){trusted=url.startsWith("https://"+HOST+"/assets/");pageReady=false;}
@@ -110,6 +117,19 @@ public final class MainActivity extends Activity {
     layout.addView(loginView,new LinearLayout.LayoutParams(-1,0,1));loginDialog.setContentView(layout);loginDialog.getWindow().setLayout(-1,-1);
     loginDialog.setOnDismissListener(d->{CookieManager.getInstance().flush();network.browserLoginCompleted();schoolSession.browserLoginCompleted();loginView.destroy();loginView=null;web.evaluateJavascript("window.dispatchEvent(new Event('folio-school-login'))",null);});loginDialog.show();loginDialog.getWindow().setLayout(-1,-1);loginView.loadUrl(target);
   }
+  private void editSchoolAccount(String id,JSONObject account){final java.util.concurrent.atomic.AtomicBoolean active=accountEditRequests.get(id);runOnUiThread(()->{
+    if(active==null||!active.get()||!trusted||isFinishing()){accountEditRequests.remove(id);return;}
+    if(accountEditor!=null&&accountEditor.isShowing()){accountEditRequests.remove(id);try{reply(id,new JSONObject().put("ok",false).put("error","账号输入窗口已打开"));}catch(Exception ignored){}return;}
+    String mode=getPreferences(MODE_PRIVATE).getString("colorMode","system");boolean dark=mode.equals("dark")||mode.equals("system")&&(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
+    accountEditorRequest=id;final String expected=account.optString("accountId");
+    accountEditor=new SchoolAccountEditor(this,account,dark,jobs,input->{synchronized(schoolSession){
+      if(!active.get())throw new IOException("账号输入已取消");
+      if(!expected.equals(schoolSession.account().optString("accountId")))throw new IOException("学校账号已变化，请重新打开输入窗口");
+      if(!input.optString("username").equals(account.optString("username")))clearSchoolCookies();
+      return schoolSession.save(input);
+    }},value->{accountEditor=null;accountEditorRequest="";accountEditRequests.remove(id);if(active.getAndSet(false))try{reply(id,new JSONObject().put("ok",true).put("data",value));}catch(Exception ignored){}});
+    accountEditor.show();
+  });}
   private void calendarExportReply(String id,boolean saved,boolean cancelled,String error){try{JSONObject result=new JSONObject().put("ok",error==null);if(error!=null)result.put("error",error);else result.put("data",new JSONObject().put("saved",saved).put("cancelled",cancelled));reply(id,result);}catch(JSONException ignored){}}
   private void exportCalendar(String id,JSONObject input) throws Exception {
     final String filename=input.optString("filename"),text=input.optString("content");
@@ -144,7 +164,8 @@ public final class MainActivity extends Activity {
     @JavascriptInterface public boolean systemDark(){return (getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;}
     @JavascriptInterface public void call(String id,String operation,String payload){
       if(!trusted||id==null||id.length()>100||payload==null||payload.length()>24*1024*1024)return;
-      if(operation.equals("cancel")){network.cancel(id);return;}
+      if(operation.equals("cancel")){network.cancel(id);java.util.concurrent.atomic.AtomicBoolean edit=accountEditRequests.remove(id);if(edit!=null)edit.set(false);runOnUiThread(()->{if(id.equals(accountEditorRequest)&&accountEditor!=null)accountEditor.dismiss();});return;}
+      if(operation.equals("school.account.edit"))accountEditRequests.put(id,new java.util.concurrent.atomic.AtomicBoolean(true));
       jobs.submit(()->{JSONObject answer=new JSONObject();try{
         JSONObject input=new JSONObject(payload),data;
         switch(operation){
@@ -177,6 +198,7 @@ public final class MainActivity extends Activity {
           case "app.usage.settings":runOnUiThread(()->{try{startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS,Uri.parse("package:"+getPackageName())));}catch(ActivityNotFoundException e){startActivity(new Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS));}});data=new JSONObject().put("opened",true);break;
           case "school":data=schoolSession.school(id,input);break;
           case "school.account.get":data=schoolSession.account();break;
+          case "school.account.edit":editSchoolAccount(id,schoolSession.account());return;
           case "school.account.save":
             data=schoolSession.save(input);if(data.optBoolean("changed"))clearSchoolCookies();if(input.optBoolean("login")){try{schoolSession.authenticate(id,"academic");data.put("authenticated",true);}catch(Exception error){data.put("authenticated",false).put("warning",error.getMessage()==null?"登录未完成":error.getMessage());}}break;
           case "school.account.forget":clearSchoolCookies();schoolSession.forget();data=new JSONObject().put("forgotten",true);break;
@@ -198,15 +220,15 @@ public final class MainActivity extends Activity {
           default:throw new Exception("未知本地服务");
         }
         answer.put("ok",true).put("data",data);
-      }catch(Exception e){try{answer.put("ok",false).put("error",e instanceof java.net.SocketTimeoutException?"请求超时，原来的数据仍保留":e.getMessage()==null?"请求失败":e.getMessage());}catch(JSONException ignored){}}
+      }catch(Exception e){accountEditRequests.remove(id);try{answer.put("ok",false).put("error",e instanceof java.net.SocketTimeoutException?"请求超时，原来的数据仍保留":e.getMessage()==null?"请求失败":e.getMessage());}catch(JSONException ignored){}}
       reply(id,answer);});
     }
   }
-  private void handleBack(){if(loginDialog!=null&&loginDialog.isShowing()){if(loginView.canGoBack())loginView.goBack();else loginDialog.dismiss();return;}web.evaluateJavascript("window.FolioNative&&window.FolioNative.back()",null);}
+  private void handleBack(){if(accountEditor!=null&&accountEditor.isShowing()){accountEditor.cancel();return;}if(loginDialog!=null&&loginDialog.isShowing()){if(loginView.canGoBack())loginView.goBack();else loginDialog.dismiss();return;}web.evaluateJavascript("window.FolioNative&&window.FolioNative.back()",null);}
   public void onBackPressed(){handleBack();}
   private void sendSystemTheme(){if(web!=null&&pageReady&&trusted){boolean dark=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;web.evaluateJavascript("window.dispatchEvent(new CustomEvent('folio-system-theme',{detail:{dark:"+dark+"}}))",null);}}
   public void onConfigurationChanged(android.content.res.Configuration config){super.onConfigurationChanged(config);sendSystemTheme();}
   protected void onResume(){super.onResume();resumed=true;if(pendingMicrophone!=null&&checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){PermissionRequest pending=pendingMicrophone;pendingMicrophone=null;if(trustedMicrophone(pending))pending.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});else pending.deny();}if(!jobs.isShutdown())jobs.submit(()->LocalReminders.restore(MainActivity.this));if(web!=null&&pageReady&&trusted){sendSystemTheme();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-resume'))",null);}}
   protected void onPause(){resumed=false;super.onPause();web.evaluateJavascript("window.dispatchEvent(new Event('folio-native-background'))",null);CookieManager.getInstance().flush();}
-  protected void onDestroy(){if(pendingMicrophone!=null){pendingMicrophone.deny();pendingMicrophone=null;}trusted=false;if(loginDialog!=null&&loginDialog.isShowing())loginDialog.dismiss();network.close();jobs.shutdownNow();web.removeJavascriptInterface("FolioAndroid");web.destroy();super.onDestroy();}
+  protected void onDestroy(){if(pendingMicrophone!=null){pendingMicrophone.deny();pendingMicrophone=null;}trusted=false;for(java.util.concurrent.atomic.AtomicBoolean request:accountEditRequests.values())request.set(false);accountEditRequests.clear();if(accountEditor!=null&&accountEditor.isShowing())accountEditor.dismiss();if(loginDialog!=null&&loginDialog.isShowing())loginDialog.dismiss();network.close();jobs.shutdownNow();web.removeJavascriptInterface("FolioAndroid");web.destroy();super.onDestroy();}
 }

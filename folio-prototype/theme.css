@@ -15,7 +15,7 @@
 [data-theme="dark"] :is(.chat-layer,.folio-choice-shade,#homework-shade,#sheet-shade,.workbench-shade,.workbench-reading-shade){background:rgb(5 6 4 / 38%)}
 [data-theme="dark"] .weather-city-form input{background:var(--bg-surface);border-color:var(--border-subtle)}
 [data-theme="dark"] :is(.weather-detail-head,.weather-detail-head strong,.weather-detail-values span,.weather-city-option){color:var(--text-primary)}
-[data-theme="dark"] .home-week{background:#20221D}
+[data-theme="dark"] .home-week{background:transparent;color:var(--text-secondary)}
 
 /* Separate pigments for paper, inset panels, ink and controls; no whole-card dimming. */
 :root[data-theme=dark] .study-paper-a{background:#343029;--study-zone:#403B32}
@@ -65,7 +65,8 @@
 [data-theme=dark] .workbench-board.has-more-notes::before{border-color:#B8AB8E}
 
 /* Academic pages: paper, ink, dividers and interactive states are themed separately. */
-:root[data-theme=dark] :is(.course-list:not([data-layout=grid]),.course-list[data-layout=grid]>li,.exam-day-cards,.academic-grade-list,.exam-detail-note,.academic-editor-label select){background:var(--bg-surface);border-color:var(--border-subtle)}
+:root[data-theme=dark] :is(.course-list:not([data-layout=grid]),.course-list[data-layout=grid]>li,.exam-day-cards,.academic-grade-list:not(.is-grouped),.exam-detail-note,.academic-editor-label select){background:var(--bg-surface);border-color:var(--border-subtle)}
+:root[data-theme=dark] .academic-grade-list.is-grouped{background:transparent}
 :root[data-theme=dark] :is(.course-semester,.course-list-name,.course-stat-number,.exam-card-seat){color:var(--text-primary)}
 :root[data-theme=dark] :is(#course-list-total,.course-list-teacher,.course-meetings,.course-session-rule,.timetable-heading p,.exam-countdown-unit,.exam-countdown-caption,.exam-date-month,.exam-date-week,.exam-card-bottom,.exam-card-source,.exam-list-heading button,.exam-card-seat-unit,.course-credit-unit){color:var(--text-secondary)}
 :root[data-theme=dark] :is(.course-meeting-days,.course-session-rule strong,.timetable-course-rule){color:#C0B093}
@@ -100,10 +101,17 @@
 :root[data-theme=dark] .timetable-course-column{border-color:#45483C}
 :root[data-theme=dark] .timetable-grid-line{background:#45483C}
 :root[data-theme=dark] .timetable-course-room{color:#BCBCA9}
-:root[data-theme=dark] .home-week-column.is-today{background:#30372B}
-:root[data-theme=dark] :is(.home-week-range,.home-week-room){color:#C3BBA4}
-:root[data-theme=dark] .home-week-night{background:#363C2E77}
-:root[data-theme=dark] .home-week-hour{background:#60634C66}
+:root[data-theme=dark] .home-week-column{background:#2B2C27;border-left-color:#41423955}
+:root[data-theme=dark] .home-week-column.is-today{background:#2B2C27}
+:root[data-theme=dark] .home-week-range{color:#D1CCBD}
+:root[data-theme=dark] :is(.home-week-range small,.home-week-axis,.home-week-nav){color:#939386}
+:root[data-theme=dark] .home-week-room{color:#ADA99B}
+:root[data-theme=dark] .home-week-night{background:#D6CFB50A}
+:root[data-theme=dark] .home-week-hour{background:#B6B39F1C}
+:root[data-theme=dark] .home-week-event{background:color-mix(in srgb,var(--entry-color,#9DA98F) 28%,#2B2C27);color:#D9D5CB}
+:root[data-theme=dark] .home-week-strip{--stripe-color:#A28C65}
+:root[data-theme=dark] .home-week-strip:nth-child(3n+2){--stripe-color:#7F9071}
+:root[data-theme=dark] .home-week-strip:nth-child(3n){--stripe-color:#AC806B}
 :root[data-theme=dark] .chat-pending{background:#3E352D;border-color:#60503E;color:var(--text-primary)}
 :root[data-theme=dark] .chat-pending strong{color:#D1A586}
 :root[data-theme=dark] .schedule-pet-progress [data-passed=true]{fill:#73776A}

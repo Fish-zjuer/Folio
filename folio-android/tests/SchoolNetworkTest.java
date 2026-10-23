@@ -73,6 +73,22 @@ public final class SchoolNetworkTest {
     new Reply(grades,"POST",901,"",null);
     try{session.school("reject",new JSONObject().put("module","grades"));throw new AssertionError("Repeated 901 was accepted");}catch(IOException expected){check(expected.getMessage().contains("HTTP 901"),"persistent HTTP 901 preserves a diagnostic error after one rebuild");}
     check(replies.isEmpty(),"persistent rejection stops instead of looping login");
+    String exams="https://zdbk.zju.edu.cn/jwglxt/xskscx/kscx_cxXsgrksIndex.html?doType=query&queryModel.showCount=5000";
+    new Reply(exams,"POST",200,"{}",c->{check(c.body().isEmpty(),"exam first page keeps the established empty POST");check(c.cookies().contains("JSESSIONID=still-rejected")&&c.cookies().contains("route=repaired-node"),"exams reuse the academic browser/native cookie pair");});
+    check(session.school("exams-first",new JSONObject().put("module","exams").put("page",1)).optInt("status")==200,"exams accept the existing academic login without resubmitting credentials");
+    new Reply(exams+"&queryModel.currentPage=2","POST",200,"{}",c->check(c.body().isEmpty(),"subsequent exam page puts pagination in URL, not POST form"));
+    check(session.school("exams-next",new JSONObject().put("module","exams").put("page",2)).optInt("status")==200,"exam second page uses its requested page");
+    String html="<html><h1>Service unavailable</h1></html>";
+    new Reply(exams,"POST",200,html,null);
+    check(session.school("exams-error-page",new JSONObject().put("module","exams")).optString("body").equals(html),"non-authentication HTML is passed to format validation instead of repeated login");
+    new Reply(exams,"POST",302,"",null).location(cas);
+    new Reply(exams,"POST",302,"",null).location(cas);
+    new Reply(serviceRequest,"GET",302,"",null).location(repaired);
+    new Reply(repaired,"GET",302,"",null,"JSESSIONID=exam-repaired; Path=/jwglxt","route=repaired-node; Path=/jwglxt");
+    new Reply(exams,"POST",200,"{}",null);
+    check(session.school("exams-login-redirect",new JSONObject().put("module","exams")).optInt("status")==200,"exam authentication redirect is recovered once without following a login webpage");
+    check(vault.reads==0,"exam recovery reuses valid SSO and never requests password for each page");
+    check(replies.isEmpty(),"exam transport and HTML cases consume exactly the expected requests");
     System.out.println("PASS "+checks+" offline school network checks");
   }
 }

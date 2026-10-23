@@ -5,7 +5,7 @@ test('标题轨道一次滑动覆盖全部页面且保留分数位置',()=>{asse
 
 test('停在日程时不预显示下一站课表，防止其从零位置闪入',()=>{assert.deepEqual(C.visiblePages(2,1,12),[1,2]);assert.deepEqual(C.visiblePages(1.8,1,12),[1,2]);assert.deepEqual(C.visiblePages(2,2,12),[2]);assert.deepEqual(C.visiblePages(2.01,2,12),[2,3]);});
 
-test('横向浏览可选子集，保留首页与固定页面顺序，不改变输入',()=>{const all=[['home','首页'],['workbench','工作台'],['calendar','日程'],['exams','考试'],['settings','设置']],selected=['exams','calendar','unknown','exams'];assert.deepEqual(C.pages(all,selected),[all[0],all[2],all[3]]);assert.equal(selected.length,4);assert.deepEqual(C.pages(all,null),all);assert.deepEqual(C.pages(all,['missing']),all.slice(0,2));});
+test('横向浏览保留子集和用户顺序，去重并保留首页，不改变输入',()=>{const all=[['home','首页'],['workbench','工作台'],['calendar','日程'],['exams','考试'],['settings','设置']],selected=['exams','calendar','unknown','exams'];assert.deepEqual(C.pages(all,selected),[all[0],all[3],all[2]]);assert.equal(selected.length,4);assert.deepEqual(C.pages(all,['exams','home','calendar']),[all[3],all[0],all[2]]);assert.deepEqual(C.pages(all,null),all);assert.deepEqual(C.pages(all,['missing']),all.slice(0,2));});
 
 function fixture(){let id=0;const scheduled=new Map(),drawn=[];const q=C.frameQueue(v=>drawn.push(v),fn=>{const key=id++;scheduled.set(key,fn);return key;},key=>scheduled.delete(key));return {q,scheduled,drawn,tick(){const pending=[...scheduled.values()];scheduled.clear();pending.forEach(fn=>fn());}};}
 test('同一帧输入突发只绘制最后位置，下一帧可继续',()=>{const f=fixture();for(let i=0;i<120;i++)f.q.push(i/120);assert.equal(f.scheduled.size,1);assert.deepEqual(f.drawn,[]);f.tick();assert.deepEqual(f.drawn,[119/120]);f.q.push(1.5);f.tick();assert.deepEqual(f.drawn,[119/120,1.5]);});

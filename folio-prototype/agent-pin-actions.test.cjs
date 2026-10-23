@@ -14,3 +14,27 @@ test('school title/date/delete remain protected both at draft and after editable
 test('failed persistence and conflicting edits never publish unmount',async()=>{const e=setup(),p=await draft(e,{pinAction:'return_to_inbox'});e.setFail(true);assert.throws(()=>e.R.confirm(p),/disk full/);assert.equal(e.context.homeworkState.items[0].mountedOn,'2026-10-21');assert.equal(p.status,'pending');e.setFail(false);e.context.homeworkState.items[0].important=true;assert.throws(()=>e.R.confirm(p),/已有变化/);});
 test('unmount needs prior read, rejects raw mount fields and contradictory queue state',async()=>{const e=setup();await assert.rejects(e.R.execute('draft_change',{operation:'update_todo',targetId:e.item.id,fields:{pinAction:'return_to_inbox'}},{proposals:[]},'m','卸下'),/先通过 read_record/);for(const fields of [{mountedOn:null},{mountDate:null},{pinAction:'nope'},{pinAction:'return_to_inbox',queued:false}])assert.throws(()=>A.validateDraft({operation:'update_todo',targetId:e.item.id,fields}));});
 test('queue exit and rehang stay independent from unmount',async()=>{const e=setup();e.R.confirm(await draft(e,{queued:false}));assert.equal(e.context.homeworkState.items[0].queued,false);assert.equal(e.context.homeworkState.items[0].mountedOn,null);e.R.confirm(await draft(e,{pinAction:'hang_now'}));assert.equal(e.context.homeworkState.items[0].mountedOn,e.today);assert.equal(e.context.homeworkState.items[0].queued,true);});
+
+test('已存的含零秒草稿可直接确认，分钟值、到时提醒与显示位置实际落盘',()=>{
+ const e=setup(),p={id:'legacy-seconds',operation:'create_todo',status:'pending',fields:{title:'图书馆安排',kind:'event',timeMode:'range',startAt:'2026-10-24T09:00:00',endAt:'2026-10-24T21:15:00',reminderOffsets:[0],placements:['calendar','home'],queued:false},before:null};
+ assert.equal(e.context.homeworkState.items.length,1);e.R.confirm(p);const saved=JSON.parse(e.storage.get('qa')).items.find(i=>i.id==='chat-legacy-seconds');assert.equal(p.status,'confirmed');assert.equal(saved.startAt,'2026-10-24T09:00');assert.equal(saved.endAt,'2026-10-24T21:15');assert.deepEqual(saved.reminderOffsets,[0]);assert.deepEqual(saved.placements,['calendar','home']);assert.equal(T.reminderAt(saved),'2026-10-24T09:00');
+ e.R.confirm(p);assert.equal(e.context.homeworkState.items.filter(i=>i.id===saved.id).length,1);
+});
+
+test('AI新建草稿、旧个人记录的局部更新均规范化，原记录在确认前不变',async()=>{
+ const e=setup(),c={proposals:[]};await e.R.execute('draft_change',{operation:'create_todo',fields:{title:'安排',kind:'event',timeMode:'range',startAt:'2026-10-24 09:00:00',endAt:'2026-10-24T21:15:00.000',reminderOffsets:[0]}},c,'m','添加安排');const p=c.proposals[0];assert.equal(p.fields.endAt,'2026-10-24T21:15');assert.equal(e.storage.size,0);assert.equal(e.context.homeworkState.items.length,1);e.R.confirm(p);
+ const personal=e.context.homeworkState.items.find(i=>i.id==='chat-'+p.id);personal.startAt='2026-10-24T09:00:00';personal.endAt='2026-10-24T21:15:00';
+ await e.R.execute('read_record',{module:'events',id:personal.id},c,'m2','改备注');await e.R.execute('draft_change',{operation:'update_todo',targetId:personal.id,fields:{body:'新的备注'}},c,'m2','改备注');assert.equal(personal.startAt,'2026-10-24T09:00:00');e.R.confirm(c.proposals.at(-1));const saved=e.context.homeworkState.items.find(i=>i.id===personal.id);assert.equal(saved.body,'新的备注');assert.equal(saved.startAt,'2026-10-24T09:00');
+});
+
+test('作业省略入队时草稿/最终保存默认true，确认前不写入、不立即挂载',async()=>{
+ for(const operation of ['create_homework','create_todo']){
+  const e=setup(),c={proposals:[]};await e.R.execute('draft_change',{operation,fields:{title:'自定义作业',kind:'homework',timeMode:'deadline',deadline:'2026-11-02'}},c,'m','添加作业');const p=c.proposals[0];assert.equal(p.fields.queued,true);assert.equal(e.storage.size,0);e.R.confirm(p);const i=e.context.homeworkState.items.find(i=>i.id==='chat-'+p.id);assert.equal(i.queued,true);assert.equal(i.mountedOn,null);
+ }
+ const e=setup(),p={id:'old-omitted-queue',operation:'create_homework',status:'pending',fields:{title:'旧作业草稿',deadline:'2026-11-02'},before:null};e.R.confirm(p);assert.equal(e.context.homeworkState.items.find(i=>i.id==='chat-'+p.id).queued,true);
+});
+
+test('明确不入队可创建，后续只改备注也不会把已有作业重新入队',async()=>{
+ const e=setup(),c={proposals:[]};await e.R.execute('draft_change',{operation:'create_homework',fields:{title:'只放作业列表',queued:false}},c,'m','只放列表');const p=c.proposals[0];e.R.confirm(p);const i=e.context.homeworkState.items.find(i=>i.id==='chat-'+p.id);assert.equal(i.queued,false);
+ await e.R.execute('read_record',{module:'homework',id:i.id},c,'m2','改备注');await e.R.execute('draft_change',{operation:'update_todo',targetId:i.id,fields:{body:'保留不入队'}},c,'m2','改备注');e.R.confirm(c.proposals.at(-1));assert.equal(e.context.homeworkState.items.find(n=>n.id===i.id).queued,false);
+});

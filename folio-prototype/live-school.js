@@ -76,7 +76,12 @@
     async sync(){const jobs=[...Object.keys({grades:1,courses:1,homework:1,practice:1}).map(m=>FolioAcademicUI.refresh(m)),refresh("exams")];const result=await Promise.allSettled(jobs),warning=FolioSchoolConnection.failureSummary(warnings());if(warning)state.lastLoginWarning=warning;else delete state.lastLoginWarning;localStorage.setItem(N.storageKey,JSON.stringify(state));return result;},
     async setTerm(id){if(!/^20\d{2}-20\d{2}-[12]$/.test(id))throw new Error("学期编号不正确");const existing=term(id);FolioCourses.semesters.splice(FolioCourses.semesters.indexOf(existing),1);FolioCourses.semesters.unshift(existing);store("activeTerm",id);location.reload();}
   };
-  window.addEventListener("folio-school-login",async()=>{const site=browserSite;browserSite=null;if(!site)return;const modules=site==='academic'?['grades','courses','exams']:site==='homework'?['homework']:['practice'];await Promise.allSettled(modules.map(m=>m==='exams'?refresh(m):FolioAcademicUI.refresh(m)));});
+  window.addEventListener("folio-school-login",async()=>{const site=browserSite,epoch=accountEpoch;browserSite=null;if(!site)return;
+    // Dismissing the official login rotates native cookie generation. Let requests
+    // started before that rotation finish before launching a fresh sync; otherwise
+    // refresh() reuses the old doomed in-flight exam request and never retries.
+    await Promise.allSettled([...flights.values()]);if(epoch!==accountEpoch)return;
+    const modules=site==='academic'?['grades','courses','exams']:site==='homework'?['homework']:['practice'];await Promise.allSettled(modules.map(m=>m==='exams'?refresh(m):FolioAcademicUI.refresh(m)));});
   let homeworkAt=0,homeworkBusy=false;
   async function refreshHomeworkIfStale(){
     if(homeworkBusy||!state.accountId||Date.now()-homeworkAt<60000)return;

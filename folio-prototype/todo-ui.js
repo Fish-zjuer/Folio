@@ -130,7 +130,7 @@ function openTodoEditor(selected,origin,preset={}) {
   const until=field("重复结束日期（选填）","date",parent?.repeat?.until||"");
   repeatSection.append(firstDay.label,interval.label,weekFields,until.label);recurrence.append(repeatSection);
   const remind=section("提前提醒"),reminders=FolioItemOptions.reminders(remind,parent||{});
-  const displays=FolioItemOptions.mount(form,parent||{kind:kind.input.value});kind.input.addEventListener("change",()=>{displays.setKind(kind.input.value);if(kind.input.value==="lesson"&&timeMode.input.value==="none"){timeMode.input.value="pending";updateFields();}});
+  const displays=FolioItemOptions.mount(form,parent||{kind:kind.input.value},undefined,{newItem:!parent});kind.input.addEventListener("change",()=>{displays.setKind(kind.input.value);if(kind.input.value==="lesson"&&timeMode.input.value==="none"){timeMode.input.value="pending";updateFields();}});
   const error=make("p","form-error");error.setAttribute("role","alert");
   const saveBar=make("div","todo-save-bar"), submit=make("button","sheet-submit",parent ? "保存修改" : "添加");submit.type="submit";saveBar.append(error,submit);form.append(saveBar);
   function toggle(node,visible) {node.hidden=!visible;node.querySelectorAll("input,select,textarea").forEach(input=>{input.disabled=!visible;});}

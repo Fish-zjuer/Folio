@@ -1,0 +1,257 @@
+{
+  "files": 50,
+  "tests": 349,
+  "passed": true,
+  "results": [
+    {
+      "file": "academic-core.test.cjs",
+      "exit": 0,
+      "tests": 22
+    },
+    {
+      "file": "agent-core.test.cjs",
+      "exit": 0,
+      "tests": 12
+    },
+    {
+      "file": "agent-pin-actions.test.cjs",
+      "exit": 0,
+      "tests": 10
+    },
+    {
+      "file": "agent-preferences.test.cjs",
+      "exit": 0,
+      "tests": 2
+    },
+    {
+      "file": "backend-core.test.cjs",
+      "exit": 0,
+      "tests": 17
+    },
+    {
+      "file": "calendar-core.test.cjs",
+      "exit": 0,
+      "tests": 10
+    },
+    {
+      "file": "card-pack-core.test.cjs",
+      "exit": 0,
+      "tests": 8
+    },
+    {
+      "file": "chat-core.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "course-data.test.cjs",
+      "exit": 0,
+      "tests": 9
+    },
+    {
+      "file": "course-overrides.test.cjs",
+      "exit": 0,
+      "tests": 3
+    },
+    {
+      "file": "exams-core.test.cjs",
+      "exit": 0,
+      "tests": 6
+    },
+    {
+      "file": "focus-session-store.test.cjs",
+      "exit": 0,
+      "tests": 2
+    },
+    {
+      "file": "gesture-core.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "goal-core.test.cjs",
+      "exit": 0,
+      "tests": 15
+    },
+    {
+      "file": "history-goal-export.test.cjs",
+      "exit": 0,
+      "tests": 12
+    },
+    {
+      "file": "home-week-core.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "homework-queue.test.cjs",
+      "exit": 0,
+      "tests": 14
+    },
+    {
+      "file": "inbox-undo.test.cjs",
+      "exit": 0,
+      "tests": 6
+    },
+    {
+      "file": "item-policy.test.cjs",
+      "exit": 0,
+      "tests": 12
+    },
+    {
+      "file": "learning-core.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "live-data-stores.test.cjs",
+      "exit": 0,
+      "tests": 3
+    },
+    {
+      "file": "live-integration.test.cjs",
+      "exit": 0,
+      "tests": 8
+    },
+    {
+      "file": "markdown-core.test.cjs",
+      "exit": 0,
+      "tests": 2
+    },
+    {
+      "file": "native-migration.test.cjs",
+      "exit": 0,
+      "tests": 1
+    },
+    {
+      "file": "note-layout-core.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "offline-sync-core.test.cjs",
+      "exit": 0,
+      "tests": 5
+    },
+    {
+      "file": "page-rail-core.test.cjs",
+      "exit": 0,
+      "tests": 8
+    },
+    {
+      "file": "pixel-avatar.test.cjs",
+      "exit": 0,
+      "tests": 2
+    },
+    {
+      "file": "practice-core.test.cjs",
+      "exit": 0,
+      "tests": 3
+    },
+    {
+      "file": "preferences-core.test.cjs",
+      "exit": 0,
+      "tests": 2
+    },
+    {
+      "file": "public-data-core.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "queue-manual.test.cjs",
+      "exit": 0,
+      "tests": 8
+    },
+    {
+      "file": "relationship-agent.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "relationship-archive.test.cjs",
+      "exit": 0,
+      "tests": 5
+    },
+    {
+      "file": "relationship-core.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "reminder-core.test.cjs",
+      "exit": 0,
+      "tests": 6
+    },
+    {
+      "file": "school-connection-core.test.cjs",
+      "exit": 0,
+      "tests": 5
+    },
+    {
+      "file": "snake-progress.test.cjs",
+      "exit": 0,
+      "tests": 7
+    },
+    {
+      "file": "study-backend.test.cjs",
+      "exit": 0,
+      "tests": 11
+    },
+    {
+      "file": "study-menu-core.test.cjs",
+      "exit": 0,
+      "tests": 11
+    },
+    {
+      "file": "study-model.test.cjs",
+      "exit": 0,
+      "tests": 9
+    },
+    {
+      "file": "study-widget-core.test.cjs",
+      "exit": 0,
+      "tests": 9
+    },
+    {
+      "file": "theme-system.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "timetable-core.test.cjs",
+      "exit": 0,
+      "tests": 5
+    },
+    {
+      "file": "todo-core.test.cjs",
+      "exit": 0,
+      "tests": 8
+    },
+    {
+      "file": "widget-sdk-core.test.cjs",
+      "exit": 0,
+      "tests": 3
+    },
+    {
+      "file": "workbench-overview-core.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "workbench-reorder.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "workbench-slot-core.test.cjs",
+      "exit": 0,
+      "tests": 4
+    },
+    {
+      "file": "workbench-stats-core.test.cjs",
+      "exit": 0,
+      "tests": 5
+    }
+  ]
+}
