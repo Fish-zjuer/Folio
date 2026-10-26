@@ -48,7 +48,7 @@ for name in preferences:
 if device is None: device=sorted(choices,key=lambda d:(d['runtime'],d['name']),reverse=True)[0]
 device_id=device['udid'];(out/'device.json').write_text(json.dumps(device,indent=2),encoding='utf-8')
 print('Simulator:',device['name'],device['runtime'],flush=True)
-base=['xcodebuild','-project','Folio.xcodeproj','-scheme','Folio','-configuration','Debug','-destination','platform=iOS Simulator,id='+device_id,'-derivedDataPath','Build','CODE_SIGNING_ALLOWED=NO']
+base=['xcodebuild','-project','Folio.xcodeproj','-scheme','Folio','-configuration','Debug','-destination','platform=iOS Simulator,id='+device_id,'-derivedDataPath','Build','CODE_SIGNING_ALLOWED=YES','CODE_SIGN_IDENTITY=-','CODE_SIGNING_REQUIRED=NO','CODE_SIGN_STYLE=Manual','DEVELOPMENT_TEAM=']
 code=logged('build',base+['build-for-testing'])
 if code: raise SystemExit(code)
 app=ROOT/'Build/Build/Products/Debug-iphonesimulator/Folio.app'
@@ -64,6 +64,13 @@ if device['state']!='Booted':run('xcrun','simctl','boot',device_id)
 run('xcrun','simctl','bootstatus',device_id,'-b',timeout=300)
 run('xcrun','simctl','status_bar',device_id,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
 run('xcrun','simctl','install',device_id,str(app))
+run('codesign','--verify','--deep',str(app))
+print('Native startup preflight',flush=True)
+run('xcrun','simctl','launch',device_id,'app.folio.ios.validation')
+time.sleep(4)
+run('xcrun','simctl','io',device_id,'screenshot',str(out/'native-startup.png'))
+try:run('xcrun','simctl','terminate',device_id,'app.folio.ios.validation')
+except subprocess.CalledProcessError:pass
 video=subprocess.Popen(['xcrun','simctl','io',device_id,'recordVideo','--codec=h264',str(out/'simulator.mp4')],stdout=subprocess.DEVNULL,stderr=(out/'video.log').open('w'))
 try:
     code=logged('ui-tests',base+['-parallel-testing-enabled','NO','-resultBundlePath',str(out/'Folio.xcresult'),'test-without-building'])
@@ -78,10 +85,14 @@ finally:
     if (out/'Folio.xcresult').is_dir():
         exported=logged('export-attachments',['xcrun','xcresulttool','export','attachments','--path',str(out/'Folio.xcresult'),'--output-path',str(out/'attachments')],timeout=120)
         if exported: print('Full screenshots remain in Folio.xcresult',flush=True)
+    for crash in (Path.home()/'Library/Logs/DiagnosticReports').glob('Folio*.ips'):
+        (out/'crashes').mkdir(exist_ok=True);shutil.copy2(crash,out/'crashes'/crash.name)
+        print('Native crash:',crash.read_text(encoding='utf-8',errors='replace')[:12000],flush=True)
 report_path=out/'screens/report.json'
 report=json.loads(report_path.read_text(encoding='utf-8')) if report_path.is_file() else {}
 result={'passed':code==0 and report.get('passed') is True,'uiTestExitCode':code,'webChecks':len(report.get('checks',[])),
         'screenshots':len(report.get('screenshots',[])),'device':device['name'],'runtime':device['runtime'],
         'simulator':True,'fixtureData':True,'commit':os.environ.get('GITHUB_SHA','')}
 (out/'ci-result.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(result),flush=True)
+if report.get('error'):print('Web validation failure:',report['error'],flush=True)
 if not result['passed']:raise SystemExit(code or 1)
