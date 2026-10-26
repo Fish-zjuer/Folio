@@ -1,6 +1,6 @@
 """Run the actual app on an Apple iPhone simulator and collect inspectable evidence."""
 from pathlib import Path
-import argparse, json, os, shutil, subprocess, sys, time
+import argparse, json, os, plistlib, shutil, subprocess, sys, time
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser();parser.add_argument('--size', choices=['compact','regular'], required=True)
@@ -27,6 +27,7 @@ run(sys.executable, 'tools/prepare_assets.py', '--qa')
 run(sys.executable, 'tools/generate_project.py')
 (out/'xcode.txt').write_text(run('xcodebuild', '-version'), encoding='utf-8')
 catalog = json.loads(run('xcrun', 'simctl', 'list', 'devices', 'available', '--json'))['devices']
+sdk=run('xcrun','--sdk','iphonesimulator','--show-sdk-version').strip()
 choices=[]
 for runtime, devices in catalog.items():
     if '.iOS-' not in runtime: continue
@@ -34,6 +35,10 @@ for runtime, devices in catalog.items():
         if device.get('isAvailable') and device['name'].startswith('iPhone'):
             choices.append({**device,'runtime':runtime})
 if not choices: raise RuntimeError('No installed iPhone simulator; inspect runner/Xcode configuration')
+# The VM can contain runtimes installed by several Xcodes. Use the selected
+# Xcode's SDK/runtime pair, rather than blindly choosing the largest OS number.
+matched=[d for d in choices if d['runtime'].split('.iOS-')[-1].replace('-','.')==sdk]
+if matched:choices=matched
 preferences = ['iPhone SE (3rd generation)','iPhone 16e','iPhone 16','iPhone 15'] if args.size=='compact' else ['iPhone 16 Pro','iPhone 17 Pro','iPhone 16 Pro Max','iPhone 15 Pro']
 device=None
 for name in preferences:
@@ -43,15 +48,21 @@ for name in preferences:
 if device is None: device=sorted(choices,key=lambda d:(d['runtime'],d['name']),reverse=True)[0]
 device_id=device['udid'];(out/'device.json').write_text(json.dumps(device,indent=2),encoding='utf-8')
 print('Simulator:',device['name'],device['runtime'],flush=True)
-if device['state']!='Booted':run('xcrun','simctl','boot',device_id)
-run('xcrun','simctl','bootstatus',device_id,'-b',timeout=300)
-run('xcrun','simctl','status_bar',device_id,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
 base=['xcodebuild','-project','Folio.xcodeproj','-scheme','Folio','-configuration','Debug','-destination','platform=iOS Simulator,id='+device_id,'-derivedDataPath','Build','CODE_SIGNING_ALLOWED=NO']
 code=logged('build',base+['build-for-testing'])
 if code: raise SystemExit(code)
 app=ROOT/'Build/Build/Products/Debug-iphonesimulator/Folio.app'
+with (app/'Info.plist').open('rb') as stream:info=plistlib.load(stream)
+(out/'app-info.json').write_text(json.dumps(info,indent=2,default=str),encoding='utf-8')
+print('App metadata:',json.dumps({k:info.get(k) for k in ['CFBundleIdentifier','CFBundleExecutable','CFBundlePackageType','CFBundleSupportedPlatforms']}),flush=True)
+assert info.get('CFBundleIdentifier')=='app.folio.ios.validation'
+assert (app/info['CFBundleExecutable']).is_file()
 run(sys.executable,'tools/prepare_assets.py','--verify-app',str(app))
 shutil.copy2(ROOT/'Generated/web-assets-manifest.json',out/'web-assets-manifest.json')
+if device['state']!='Booted':run('xcrun','simctl','boot',device_id)
+run('xcrun','simctl','bootstatus',device_id,'-b',timeout=300)
+run('xcrun','simctl','status_bar',device_id,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
+run('xcrun','simctl','install',device_id,str(app))
 video=subprocess.Popen(['xcrun','simctl','io',device_id,'recordVideo','--codec=h264',str(out/'simulator.mp4')],stdout=subprocess.DEVNULL,stderr=(out/'video.log').open('w'))
 try:
     code=logged('ui-tests',base+['-parallel-testing-enabled','NO','-resultBundlePath',str(out/'Folio.xcresult'),'test-without-building'])
