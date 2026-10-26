@@ -19,7 +19,7 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
         let content = WKUserContentController()
         content.add(self, name: "folio")
         if simulatorQA { content.add(self, name: "qa") }
-        var scripts = [resource("ios-bridge", folder: "Resources")]
+        var scripts = [resource("ios-bridge", folder: "HostAssets")]
         #if DEBUG && targetEnvironment(simulator)
         if simulatorQA { scripts += [resource("native-fixture", folder: "QA"), resource("qa-seed", folder: "QA")] }
         #endif

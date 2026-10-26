@@ -57,6 +57,7 @@ with (app/'Info.plist').open('rb') as stream:info=plistlib.load(stream)
 print('App metadata:',json.dumps({k:info.get(k) for k in ['CFBundleIdentifier','CFBundleExecutable','CFBundlePackageType','CFBundleSupportedPlatforms']}),flush=True)
 assert info.get('CFBundleIdentifier')=='app.folio.ios.validation'
 assert (app/info['CFBundleExecutable']).is_file()
+assert not (app/'Resources').exists(), 'Reserved Resources directory confuses CFBundle layout detection'
 run(sys.executable,'tools/prepare_assets.py','--verify-app',str(app))
 shutil.copy2(ROOT/'Generated/web-assets-manifest.json',out/'web-assets-manifest.json')
 if device['state']!='Booted':run('xcrun','simctl','boot',device_id)

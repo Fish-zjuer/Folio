@@ -22,7 +22,7 @@ sources=[]; children=[]
 for file in sorted((ROOT/'Folio').glob('*.swift')):
     path=file.relative_to(ROOT).as_posix();r=ref(path,path,'sourcecode.swift');children.append(r);sources.append(buildfile(path,r))
 resources=[]
-for path in ['Generated/WebAssets','Generated/QA','Folio/Resources']:
+for path in ['Generated/WebAssets','Generated/QA','Folio/HostAssets']:
     r=ref(path,path,'folder');children.append(r);resources.append(buildfile(path,r))
 children.append(ref('Info.plist','Folio/Info.plist','text.plist.xml'))
 testref=ref('test','FolioUITests/FolioSmokeTests.swift','sourcecode.swift');children.append(testref)
