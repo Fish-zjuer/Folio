@@ -23,6 +23,17 @@ for name in ['APP-INTEGRATION.md','ROADMAP.md','README.md']:
  files.append(native/name)
 for name in ['NEXT-STAGE-20261022.md','ELYCHRON-REVIEW.md']:
  files.append(native/name)
+# Independent UIKit/WKWebView validation; generated assets are copied only by CI.
+ios=source/'folio-ios'
+if ios.is_dir():
+ for path in ios.rglob('*'):
+  rel=path.relative_to(ios)
+  if not path.is_file() or any(part in {'Generated','Build','Reports','__pycache__','xcuserdata'} for part in rel.parts):continue
+  if path.suffix in {'.swift','.js','.py','.pbxproj','.xcscheme','.plist','.md','.yml'} or path.name=='.gitignore':files.append(path)
+ workflow=ios/'ci/ios-webview.yml'
+ destination=target/'.github/workflows/ios-webview.yml';destination.parent.mkdir(parents=True,exist_ok=True)
+ shutil.copy2(workflow,destination)
+
 # Flutter migration: copy reviewable project sources only. Never import the SDK,
 # pub cache, local paths, generated build state, signing files, or reference repos.
 cross=source/'folio-cross-platform'
