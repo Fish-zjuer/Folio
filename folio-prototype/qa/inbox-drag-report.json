@@ -1,0 +1,1005 @@
+{
+  "checks": [
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch mode=false direction=-1: mounts even with today's quota filled",
+      "pass": true
+    },
+    {
+      "name": "paper is placed at the release point",
+      "pass": true
+    },
+    {
+      "name": "school title/deadline/body remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "no ghost, target or reading dialog left behind",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch mode=false direction=1: mounts even with today's quota filled",
+      "pass": true
+    },
+    {
+      "name": "paper is placed at the release point",
+      "pass": true
+    },
+    {
+      "name": "school title/deadline/body remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "no ghost, target or reading dialog left behind",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch mode=true direction=-1: mounts even with today's quota filled",
+      "pass": true
+    },
+    {
+      "name": "paper is placed at the release point",
+      "pass": true
+    },
+    {
+      "name": "school title/deadline/body remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "no ghost, target or reading dialog left behind",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch mode=true direction=1: mounts even with today's quota filled",
+      "pass": true
+    },
+    {
+      "name": "paper is placed at the release point",
+      "pass": true
+    },
+    {
+      "name": "school title/deadline/body remain unchanged",
+      "pass": true
+    },
+    {
+      "name": "no ghost, target or reading dialog left behind",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mouse mounts on release",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "pen mounts on release",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch cancellation preserves the record and restores the bag",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "drop outside desk returns the paper without changing the record",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "data refresh preserves captured paper while dragging",
+      "pass": true
+    },
+    {
+      "name": "drop uses latest record after refresh",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "completed homework is not re-mounted during drop",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "write failure preserves the paper and shows retry feedback",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "removed homework is never resurrected and failure is visible",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "navigation cancels drag without mounting or leaving stale state",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "window blur cancels the drag",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "second touch cancels instead of mounting",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "reader grip can pin to the same desk",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "double-tap undo returns only pulled paper, keeps automatic paper",
+      "pass": true
+    },
+    {
+      "name": "undo is not immediately re-mounted",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 1: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 2: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 3: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 4: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 5: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 6: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 7: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 8: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 9: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 10: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 11: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "touch drag frame 12: page stays fixed",
+      "pass": true
+    },
+    {
+      "name": "mount and manual placement survive app reload",
+      "pass": true
+    },
+    {
+      "name": "normal horizontal page swipe still works after dragging",
+      "pass": true
+    },
+    {
+      "name": "no browser runtime errors",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

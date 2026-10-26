@@ -1,0 +1,850 @@
+academic-core.test.cjs
+✔ 核心倍率只进入独立加权主修体系，不改变任何普通均绩 (1.96ms)
+✔ 主修手动计入/排除与原始归属隔离，支持单门/全部恢复和撤销 (0.1795ms)
+✔ 失败、空响应、未完成抓取和非法记录保留旧快照及成功时间 (0.3883ms)
+✔ 分模块成功互不覆盖，后续刷新不能清除本地规则，成绩片段按稳定 ID 合并 (0.2157ms)
+✔ 清除提醒不修改数据、不伪装成功；新失败可再次提醒，真实成功清除错误 (0.2304ms)
+✔ 无成绩显示未知，未出分不计已获学分，失败课保留 GPA 分母 (0.171ms)
+✔ 只有明确有效的空作业列表才清空，成绩空响应不能抹去已有记录 (0.2274ms)
+✔ 跨刷新序列化保留修改、缓存与已消除的失败提示 (0.1393ms)
+✔ 百分制和五级制进入绩点；合格/不合格都不进入分子或分母 (0.1902ms)
+✔ 二级制的未知学分不当成零或已获学分，也不会参与均绩 (0.1549ms)
+✔ 五级制百分值沿用原版明确映射，不把未知等级或二级制变成零分 (0.5837ms)
+✔ 按用户清单直接将五级制映射为绩点，不经过百分制中转 (1.0661ms)
+✔ 百分制各分档上下界准确，未知等级和小数分不擅自取整 (0.1481ms)
+✔ 首次导入已有成绩直接显示；首次空缓存不把下一次完整导入误判为新出分 (0.2696ms)
+✔ 出分或更正会再次待揭晓，课程名称和本地核心/主修修改不会触发 (0.2041ms)
+✔ 0.2 旧缓存升级不封住已出成绩，保留全局隐私及本地规则 (0.1212ms)
+✔ 明确关闭揭晓后直接显示，重新开启不遮住已公开结果，未来更正仍会遮住 (0.1566ms)
+✔ 此前待录与后续新增科目的出分会封住；失败刷新不改变揭晓基线 (0.2302ms)
+✔ 学期始终新到旧，独立于手动选择和后台插入顺序 (0.3145ms)
+✔ 成绩按学期稳定分组，同名/同课程不混学期，保留未知学期 (0.1921ms)
+✔ 重修按学校课号选择首次或最高，同名异课及跨学期体育保留 (0.1482ms)
+✔ 取首次仅改变均绩，重修已通过的学分仍获得且不重复 (0.0932ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.7047
+
+agent-core.test.cjs
+✔ Agent 可提高请求预算完成超过8轮的任务，耗尽时保留用量并说明设置入口 (5.2168ms)
+✔ 历史按用户轮次裁切，保留最新请求及附件，长度变更不修改原文 (0.1691ms)
+✔ 公开摘要与工具结果有独立事件，原始推理不进入可见过程 (0.327ms)
+✔ 工具阶段的用户停止不被吞成工具拒绝后继续请求模型 (0.2438ms)
+✔ 过大或空的工具结果在可见状态中也标明未完成，与交给模型的错误一致 (0.2364ms)
+✔ Agent 首轮只发送工具和用户指令，读取后生成草稿并累计真实用量 (0.7298ms)
+✔ 未知工具、非法字段与原型字段被拒绝，不执行写入 (0.2518ms)
+✔ 工具循环有上限，停止请求、接口错误仍保留已知用量 (0.8951ms)
+✔ 未返回缓存字段时展示未知，不捏造命中；兼容 DeepSeek 字段 (0.118ms)
+✔ 实验与临时安排可以作为事项草稿，保留类型和晚间时段直到用户确认 (0.7445ms)
+✔ 新增作业有独立草稿操作，强制本机 homework 类型且仍需确认 (0.154ms)
+✔ 实际模型请求带时间协议及字段说明，工具格式错误后可纠正再生成草稿 (0.5736ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13.4897
+
+agent-pin-actions.test.cjs
+✔ 运行时草稿数使用本次请求设置，不改变学校只读限制或直接写入 (8.5135ms)
+✔ school unmount remains a proposal until confirmed, preserves original and queue, survives refresh and time advance (2.6409ms)
+✔ school title/date/delete remain protected both at draft and after editable proposal changes (4.1081ms)
+✔ failed persistence and conflicting edits never publish unmount (1.5055ms)
+✔ unmount needs prior read, rejects raw mount fields and contradictory queue state (1.4037ms)
+✔ queue exit and rehang stay independent from unmount (1.5763ms)
+✔ 已存的含零秒草稿可直接确认，分钟值、到时提醒与显示位置实际落盘 (2.0939ms)
+✔ AI新建草稿、旧个人记录的局部更新均规范化，原记录在确认前不变 (1.7071ms)
+✔ 作业省略入队时草稿/最终保存默认true，确认前不写入、不立即挂载 (4.4042ms)
+✔ 明确不入队可创建，后续只改备注也不会把已有作业重新入队 (1.716ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.4764
+
+agent-preferences.test.cjs
+✔ 普通聊天不加载额外设置工具；明确设置请求按需加载 (3.2774ms)
+✔ 未启用的设置工具即便模型捏造调用也不会执行 (0.2189ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.2687
+
+backend-core.test.cjs
+✔ 考试地点兼容旧接口字段，空占位回退，数字座位号和期中期末不串 (3.6604ms)
+✔ 旧版期末时间及通用地点字段可读，未返回字段不虚构 (0.2242ms)
+✔ 考试分页完整读取后才交给缓存，漏页或重复页明确失败 (0.8712ms)
+✔ HTML服务错误不能误报为登录失效，真正登录页仍被识别 (0.2925ms)
+✔ 学校错误、登录 HTML、验证码和缺失列表不会当作有效空数据 (0.4169ms)
+✔ 百分制、五级制和水测保留学期与原始值；小数学分不截断 (0.3975ms)
+✔ 作业 UTC 时间换算为上海日期；刷新不丢本地事项及已挂便签 (41.3817ms)
+✔ 作业完成字段兼容 is_completed/completed/status，且不把未完成误判为完成 (0.5151ms)
+✔ 刷新漏页或空结果保留未完成作业，重复刷新不复制记录 (0.2295ms)
+✔ 刷新不会重新打开本地已完成作业，未知字段不推断；迁移外部 agent 的误判标记 (0.7669ms)
+✔ 校历严格日期与单双周、秋冬分段及补课按同一规则处理 (0.898ms)
+✔ 同天多场考试独立保留，不公布时间不伪造成有效日期 (0.1693ms)
+✔ 课程名称中英文括号统一，课表、成绩和考试可正确关联 (0.2625ms)
+✔ 实践使用实际 jd，删除和待审核不计入累计 (0.214ms)
+✔ 实践正式汇总读取 extend.myInfo，状态及小数保持；错误不以零覆盖 (0.1987ms)
+✔ 旧版课表和校历隔离备份，保留成绩、实践与活动学期且迁移可重复 (0.2097ms)
+✔ 校历与课表拒绝跨学年或半学期，不能把错误回包套到选中的学期 (0.2695ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.5803
+
+calendar-core.test.cjs
+✔ 截止与挂载是独立日程；移动便签不改变截止日，完成后只保留截止记录 (3.5318ms)
+✔ 跨日时段逐日裁切；午夜结束不会多占一天，不修改原始数据 (0.4927ms)
+✔ 重复待办按具体次数进入日程，模板不重复显示；不设时间的普通事项不占日历 (0.6561ms)
+✔ 全天事件与有时刻的事件独立，后者按时刻排列；拒绝非法日期及时段 (0.3582ms)
+✔ 定位正在进行或接下来的安排；全部结束后回到最后一项，空日程安全返回 (0.1583ms)
+✔ 有时刻的作业和待办与课程一样参与排序定位，没有具体时间的事项不占时间位置 (0.2412ms)
+✔ 课程剩余进度按时间向零减少，未开始/结束和跨日期均正确 (0.141ms)
+✔ 当前事件给出下一项倒计时，结束后保持等待状态；第一项之前和最后一项之后无倒计时 (0.2241ms)
+✔ 经历的连接段为实线，未来连接段为虚线；跨日期正确区分 (0.1114ms)
+✔ 仅进行中的有时段事项提供形象进度，跨日按原始完整时段计算 (0.1974ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.5455
+
+card-pack-core.test.cjs
+✔ existing four-slot ids stay independent of pack composition (0.9323ms)
+✔ two packs and duplicate widget types have independent active entries (0.1778ms)
+✔ selection and order survive serialization (0.469ms)
+✔ removing active card selects its neighbor and last removal leaves an empty tray (0.1347ms)
+✔ unknown external component ids survive until the developer component returns (0.0857ms)
+✔ nested packs, invalid moves and duplicate keys cannot corrupt stored composition (0.7057ms)
+✔ corrupt records are discarded without rejecting usable sibling packs (0.1093ms)
+✔ horizontal gesture clamps at edges, cancels, and needs intentional travel (0.1134ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.4408
+
+chat-core.test.cjs
+✔ 未发送内容、附件、模型设置与对话历史可往返序列化 (5.4042ms)
+✔ 空消息不发送，本地回复不伪造模型用量或识图结果 (0.1054ms)
+✔ 草稿暂存不写入待办，收起和刷新不丢字段；同消息重复打开复用提案 (0.1971ms)
+✔ 待办转换保持固定 ID，默认不入队、自定义作业归自定义课程 (0.5325ms)
+✔ 跨对话待确认修改独立保留，确认不会改变其他草稿 (0.1383ms)
+✔ 旧演示对话归档但不删除，未发送内容带入空白首页 (0.1911ms)
+✔ 真实待确认操作和真实对话不被首页迁移抹掉 (0.111ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.7976
+
+course-data.test.cjs
+✔ 学分汇总保留小数，区分未知值和零学分，不修改课程数据 (0.8923ms)
+✔ 列表课程与周课表标识和安排对应，学期汇总互不混合 (0.2155ms)
+✔ 超过5学分仍保留差别；小数学分不截断、不影响汇总 (0.1955ms)
+✔ 按教学周起点计算单双周，首周部分日期和冬学期重启正确 (3.3406ms)
+✔ 同一课程不同安排分别遵守单双周，地点和时刻不混用 (8.3505ms)
+✔ 短学期、起止教学周和指定周次都参与实际日期筛选 (0.4212ms)
+✔ 单双周互补课程不会被当成同日重叠课，计算不修改原安排 (4.7943ms)
+✔ 同课同地点同教学规则的相邻节次合并，6/7/8逆序输入也是一堂课 (0.228ms)
+✔ 指定周不同的相邻课段不合并，相同周集合顺序不影响且不跨课程合并 (0.4292ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.575
+
+course-overrides.test.cjs
+✔ 排除单次在合并前生效，只释放目标节次，学校原数据不变，跨刷新保留且可恢复 (9.9654ms)
+✔ 批量排除多组及整课程，只作用本学期/课程/指定范围，逐条恢复不影响其它记录 (0.3043ms)
+✔ 无效范围被拒绝，保存失败不改变排课，清单不暴露可变数组 (0.8905ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.4547
+
+exams-core.test.cjs
+✔ 考试校验拒绝无效日期、同刻或倒置时间，允许待定教室和座号 (2.9312ms)
+✔ 仅取本学期并按考试时间排序，不更改原列表 (0.471ms)
+✔ 倒计时在一天边界切换单位，考试开始和结束边界正确 (0.1865ms)
+✔ 教务与自定义考试同样投影进时间轴，保留教室与座号且没有课程进度 (0.3028ms)
+✔ 同日多场按开始、结束时刻稳定排列，跨年日期分别分组，输入不被修改 (0.1945ms)
+✔ 识别所有实际重叠，首尾相接、其他日期和本场不误判 (0.6657ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.3158
+
+focus-session-store.test.cjs
+✔ focus storage failure does not publish a fake start or reward (0.917ms)
+✔ native focus and ledger share saved state; completion remains once after restoring (0.3412ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4.9723
+
+gesture-core.test.cjs
+✔ 轴锁有死区，斜向小抖动不抢占滚动，大位移才确定主轴 (0.6269ms)
+✔ 两页拖动实时停在手指位置，边缘不越界；释放不足回弹，明显拖动或快划才换页 (0.1421ms)
+✔ 主界面可配置更轻的翻页门槛，短距离快划也能过去；月历默认手感不变 (0.0888ms)
+✔ 触屏只走一条输入流，PointerEvent 不会先取消或重复提交 TouchEvent (2.2679ms)
+✔ 日程外侧纵向拖动交还原生滚动，横向才由 pager 接管 (0.244ms)
+✔ 月历选择双轴时上下触摸不丢失，取消和多指均只回弹一次 (0.2444ms)
+✔ 移除卡片包后销毁手势绑定，清掉窗口和表面的监听并回弹一次 (0.2492ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.2782
+
+goal-core.test.cjs
+✔ 最高档仍不足时明确未达标，不把 4.44954 四舍五入成已达标 (9.1719ms)
+✔ 满足底线并优先高学分；不能出现连续虚构绩点 (0.7758ms)
+✔ 重排后小课可以先冲高；跨学分组合共同贡献；不改变输入 (0.3392ms)
+✔ 主修和总均绩分开；非主修仍守底线，二级制不进分母 (0.1402ms)
+✔ 独立加权目标支持 1.5/5.5 学分，分母只取主修学分 (0.2148ms)
+✔ 固定课程目标不被重排覆盖；校验上下限与未知归属 (0.3761ms)
+✔ 提醒只读取明确保存的方案，草稿和别的学期不触发 (0.1164ms)
+✔ 底线本身够用就不额外提分；提高全局底线后旧的逐课底线不能绕过 (0.2125ms)
+✔ 零学分合格制课程保留通过目标，不影响均绩或阻断方案 (0.1303ms)
+✔ 旧的倍率开关不能污染普通总均绩/主修目标，只有 weighted 类型启用 (0.1876ms)
+✔ 未知学分不能按 0、字符串或 null 进入分组与计算，填写后才可分配 (0.376ms)
+✔ 收窄预期区间取中间合法档，不回落到最低值 (0.1326ms)
+✔ 保留目标只修复失效项，拒绝字符串/null，不改变其他课程 (0.2846ms)
+✔ 出分后只撤下同学期课程目标/重要提醒，保留历史与其他目标，不读取实分 (0.368ms)
+✔ 课程全部出分后取消全部目标但保留原总目标，实绩仅计一次 (0.6659ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.6976
+
+history-goal-export.test.cjs
+✔ 目标档位显示的百分制/五级制成绩逐项正向换算回同一绩点 (1.2231ms)
+✔ 取最高模拟重修替换旧成绩、不重复学分，低分重修不拉低既有最高分 (0.7654ms)
+✔ 取首次时较晚的模拟重修不改变均绩，不能虚报达到目标 (1.2567ms)
+✔ 独立加权模拟与成绩页算法完全一致 (0.1775ms)
+✔ 100学分4.0加20学分5.0只能到4.1667，不可能达到4.5 (0.1539ms)
+✔ 成绩恢复历史课程但不捏造教师、地点或上课安排，且不修改输入 (0.6537ms)
+✔ 成绩补学分时保留已抓到的排课、教师和课程，不串学期 (0.1532ms)
+✔ iCal按真实校历展开课程、UTC时刻正确、UID可重复导出且稳定 (10.7732ms)
+✔ 本地排除和单双周真实影响导出次数 (0.8037ms)
+✔ 考试只导出所选学期有效时刻，选项可关闭 (0.9955ms)
+✔ iCal按UTF8字节折行，不截断汉字，不允许无效日期 (0.6144ms)
+✔ 无排课的成绩课程不得生成伪造日历 (0.1253ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.6596
+
+home-week-core.test.cjs
+✔ daytime receives the height while midnight-to-midnight remains monotonic (1.5368ms)
+✔ only today is requested: courses and exams on the timeline, personal items below (3.0438ms)
+✔ overnight items appear once on each affected day; midnight end does not spill over (0.1893ms)
+✔ work period and deadline on the same day yield one row, without a time block (0.1273ms)
+✔ rows include today and pending undated records; other days and mount duplicates are excluded (0.1836ms)
+✔ recurring rows use the current occurrence without persisting generated records (0.7648ms)
+✔ overlapping classes have separate lanes which are released afterwards (0.2045ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9.9612
+
+homework-queue.test.cjs
+✔ 重要课程作业前 3 天紧急；普通仍为 2 天，其他学期与非作业不受影响 (3.0728ms)
+✔ 重要作业提前到周五下午或周六，不覆盖手动日期与已挂出；退出重要策略恢复普通分配 (7.5075ms)
+✔ 整数分配保持总数；8 份按 2 / 4 / 2，极端比例也不丢份数 (1.44ms)
+✔ 一周以周一开始：整周 DDL 都分配到前一周五六日，跨年也正确 (0.1802ms)
+✔ 周五挂 2、周六累计 6、周日累计 8；逾期及跨日不会自动取下 (0.2504ms)
+✔ 完成不改变其他挂载日；教务刷新/DDL 调整及比例改变不能移动已挂载条目 (0.3345ms)
+✔ 手动改到未来日期先取下且计划不会覆盖；到日重新挂上，DDL 保持不变 (0.2249ms)
+✔ 普通待办默认不入队，明确选择入队才参与；退出保留待办，无 DDL 可指定日 (0.1573ms)
+✔ DDL 前两天进入临期；逾期保持，完成停止临期提示 (0.1001ms)
+✔ 日历数据区分挂载日与 DDL；改挂载日不挪截止事件，完成只移除挂载事件 (0.309ms)
+✔ 七天比例归一化，默认仍是周五六日；总份数与显示百分比不丢失 (0.2623ms)
+✔ 扩展日实际参与挂载，不局限周末；手动日和已挂载仍不受重分配影响 (0.3255ms)
+✔ 热力图只计未完成份数：2 → 1 → 0；完成不改变 DDL 或作业记录 (0.1076ms)
+✔ 自定义作业不依赖入队开关展示；普通待办入队不再改变作业归属 (0.1132ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.157
+
+inbox-undo.test.cjs
+✔ 主动从袋中贴出不受自动分配配额限制，日历手动排期仍保留配额规则 (10.3226ms)
+✔ 仅仍在待贴袋的有效条目可贴出，失效记录不能复活且学校原始字段不变 (0.1914ms)
+✔ 学校刷新保留手动来源及撤回后的当天暂停，重复实例重建也不丢来源 (6.2177ms)
+✔ 从袋子手动贴出后可以撤回，原事项/截止时间/队列保留；提交不会立即重新挂出 (0.5528ms)
+✔ AI、作业页和自动挂载的便签不清空，也不猜旧版记录来源 (0.1297ms)
+✔ 后来在作业页或AI重新设置挂载，则清除撤回权限 (0.1681ms)
+✔ 撤回只作用于选中的便签，完成状态及已变动的挂载不被覆盖 (0.1252ms)
+✔ 同日自动挂载计划在撤回后暂停当天；次日恢复原计划，重新手动挂上也可立即生效 (0.1203ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.127
+
+item-policy.test.cjs
+✔ 新建自定义作业默认入队，其他类型不扩大默认；明确取消优先 (0.9474ms)
+✔ 课程安排默认用课程展示，不进入作业待办或便签配额，仍可独立入队 (2.9842ms)
+✔ 展示位置多选覆盖默认，空数组允许仅入队/仅检索，类型不被改变 (0.3267ms)
+✔ 加入普通便签不再使待办自动成为作业，旧作业保持作业默认位置 (0.0891ms)
+✔ 多个提醒接受中英文逗号，去重且按触发顺序跨日计算，旧单值兼容 (0.7272ms)
+✔ 时间待定保留日期与提醒配置，不生成虚假午夜或提前通知，补齐时间后才计算 (0.2783ms)
+✔ AI占位时刻转成待定草稿，而不是拒绝用户；明确非法时刻仍校验失败 (0.3668ms)
+✔ AI与旧草稿的零秒/空格时间统一成分钟，保留原日时与提醒且不修改输入 (0.5233ms)
+✔ 时间规范化不猜时区、不吞非零秒或修复非法日期，校验指出具体字段 (0.8662ms)
+✔ 重复待定安排保留多选位置/提醒，并按每次日期单独投影 (0.603ms)
+✔ 跨午夜课程在两天分段；首页已显示课程的记录不再重复占底部事项 (0.4487ms)
+✔ 学校同步保留本地位置和多个提醒；隐藏课程不抹掉数据统计来源 (3.0307ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.6401
+
+learning-core.test.cjs
+✔ 录音检索组合课程/学期/日期/关键词，不混入同名旧学期或日记 (10.0048ms)
+✔ 日记独立保存、更新保留创建时间，拒绝非法日期和未来格式 (0.5347ms)
+✔ 多时区课程匹配使用上海时间，边界与冲突不猜 (0.1977ms)
+✔ AI只能读取文字、课程关联，无法获取音频路径或二进制 (0.6536ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15.3762
+
+live-data-stores.test.cjs
+✔ weather requests deduplicate and a failed refresh preserves the last real value (3.0307ms)
+✔ native usage requires permission and can retain real zero without inventing old records (1.9519ms)
+✔ browser usage cannot claim Android authorization or issue a permission command (1.5338ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.6193
+
+live-integration.test.cjs
+✔ 草稿只在确认后保存，收起/序列化可恢复；重复确认不重复创建 (23.9532ms)
+✔ 更新必须先读取，期间发生变化则拒绝确认；取消草稿不产生副作用 (1.8236ms)
+✔ 学校考试只读；不相关请求不能调用成绩工具；删除必须显式确认 (1.4453ms)
+✔ 成绩同步及失败互不清缓存，非法成绩不进入持久缓存；校历失败不抹课表 (3.1534ms)
+✔ 实践汇总与明细独立读取，失败时保留正式总分及已成功的部分 (1.757ms)
+✔ 课表使用完整学年，学分只按同学期匹配；错误学期返回不覆盖旧课程 (2.5977ms)
+✔ 切换学校账号先隔离旧学业快照，保留个人事项和隐私且不混入旧学校作业 (1.2954ms)
+✔ 保存主修课号目录、课表从同学期权威记录补课号，不以课程标题猜归属 (1.7791ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.8521
+
+markdown-core.test.cjs
+✔ Markdown 正文支持强调、列表、代码、引用和表格 (1.2496ms)
+✔ 原文 HTML 与危险链接不执行，围栏代码保持原文 (0.298ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.3797
+
+native-migration.test.cjs
+✔ 0.1 升级迁移保留个人待办、聊天、隐私及本地修改，并备份移除的系统示例 (2.3849ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.9766
+
+note-layout-core.test.cjs
+✔ 便签先均匀占满可用位置，再错位覆盖，位置可重复且不越左右边界 (1.2892ms)
+✔ 用户从袋内拖放的位置保留，后续新增不会重排该位置 (0.6968ms)
+✔ 保留装饰区后，自动和手动便签均避开咖啡与底部边界，密集时也不侵入 (40.3392ms)
+✔ 手动落在装饰上的便签就近让开，新增便签不再挪动它 (0.4132ms)
+✔ 避让后仍先铺开可用空间，再插空叠放 (0.1837ms)
+✔ 先为七张纸预留完整铺排，不让稀疏角落把中间空地割碎 (0.7084ms)
+✔ 按各个装饰避让，仍可利用纵向空白；满之前不强行缩小间距 (0.2706ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.9293
+
+offline-sync-core.test.cjs
+✔ 同步文件加密后不含文字/账号；同账号口令解密，随机盐使同内容密文不同 (119.5446ms)
+✔ 错误口令、不同账号、篡改密文、未来格式、恶意参数均拒绝且不写任何设备状态 (147.0196ms)
+✔ 只捕获白名单，拒绝学校/模型凭据、其他账号、任意存储键、非法录音 (0.5223ms)
+✔ 覆盖仅写同步键，其他账号缓存、模型配置、权限、对话均保留；删除仅对应空键 (0.1623ms)
+✔ 旧同步文件缺少关系网时保留本机，新文件加密带走关系网 (76.5504ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.0061
+
+page-rail-core.test.cjs
+✔ 页面位置连续跟随，边缘只做轻微阻尼 (0.6839ms)
+✔ 短触不切页，足够距离或速度才前进，取消恢复，不越界 (0.1142ms)
+✔ 标题轨道一次滑动覆盖全部页面且保留分数位置 (0.0834ms)
+✔ 停在日程时不预显示下一站课表，防止其从零位置闪入 (0.4645ms)
+✔ 横向浏览保留子集和用户顺序，去重并保留首页，不改变输入 (0.1898ms)
+✔ 同一帧输入突发只绘制最后位置，下一帧可继续 (0.1965ms)
+✔ 松手前flush绘制最后位置一次且不遗留下一帧回调 (0.5578ms)
+✔ 导航或模式取消后不允许旧位置覆盖新页面，支持帧ID为0 (0.1225ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.0411
+
+pixel-avatar.test.cjs
+✔ 保存形象只接受统一规格和安全色值，损坏或旧版数据回到书本 (0.8708ms)
+✔ 预设和自绘规格相同，编辑副本不改变预设或已应用的数据 (0.2995ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4.8342
+
+practice-core.test.cjs
+✔ 只有已审核、未删除且记点有效的记录计入，零分与未知分不同 (0.496ms)
+✔ 正式汇总不被项目合计覆盖，按更新日期排序，排除删除记录且不修改输入 (0.6564ms)
+✔ 明细缺失与确实没有项目分开，不把缺失记点转成0 (0.1166ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4.9987
+
+preferences-core.test.cjs
+✔ AI设置严格白名单，不接受凭据、原型、任意存储键 (0.7566ms)
+✔ 横向子集去重但保留用户顺序与首页，比例必须完整且合计100 (0.5379ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4.9879
+
+public-data-core.test.cjs
+✔ public services stay on fixed HTTPS hosts, with no arbitrary URL or private credentials (0.8173ms)
+✔ night and weather-code states choose distinct paper icons; missing data never becomes sunny zero (0.1952ms)
+✔ real response retains source timestamp, allows true zero and keeps absent metrics unknown (0.1737ms)
+✔ news discards deleted/non-story items and never emits unsafe links (0.1411ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.3148
+
+queue-manual.test.cjs
+✔ 一天指完整可用日：白天交提前一天着火，凌晨交再提前一天 (3.0324ms)
+✔ 提前不改变截止日，日满拒绝；完成过的当日安排仍计入负荷，积压不重复计 (0.3091ms)
+✔ 推后必须交换，双方等量移动；无候选和临期均拒绝且不部分修改 (1.1ms)
+✔ 冒烟／着火不能推后，也不能先移到未来的冒烟期；临期仍可提前 (0.1597ms)
+✔ 交换不能移入已过载日期；不接受完成或不存在的事项 (0.1866ms)
+✔ 系统仍可调配超过手动上限；比例配额模式覆盖零配额日 (7.344ms)
+✔ 手动默认工作日最多1项、周末每天3项，周末上限可调整 (0.1455ms)
+✔ 袋内今日稍后自动挂载的便签，可主动提前到现在且不会算成新增占位 (0.1245ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17.4914
+
+relationship-agent.test.cjs
+✔ AI changes stay pending until confirmation; first write/reload is durable and repeated confirm is safe (11.2218ms)
+✔ only current-turn reads authorize edits, note replacement requires every page, stale drafts cannot overwrite (4.3867ms)
+✔ failed persistence never publishes a confirmed mutation; map revision protects against stale snapshots (2.9482ms)
+✔ subtree move needs both latest endpoints, draft budget is shared, private tree is absent from first request (4.5404ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26.6897
+
+relationship-archive.test.cjs
+✔ ZIP roundtrip preserves capacity, independent branches, notes, positions and folded state across segments (11.0932ms)
+✔ maximum 2000-node capacity and full-length non-ASCII notes roundtrip without truncation (351.947ms)
+✔ damaged and truncated ZIP files reject before any store can be changed (2.5734ms)
+✔ invalid capacity and dangling parents cannot be exported as a valid backup (0.2268ms)
+✔ standard Python ZIP reader validates our archive, and its deflated repack imports correctly (258.8657ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 627.6434
+
+relationship-core.test.cjs
+✔ first empty database and its persisted reload have identical canonical serialization (0.7362ms)
+✔ fuzzy search ranks approximate names and paths without returning complete notes (4.3718ms)
+✔ search and read have hard output and paging bounds even for a full forest (84.875ms)
+✔ move/detach/delete are atomic subtree operations, preserve notes and reject cycles (1.3485ms)
+✔ restore validates multi-root data, missing parents, limits and hostile fields (0.4222ms)
+✔ capacity expands one 250-node segment at a time without losing data; old files default to 250 (0.4047ms)
+✔ filled segments enforce the opened capacity consistently in restore and AI creation (0.989ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.9808
+
+reminder-core.test.cjs
+✔ 多个提前提醒使用上海时间而非宿主时区，并保留原始记录 (3.1633ms)
+✔ 完成、学校已交、远端消失及待定时间不调度，不猜测无时刻DDL (0.8463ms)
+✔ 首次启用不补发已经过期的提前提醒 (0.2255ms)
+✔ 改期改变通知键和修订，移除提醒后不保留活动投影 (0.2802ms)
+✔ 每日重复跨30天续排，已完成实例不重新提醒 (1.9156ms)
+✔ 标题去除控制字符，单项坏时间不阻断合法提醒，投影不包含凭据 (0.2139ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.1824
+
+school-connection-core.test.cjs
+✔ 各刷新入口自动恢复各自平台登录并重试原请求 (1.3069ms)
+✔ 同一平台并发失败共用一次认证，之后各自重读 (1.6442ms)
+✔ 普通失败和校历失败不重登；认证失败与重试失败都有限次退出 (0.5617ms)
+✔ 原生端已负责认证恢复时，前端不重复提交认证或重读 (0.282ms)
+✔ 同步失败直接解释平台和原因，合并重复原因，成功为空 (0.1623ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.6819
+
+snake-progress.test.cjs
+✔ 路线方向固定，横向间距相等，卡片增高时仍保持头像安全边距 (4.0024ms)
+✔ 方块连续相接且不重复，转弯无斜线或碎步 (0.2048ms)
+✔ 三节课的两次折返分别对应课间，宠物到达每个转角的时刻准确 (0.3056ms)
+✔ 两节课只标一次课间，第二节走完剩余路线，边界和进度单调正确 (0.3777ms)
+✔ 走过的路线保持灰色像素，终点完成也不擦除整条路 (0.5689ms)
+✔ 秒级进度在同一像素内也移动头像，复用原图且不覆盖相邻竖线 (0.3147ms)
+✔ 横向间距逐像素可调，竖向高度和24像素图标尺寸保持不变，转角时刻正确 (0.9179ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.6598
+
+study-backend.test.cjs
+✔ native store migrates once, serializes concurrent updates and persists before publish (4.039ms)
+✔ failed durable write leaves prior memory unchanged (0.4757ms)
+✔ native conflict reloads newer state and does not silently retry stale edit (0.2579ms)
+✔ AI cards require literal material evidence and reject duplicate questions (0.2986ms)
+✔ generated cards do not change mastery until explicit draft acceptance, retries are idempotent (0.5864ms)
+✔ AI grade requires confidence override when uncertain and rejects changed/deleted card (0.5522ms)
+✔ project completion is duration-weighted and never marks school task submitted (0.2611ms)
+✔ review priority considers important course and prepares before the next lesson (0.1775ms)
+✔ repeated successful review extends interval, a lapse shortens it (6.5661ms)
+✔ pomodoro records only actual segments, excludes pauses and stops exactly at 25 minutes after restart (0.4215ms)
+✔ ending early records focus without a completed tomato (0.1258ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.0741
+
+study-menu-core.test.cjs
+✔ bento zones produce separate menus instead of destination-only lists (1.7819ms)
+✔ a selected schedule retains its date when course ids repeat (0.1573ms)
+✔ four quadrants are semantic and do not include lessons/completed tasks (0.1233ms)
+✔ submitted view excludes local completions (0.0725ms)
+✔ flashcards can be filtered by course and due state (0.1152ms)
+✔ exam menu distinguishes future and finished with selected exam first (0.1255ms)
+✔ sleep day and focus day select only their own records (0.1161ms)
+✔ hidden grade view never supplies records or selected numeric value (0.1016ms)
+✔ grade ring and semester selection use actual ids (0.0946ms)
+✔ every motif has a route and selection never changes source data (0.2597ms)
+✔ an agenda time block selects a personal arrangement without making it a lesson (6.529ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14.0208
+
+study-model.test.cjs
+✔ empty records stay empty; no sleep or coffee inferred (3.5116ms)
+✔ sleep zero differs from missing and saving is immutable (0.4756ms)
+✔ review requires explicit rating and isolates the selected semester (0.3144ms)
+✔ future review does not count as learned today (0.1162ms)
+✔ streak tolerates not starting today; a missed yesterday breaks it (0.1199ms)
+✔ exams use actual end time and cannot leak another term (0.2228ms)
+✔ events remain available to agenda but never counted as homework (0.1851ms)
+✔ aliases isolate provider+model and never alter model ID (0.2417ms)
+✔ unsupported max is omitted; explicit mapping is required (0.1735ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.0519
+
+study-widget-core.test.cjs
+✔ backend model exposes every field the 18 standalone cards bind (5.0639ms)
+✔ schedule-derived backend reacts to calendar/exclusion/course changes through library key (0.5132ms)
+✔ backend keeps unknown/empty data empty instead of inventing progress (0.4726ms)
+✔ important course raises review priority only for existing cards (0.367ms)
+✔ school submitted is distinct from local completion (0.2926ms)
+✔ priority views rank important/urgent before storage order (0.23ms)
+✔ explicit termId wins over semester array order (0.273ms)
+✔ schedule key changes for calendar, course and exclusion edits (0.2362ms)
+✔ all 18 standalone and 8 bento contracts are populated by one backend build (0.3366ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.9247
+
+theme-system.test.cjs
+✔ Android实际系统深色优先于固定浅色WebView媒体查询，首次加载即可生效 (1.844ms)
+✔ 系统深浅切换和恢复前台同步更新，不覆盖手动浅/深选择 (0.9961ms)
+✔ 普通浏览器仍随系统媒体查询动态切换，显式浅色不被改变 (1.2867ms)
+✔ 旧宿主可用主题事件同步系统状态，非法事件忽略，返回可见时校正 (1.4847ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8.9962
+
+timetable-core.test.cjs
+✔ 原生课表支持校历全部十五节，晚课不挤到末端；拒绝非法时间轴 (3.6703ms)
+✔ 默认十五节时间轴连续单调，课间压缩但起止时间保持对应 (1.3115ms)
+✔ 重叠课程合并，首尾相接不算冲突，输入数据不被改变 (0.6427ms)
+✔ 十五节按页面可用高度缩放，真实时刻仍单调且最后一节不越出页面 (2.0089ms)
+✔ 默认课表含第14/15节，晚间及跨日事项动态延伸至午夜且均匀缩放 (0.225ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11.336
+
+todo-core.test.cjs
+✔ 指定时段支持跨日，严格校验结束时间；内容与标题独立 (3.414ms)
+✔ 每天按间隔生成，每次完成独立且跨刷新保留 (7.6698ms)
+✔ 每周可选择多个星期并指定结束日期 (0.8587ms)
+✔ 每月 31 日在短月使用月末，首次很远仍提供下一次安排 (0.1633ms)
+✔ 提前提醒锚定开始时刻或截止时刻，跨日减分钟；无时间不允许提醒 (0.2557ms)
+✔ 重要和紧急独立；重复时间段入队按开始日，日历保存真实时段 (1.1064ms)
+✔ 改变重复规则不会自动丢掉已经挂出的或已完成的旧实例 (0.7975ms)
+✔ 事项是真实独立类型：支持晚间、跨午夜、重复及地点，不混入作业统计 (0.3472ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.2758
+
+widget-sdk-core.test.cjs
+✔ public widget manifests have a versioned namespace and explicit datasets (1.1672ms)
+✔ snapshots are recursively copied and frozen, preferences cannot address host keys (0.2379ms)
+✔ theme palettes require matching semantic roles in light and dark, with safe immutable colors (0.3319ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.4429
+
+workbench-overview-core.test.cjs
+✔ privacy masks all derived grades and goal projection; missing credits are partial, not zero (0.5632ms)
+✔ major and weighted remain independent, goal gap retains sign and practice uses platform totals (0.1469ms)
+✔ early morning deadline protects preceding full working day; old backlog does not consume new-note quota (2.4079ms)
+✔ current class retained, finished classes and expired exams excluded, 14-day window is bounded (6.3416ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13.3248
+
+workbench-reorder.test.cjs
+✔ An interactive card allows the page to begin a swipe while long press is pending (3.8374ms)
+✔ A held touch survives native pointer cancellation, follows touch and swaps on touchend (2.3542ms)
+✔ Dropping over the basket removes one widget after its arrival, without swapping (2.0627ms)
+✔ Cancelled and hidden basket targets never remove a widget (1.8209ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13.6615
+
+workbench-slot-core.test.cjs
+✔ swapping keeps all four values and leaves the original untouched (1.0603ms)
+✔ drop targets are limited to the four actual rectangles including empty slots (0.1268ms)
+✔ keyboard moves respect rows rather than wrapping left/right (0.0999ms)
+✔ catalog puts crafted bentos and illustrations before data without changing placed or registration order (0.2923ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.7555
+
+workbench-stats-core.test.cjs
+✔ last week means Monday to Sunday in Shanghai; crossing midnight splits, pauses are excluded (2.9046ms)
+✔ unfinished active timer is capped at 45 min, overlapping records deduplicated, preview creates no houses (0.1984ms)
+✔ invalid and future segments excluded; unfinished draft still contributes actual segments (0.1368ms)
+✔ task ledger counts retained records only and uses actual deadlines, not queue posting dates (0.2132ms)
+✔ semester totals use actual supplied occurrences, keep current class, split this/next week and reject stale calendar (0.3073ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7.7263

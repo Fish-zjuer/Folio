@@ -103,7 +103,7 @@
   }); readerGrip.hidden=true;
   const readerBody = el("div", "workbench-reading-body"), readerLinks = el("div", "workbench-reading-links");
   readerCard.append(readerGrip, readerClose, readerSubject, readerTitle, readerBody, readerLinks); reader.append(readerShade, readerCard); phone.append(reader);
-  let readerOrigin = null, returnToInbox = false, currentReaderItem = null, ignoreIncomingClick = 0;
+  let readerOrigin = null, returnToInbox = false, currentReaderItem = null, ignoreIncomingClick = 0, incomingDrag = null;
   function webUrl(value) {
     if (typeof value !== "string" || !value.trim()) return null;
     try { const url = new URL(value); return ["https:","http:"].includes(url.protocol) ? url.href : null; } catch { return null; }
@@ -180,6 +180,8 @@
     if (event.target === incomingPanel && event.animationName === "workbench-incoming-close" && incomingPanel.classList.contains("is-closing")) closeIncoming(true);
   });
   function openIncoming() {
+    // A refresh must not remove the pointer-captured source mid-drag.
+    if(incomingDrag)return;
     if (incomingPanel.classList.contains("is-closing")) {
       incomingPanel.classList.remove("is-closing"); inboxButton.setAttribute("aria-expanded","true");
       incomingPanel.querySelector("button")?.focus({preventScroll:true});
@@ -198,12 +200,12 @@
     incomingPanel.querySelector("button")?.focus({preventScroll:true});
   }
   function pinIncoming(item, point) {
+    item=homeworkState.items.find(row=>row.id===item.id);
     if(!incomingItems().includes(item))return {ok:false,message:"这张便签已经不在袋子里"};
-    const options=typeof queueManualOptions==="function"?queueManualOptions():{weekdayLimit:1,weekendLimit:homeworkState.weekendLimit||3};
     const next=structuredClone(homeworkState),candidate=next.items.find(r=>r.id===item.id);
-    const result=FolioQueue.pinFromDesk(next.items,candidate,homeworkState.today,options);
+    const result=FolioQueue.pinFromDesk(next.items,candidate,homeworkState.today);
     if(!result.ok){interactionStatus.textContent=result.message;inboxGroup.animate([{opacity:1},{opacity:.45},{opacity:1}],{duration:350});return result;}
-    try{localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));homeworkState.items=next.items;}catch{interactionStatus.textContent='没有保存成功，便签仍在袋子里';return {ok:false};}
+    try{localStorage.setItem(homeworkDemo.storageKey,JSON.stringify(next));homeworkState.items=next.items;}catch{const message='没有保存成功，便签仍在袋子里';interactionStatus.textContent=message;return {ok:false,message};}
     if(point){
       const r=notes.getBoundingClientRect(),h=Math.max(notes.clientHeight,parseFloat(notes.style.getPropertyValue("--note-field-height"))||0);
       const old=noteShapes.get(item.id)||randomShape([]),clamp=n=>Math.max(0,Math.min(1,n));
@@ -223,10 +225,13 @@
     commit(`已收回 ${count} 张手动便签，事项和队列仍保留`);interactionStatus.textContent=`已收回 ${count} 张手动便签`;return count;
   }
   function bindIncomingDrag(source,getItem,fromReader) {
+    // Both pagers respect this boundary for TouchEvent and PointerEvent input.
+    source.dataset.gestureLock='';
     let drag=null;
     function finish(event,cancel=false){
       if(!drag||event.pointerId!==drag.id)return;
-      const active=drag;drag=null;
+      const active=drag;drag=null;incomingDrag=null;
+      try{source.releasePointerCapture(active.id);}catch{}
       if(!active.moved)return;
       ignoreIncomingClick=performance.now()+500;
       const r=board.getBoundingClientRect(),bag=inboxButton.getBoundingClientRect();
@@ -235,15 +240,19 @@
       const result=onDesk?pinIncoming(active.item,point):{ok:false};
       reader.classList.remove("is-dragging-note");incomingPanel.classList.remove("is-dragging-note");
       board.classList.remove("is-drop-target");
+      if(!result.ok&&result.message)announce(result.message);
+      if(!incomingPanel.hidden&&reader.hidden)openIncoming();
       const ghost=active.ghost;if(!ghost)return;
       if(matchMedia("(prefers-reduced-motion: reduce)").matches){ghost.remove();return;}
       const end=result.ok?{transform:"scale(.85)",opacity:0}:{transform:`translate(${active.x-event.clientX}px,${active.y-event.clientY}px) scale(.75)`,opacity:0};
       ghost.animate([{transform:"none",opacity:1},end],{duration:result.ok?180:300,easing:"cubic-bezier(.22,1,.36,1)"}).finished.finally(()=>ghost.remove()).catch(()=>{});
     }
     source.addEventListener("pointerdown",event=>{
-      const item=getItem();if(!item||!event.isPrimary||event.button!==0)return;
+      const item=getItem();if(!item||incomingDrag||!event.isPrimary||event.button!==0)return;
       drag={id:event.pointerId,x:event.clientX,y:event.clientY,item,moved:false,ghost:null};
-      source.setPointerCapture(event.pointerId);
+      drag.cancel=()=>finish({pointerId:drag.id,clientX:drag.x,clientY:drag.y},true);
+      incomingDrag=drag;
+      try{source.setPointerCapture(event.pointerId);}catch{drag=null;incomingDrag=null;}
     });
     source.addEventListener("pointermove",event=>{
       if(!drag||event.pointerId!==drag.id)return;
@@ -261,6 +270,9 @@
     source.addEventListener("lostpointercapture",event=>finish(event,true));
   }
   bindIncomingDrag(readerGrip,()=>returnToInbox?currentReaderItem:null,true);
+  phone.addEventListener('touchstart',event=>{if(event.touches.length>1)incomingDrag?.cancel();},{passive:true});
+  window.addEventListener('blur',()=>incomingDrag?.cancel());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)incomingDrag?.cancel();});
   document.addEventListener("keydown",event=>{if(!incomingPanel.hidden&&event.key==="Escape"&&reader.hidden){event.preventDefault();event.stopImmediatePropagation();closeIncoming();inboxButton.focus({preventScroll:true});}},true);
   board.addEventListener("click",event=>{if(!incomingPanel.hidden&&event.target===notes)closeIncoming();});
   document.addEventListener("keydown", event => {
@@ -621,6 +633,7 @@
   });
   let previous = currentScreen, animations = [];
   document.addEventListener("preview-screen-change", event => {
+    incomingDrag?.cancel();
     reorder.cancel(); exitEdit();
     if(menuSwipe)clearMenuSwipe();
     if(!committingPageDrag&&pageDrag)clearPageDrag();

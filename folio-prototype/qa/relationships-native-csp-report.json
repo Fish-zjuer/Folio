@@ -1,5 +1,5 @@
 {
-  "apk": "C:\\Users\\29927\\Desktop\\工作区\\Projects\\folio-android\\dist/folio-1.0.1.apk",
+  "apk": "C:\\Users\\29927\\Desktop\\工作区\\Projects\\folio-android\\dist/folio-0.23-test.16.apk",
   "checks": [
     {
       "name": "policy in compiled APK matches native source and allows only the packaged relationship frame",

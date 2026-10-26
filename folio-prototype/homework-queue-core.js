@@ -167,11 +167,13 @@
   // Only pins explicitly pulled from the desk inbox carry an undo token.
   // Preserve the original plan; after undo, suppress automatic re-pin for today.
   function pinState(item){return {queued:!!item.queued,manualDate:!!item.manualDate,mountDate:item.mountDate||null,mountClock:item.mountClock||null,mountedOn:item.mountedOn||null};}
-  function pinFromDesk(items,item,today,options={}){
-    if(!items.includes(item)||item.mountedOn||item.kind==='lesson')return {ok:false,message:'这张便签已经不在袋子里'};
-    const before=pinState(item),result=manualMove(items,item,today,today,options);
-    if(result.ok)item.deskPin={version:1,before,applied:pinState(item)};
-    return result;
+  function pinFromDesk(items,item,today){
+    if(!items.includes(item)||!item.queued||item.mountedOn||item.completed||item.schoolCompleted===true||item.remoteMissing===true||item.repeatTemplate||item.kind==='lesson')return {ok:false,message:'这张便签已经不在袋子里'};
+    // Pulling a paper onto the desk is an explicit choice, not an automatic
+    // allocation. Keep calendar rescheduling quotas in manualMove unchanged.
+    const before=pinState(item);move(item,today,today);
+    item.deskPin={version:1,before,applied:pinState(item)};
+    return {ok:true,swapped:false};
   }
   function undoDeskPins(items,today,id=null){
     dateValue(today);let count=0;

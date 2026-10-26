@@ -1,6 +1,24 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),Q=require('./homework-queue-core.js');
 const today='2026-10-22';
 const item=id=>({id,title:id,kind:'homework',queued:true,completed:false,deadline:'2026-11-01',manualDate:false,mountDate:'2026-10-25',mountClock:'14:00',mountedOn:null});
+test('主动从袋中贴出不受自动分配配额限制，日历手动排期仍保留配额规则',()=>{
+ const mounted={...item('mounted'),mountDate:today,mountedOn:today},a=item('a'),b=item('b'),rows=[mounted,a,b],options={weekdayLimit:1,weekendLimit:1};
+ assert.equal(Q.manualCheck(rows,a,today,today,options).code,'full');
+ assert.equal(Q.pinFromDesk(rows,a,today,options).ok,true);
+ assert.equal(Q.pinFromDesk(rows,b,today,options).ok,true);
+ assert.equal(Q.rail(rows).length,3);
+ assert.equal(Q.undoDeskPins(rows,today),2);assert.equal(mounted.mountedOn,today);
+ assert.equal(a.mountDate,'2026-10-25');assert.equal(b.mountClock,'14:00');
+ assert.equal(Q.manualCheck(rows,a,today,today,options).code,'full');
+});
+test('仅仍在待贴袋的有效条目可贴出，失效记录不能复活且学校原始字段不变',()=>{
+ for(const change of [{queued:false},{completed:true},{schoolCompleted:true},{remoteMissing:true},{repeatTemplate:true},{kind:'lesson'},{mountedOn:today}]){
+  const a={...item('invalid'),...change},before=JSON.stringify(a);assert.equal(Q.pinFromDesk([a],a,today).ok,false);assert.equal(JSON.stringify(a),before);
+ }
+ const a={...item('school'),source:'school',description:'学校原文',course:'测试课程',url:'https://example.com/homework'},original={title:a.title,deadline:a.deadline,description:a.description,course:a.course,url:a.url};
+ assert.equal(Q.pinFromDesk([],a,today).ok,false);assert.equal(Q.pinFromDesk([a],a,today).ok,true);
+ for(const [key,value]of Object.entries(original))assert.equal(a[key],value);
+});
 test('学校刷新保留手动来源及撤回后的当天暂停，重复实例重建也不丢来源',()=>{
  const B=require('./backend-core.js'),T=require('./todo-core.js'),a={...item('school'),source:'school'};Q.pinFromDesk([a],a,today);
  let rows=B.mergeHomework([a],[{...item('school'),source:'school',title:'学校更新'}]);assert.equal(Q.undoDeskPins(rows,today),1);

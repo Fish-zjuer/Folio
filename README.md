@@ -8,6 +8,8 @@
 
 本版包含首页对话与 2×2 工作台、日程/课表、待办、作业热力图、课程/考试、学业/成绩、目标测算、深色与跟随系统、本地提醒、学校教务连接、Widget API v1 和卡片包。AI 模型不内置，由用户配置。v1.0.1 新增关系网、逐档扩容与 ZIP 备份、同账号加密文件离线同步、AI 按需操作，完善出分目标联动与页面子集选择。本次替换原v1.0.1附件，合并账号原生输入、考试请求重试、横向页拖拽排序、成绩按住查看、首页切日、确认卡与时间格式修正；新建自定义作业默认加入工作台队列，可取消。日记和录音入口暂时隐藏。详见 [1.0.1 变更与验证边界](folio-android/RELEASE-1.0.1.md)。
 
+修复测试包 **0.23-test.16（2026-10-26，内部版本118）** 已修复 [#1 待贴作业无法提前挂上](https://github.com/Fish-zjuer/Folio/issues/1) 与 [#2 拖便签同时带动翻页](https://github.com/Fish-zjuer/Folio/issues/2)。原签名覆盖安装，下载见 [测试版 Release](https://github.com/Fish-zjuer/Folio/releases/tag/v0.23-test.16)；修改与验证见 [说明](folio-android/RELEASE-0.23-test.16.md)。稳定版仍为上方v1.0.1。
+
 ## 许可与署名
 
 - 代码：**GPL-3.0-only**，见 [LICENSE](LICENSE)。
