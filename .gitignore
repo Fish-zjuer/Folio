@@ -29,3 +29,6 @@ Thumbs.db
 /folio-android/TEAM-STATE.md
 /folio-android/USER-FEEDBACK-0.6.md
 /folio-android/START-HERE.md
+
+# Executable app source, not an account/cookie store.
+!/folio-prototype/focus-session-store.js

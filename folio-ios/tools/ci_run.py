@@ -8,7 +8,13 @@ args = parser.parse_args()
 out = ROOT/'Reports'/args.size;out.mkdir(parents=True, exist_ok=True)
 
 def run(*command, timeout=120):
-    return subprocess.check_output(command, cwd=ROOT, timeout=timeout, stderr=subprocess.STDOUT).decode('utf-8', errors='replace')
+    result = subprocess.run(command, cwd=ROOT, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    text = result.stdout.decode('utf-8', errors='replace')
+    with (out/'commands.log').open('a',encoding='utf-8') as log: log.write(' '.join(command)+'\n'+text+'\n')
+    if result.returncode:
+        print(text,flush=True)
+        raise subprocess.CalledProcessError(result.returncode,command,output=result.stdout)
+    return text
 
 def logged(name, command, timeout=900):
     print(name, flush=True)
