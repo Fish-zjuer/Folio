@@ -11,5 +11,12 @@
     call(id,operation,payload){handler.postMessage({id,operation,payload});},
     systemDark(){return matchMedia('(prefers-color-scheme: dark)').matches;}
   };
-  document.addEventListener('DOMContentLoaded',()=>{document.documentElement.dataset.platform='ios';});
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.documentElement.dataset.platform='ios';
+    // WebKit resolves the max-height/aspect-ratio flex item to a narrower width.
+    // Keep the original art square and full width; short phones scroll the desk.
+    const style=document.createElement('style');style.dataset.folioIOSLayout='';
+    style.textContent='.native-app[data-platform="ios"] .workbench-grid{width:calc(100% - 32px);max-height:none;flex:0 0 auto;align-self:center}';
+    document.head.append(style);
+  });
 })();

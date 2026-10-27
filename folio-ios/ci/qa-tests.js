@@ -30,6 +30,10 @@
       check(`${theme}/${name} visible at full width`,!view.hidden&&Math.abs(r.left-p.left)<2&&Math.abs(r.width-p.width)<2);
       check(`${theme}/${name} palette applied`,document.documentElement.dataset.theme===theme);
       check(`${theme}/${name} no horizontal document overflow`,document.documentElement.scrollWidth<=innerWidth+1);
+      if(name==='workbench'){
+        const grid=view.querySelector('.workbench-grid').getBoundingClientRect(),board=view.querySelector('.workbench-board').getBoundingClientRect();
+        check(`${theme} workbench art fills the available width`,Math.abs(grid.left-board.left)<2&&Math.abs(grid.right-board.right)<2&&Math.abs(grid.width-grid.height)<2);
+      }
       if(name==='relationships')check(`${theme} relationship frame uses same origin`,FolioRelationshipUI.frame.contentDocument.documentElement.dataset.theme===theme);
       return true;
     },
@@ -50,6 +54,7 @@
       check('new homework keeps default queue choice',proposal.fields.queued===true);
       check('no runtime errors',__folioIOSDiagnostics.errors.length===0&&FolioQA.errors.length===0);
       check('no CSP violations',__folioIOSDiagnostics.csp.length===0);
+      check('simulator fixtures make no external network requests',__folioQANetworkAttempts.length===0);
       return true;
     },
     result(){return {checks,errors:__folioIOSDiagnostics.errors,fixtureErrors:FolioQA.errors,csp:__folioIOSDiagnostics.csp,resources:performance.getEntriesByType('resource').map(r=>r.name)};},

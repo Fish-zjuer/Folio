@@ -64,7 +64,10 @@ final class LocalAssetServer {
     }
 
     private func respond(_ connection: NWConnection, status: Int, body: Data = Data(), mime: String = "text/plain", head: Bool = false) {
-        let policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src \(Self.origin)/relationship-view.html; media-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+        // Existing public weather/news code uses ordinary HTTPS fetch outside
+        // Android's appassets origin. Permit only those documented public APIs;
+        // school sessions and model traffic still require the native bridge.
+        let policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com/v1/forecast https://geocoding-api.open-meteo.com/v1/search https://hacker-news.firebaseio.com/v0/; frame-src \(Self.origin)/relationship-view.html; media-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
         let header = "HTTP/1.1 \(status) \(status == 200 ? "OK" : "Error")\r\nContent-Type: \(mime)\r\nContent-Length: \(body.count)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: \(policy)\r\nConnection: close\r\n\r\n"
         var response = Data(header.utf8)
         if !head { response.append(body) }
