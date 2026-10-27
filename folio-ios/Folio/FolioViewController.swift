@@ -8,7 +8,14 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
     let qaStatus = UILabel()
     private(set) var simulatorQA = false
     private var darkChrome = false
-    private lazy var services = NativeServices(controller: self)
+    private lazy var services: NativeServices = {
+        if simulatorQA {
+            return NativeServices(controller: self, vault: NativeVault(service: "app.folio.host-qa." + UUID().uuidString),
+                                  directory: FileManager.default.temporaryDirectory.appendingPathComponent("FolioHostQA-" + UUID().uuidString),
+                                  cookieStore: web.configuration.websiteDataStore.httpCookieStore)
+        }
+        return NativeServices(controller: self)
+    }()
     private var requests: [String: Task<Void, Never>] = [:]
     override var preferredStatusBarStyle: UIStatusBarStyle { darkChrome ? .lightContent : .darkContent }
 

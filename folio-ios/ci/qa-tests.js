@@ -4,6 +4,18 @@
   const checks=[],sleep=ms=>new Promise(r=>setTimeout(r,ms));
   async function until(fn,label){for(let i=0;i<160;i++){if(fn())return;await sleep(50);}throw Error(label);}
   function check(name,pass){checks.push({name,pass:!!pass});if(!pass)throw Error(name);}
+  // Exercise the actual WK message -> Swift services -> JS reply path as well
+  // as fixtures. The host gives QA its own Keychain namespace, records and cookies.
+  const nativeReplies=new Map(),receiveNative=(id,result)=>{
+    const callback=nativeReplies.get(id);if(callback){nativeReplies.delete(id);callback(result);return;}
+    originalReceive(id,result);
+  },originalReceive=FolioNative.receive;
+  FolioNative.receive=receiveNative;
+  function realNative(operation,data={}){return new Promise((resolve,reject)=>{
+    const id=crypto.randomUUID(),timer=setTimeout(()=>{nativeReplies.delete(id);reject(Error('native bridge timeout'));},10000);
+    nativeReplies.set(id,result=>{clearTimeout(timer);result.ok?resolve(result.data):reject(Error(result.error));});
+    window.webkit.messageHandlers.folio.postMessage({id,operation,payload:JSON.stringify(data)});
+  });}
   async function stable(){await document.fonts.ready;await sleep(250);await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
   window.FolioIOSQA={
     async prepare(){
@@ -14,6 +26,15 @@
       check('loopback enables secure web APIs',isSecureContext&&typeof crypto.randomUUID==='function');
       check('IndexedDB available',typeof indexedDB.open==='function');
       check('existing native layout used',document.documentElement.classList.contains('native-app'));
+      const config=await realNative('config.get'),account=await realNative('school.account.get');
+      check('real bridge reads isolated keychain metadata',!config.hasKey&&!('apiKey' in config)&&!account.hasPassword&&!('password' in account));
+      const empty=await realNative('records.get',{name:'focus'});
+      check('real bridge starts with isolated empty records',empty.revision===0);
+      const saved=await realNative('records.save',{name:'focus',expectedRevision:0,data:{version:1,sessions:[],fixture:'bridge'}});
+      const restored=await realNative('records.get',{name:'focus'});
+      check('real bridge persists encrypted versioned records',saved.revision===1&&restored.revision===1&&restored.data.fixture==='bridge');
+      let conflict=false;try{await realNative('records.save',{name:'focus',expectedRevision:0,data:{version:1}});}catch(e){conflict=e.message.includes('版本冲突');}
+      check('real bridge propagates write conflicts',conflict);
       await FolioSchool.refresh('courses');await FolioAcademicUI.refresh('grades');await FolioSchool.refresh('exams');
       await FolioRelationships.ready;
       homeworkState.items=[{id:'ios-qa-future',title:'实验报告 · 模拟电路',course:'夹具数学',source:'personal',kind:'homework',queued:true,completed:false,deadline:'2026-11-20',manualDate:true,mountDate:'2026-11-18',mountedOn:null},{id:'ios-qa-mounted',title:'复习实验原理',course:'夹具数学',source:'personal',kind:'homework',queued:true,manualDate:true,mountDate:homeworkState.today,mountedOn:homeworkState.today}];commit();

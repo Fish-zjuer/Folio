@@ -14,9 +14,12 @@ import UserNotifications
         super.viewDidLoad(); view.backgroundColor = .systemGroupedBackground; title = "学校账号"
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "取消", style: .plain, target: self, action: #selector(cancel))
         isModalInPresentation = true
+        let scroll = UIScrollView(); scroll.translatesAutoresizingMaskIntoConstraints = false; scroll.keyboardDismissMode = .interactive
+        view.addSubview(scroll)
+        NSLayoutConstraint.activate([scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor), scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor), scroll.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)])
         let stack = UIStackView(); stack.axis = .vertical; stack.spacing = 14; stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
-        NSLayoutConstraint.activate([stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24), stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24), stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24)])
+        scroll.addSubview(stack)
+        NSLayoutConstraint.activate([stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: 24), stack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor, constant: 24), stack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor, constant: -24), stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -24), stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -48)])
         let note = UILabel(); note.text = "账号和密码仅保存在本机钥匙串"; note.font = .systemFont(ofSize: 13); note.textColor = .secondaryLabel; stack.addArrangedSubview(note)
         username.placeholder = "学号／统一身份认证账号"; username.text = initial.text("username"); username.accessibilityIdentifier = "school.username"
         password.placeholder = initial.flag("hasPassword") ? "密码 · 留空沿用" : "密码"; password.isSecureTextEntry = true; password.accessibilityIdentifier = "school.password"
@@ -78,6 +81,7 @@ import UserNotifications
     private var continuation: CheckedContinuation<JSON, Error>?
     private var picker: UIDocumentPickerViewController?
     private var file: URL?
+    func cancel() { guard continuation != nil else { return }; picker?.dismiss(animated: true); finish(false) }
     func save(_ file: URL, from presenter: UIViewController) async throws -> JSON {
         guard continuation == nil, presenter.presentedViewController == nil else { throw FolioFailure("请先关闭当前窗口，再保存文件") }
         return try await withCheckedThrowingContinuation { continuation in

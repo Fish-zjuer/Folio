@@ -13,8 +13,9 @@ import WebKit
     private let transfer = NativeTransfer(), exporter = NativeFileExport(), reminders = NativeReminders()
     private weak var controller: FolioViewController?
     private var accountEditor: NativeAccountEditor?, accountRequest: String?
+    private var fileRequest: String?
     init(controller: FolioViewController, vault: NativeVault = NativeVault(), protocolClasses: [AnyClass]? = nil, directory: URL? = nil, cookieStore: WKHTTPCookieStore? = nil) { self.controller = controller; self.vault = vault; self.protocolClasses = protocolClasses; self.directory = directory; self.cookieStore = cookieStore }
-    func cancel(_ id: String) { http.cancel(id); if accountRequest == id { accountEditor?.abort(); accountRequest = nil; accountEditor = nil } }
+    func cancel(_ id: String) { http.cancel(id); if accountRequest == id { accountEditor?.abort(); accountRequest = nil; accountEditor = nil }; if fileRequest == id { exporter.cancel() } }
     private func recordStore() throws -> NativeRecords { if let records = records { return records }; let value = try NativeRecords(vault: vault, directory: directory); records = value; return value }
     private func publicConfig(_ input: JSON) -> JSON { var value = input; value.removeValue(forKey: "apiKey"); value["hasKey"] = !input.text("apiKey").isEmpty; return value }
     private func configSave(_ input: JSON) throws -> JSON {
@@ -54,14 +55,14 @@ import WebKit
         case "app.sync.export.cancel": transfer.cancel(input.text("token")); return [:]
         case "app.sync.export.save":
             guard let controller = controller else { throw FolioFailure("页面已关闭") }
-            return try await exporter.save(transfer.finish(input.text("token")), from: controller)
+            return try await saveFile(id, transfer.finish(input.text("token")), from: controller)
         case "app.calendar.export":
             guard let controller = controller else { throw FolioFailure("页面已关闭") }
             let filename = input.text("filename"), text = input.text("content")
             guard matches(filename, "^folio-[0-9-]+\\.ics$"), text.utf8.count <= 2_000_000, text.hasPrefix("BEGIN:VCALENDAR\r\n"), text.hasSuffix("END:VCALENDAR\r\n") else { throw FolioFailure("日历文件无效或过大") }
             let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString); try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let file = folder.appendingPathComponent(filename); try Data(text.utf8).write(to: file, options: .completeFileProtection)
-            return try await exporter.save(file, from: controller)
+            return try await saveFile(id, file, from: controller)
         case "app.notification.status": return ["allowed": (await reminders.status()).flag("allowed")]
         case "app.notification.permission":
             let result = try await reminders.permission(); controller?.dispatch("folio-notification-permission"); return result
@@ -80,6 +81,12 @@ import WebKit
         case "app.usage.read", "app.usage.settings": throw FolioFailure("iOS测试版暂不支持读取其他应用的使用时长")
         default: throw FolioFailure("iOS暂不支持此原生操作（\(operation)）")
         }
+    }
+    private func saveFile(_ id: String, _ file: URL, from controller: UIViewController) async throws -> JSON {
+        guard fileRequest == nil else { throw FolioFailure("已有文件正在保存") }
+        fileRequest = id; defer { fileRequest = nil }
+        do { return try await exporter.save(file, from: controller) }
+        catch { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()); throw error }
     }
     private func editAccount(_ id: String) async throws -> JSON {
         guard let controller = controller, controller.presentedViewController == nil, accountEditor == nil else { throw FolioFailure("请先关闭当前系统窗口") }

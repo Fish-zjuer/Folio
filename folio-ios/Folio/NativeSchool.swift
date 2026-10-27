@@ -27,7 +27,10 @@ import Foundation
         ssoUntil = .distantPast; failureUntil = .distantPast; practiceVerified = false
     }
     func logout() async { resetFlights(); await http.reset() }
-    func browserCompleted() async { resetFlights(); await http.browserCompleted() }
+    func browserCompleted() async {
+        resetFlights(); await http.browserCompleted()
+        if http.hasCookie("https://zjuam.zju.edu.cn/cas/login", "iPlanetDirectoryPro") { ssoUntil = Date().addingTimeInterval(120) }
+    }
     private let htmlHeaders = ["Accept": "text/html,application/json,*/*"]
     private func sso(_ id: String, force: Bool) async throws {
         if let task = ssoTask { return try await task.value }
