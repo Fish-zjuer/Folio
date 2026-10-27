@@ -49,6 +49,12 @@ if device is None: device=sorted(choices,key=lambda d:(d['runtime'],d['name']),r
 device_id=device['udid'];(out/'device.json').write_text(json.dumps(device,indent=2),encoding='utf-8')
 print('Simulator:',device['name'],device['runtime'],flush=True)
 base=['xcodebuild','-project','Folio.xcodeproj','-scheme','Folio','-configuration','Debug','-destination','platform=iOS Simulator,id='+device_id,'-derivedDataPath','Build','CODE_SIGNING_ALLOWED=YES','CODE_SIGN_IDENTITY=-','CODE_SIGNING_REQUIRED=NO','CODE_SIGN_STYLE=Manual','DEVELOPMENT_TEAM=']
+# Xcode 16.4 / iOS 18.5 has a documented Swift WebKit overlay loader defect.
+# Use Apple's minimum-deployment workaround only for this simulator validation.
+# https://developer.apple.com/forums/thread/785964
+if sdk == '18.5':
+    base += ['IPHONEOS_DEPLOYMENT_TARGET=18.4']
+    (out/'simulator-workaround.txt').write_text('iOS18.5 WebKit overlay loader workaround: build validation target at18.4. iOS17 compatibility remains unverified.\n',encoding='utf-8')
 code=logged('build',base+['build-for-testing'])
 if code: raise SystemExit(code)
 app=ROOT/'Build/Build/Products/Debug-iphonesimulator/Folio.app'

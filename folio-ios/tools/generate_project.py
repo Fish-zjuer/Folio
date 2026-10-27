@@ -33,7 +33,7 @@ main=obj('main','{isa = PBXGroup; children = '+array(children+[products])+'; sou
 def phase(name, isa, files): return obj(name,'{isa = '+isa+'; buildActionMask = 2147483647; files = '+array(files)+'; runOnlyForDeploymentPostprocessing = 0;}')
 appPhases=[phase('sources','PBXSourcesBuildPhase',sources),phase('frameworks','PBXFrameworksBuildPhase',[]),phase('resources','PBXResourcesBuildPhase',resources)]
 testPhases=[phase('testSources','PBXSourcesBuildPhase',[buildfile('test',testref)]),phase('testFrameworks','PBXFrameworksBuildPhase',[]),phase('testResources','PBXResourcesBuildPhase',[])]
-common='CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; CODE_SIGN_STYLE = Automatic;'
+common='CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; CODE_SIGN_STYLE = Automatic; ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");'
 appConfig=configs('app',common+' PRODUCT_BUNDLE_IDENTIFIER = app.folio.ios.validation; PRODUCT_NAME = "$(TARGET_NAME)"; INFOPLIST_FILE = Folio/Info.plist;')
 testConfig=configs('test',common+' PRODUCT_BUNDLE_IDENTIFIER = app.folio.ios.validation.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TEST_TARGET_NAME = Folio;')
 projectConfig=configs('project','ALWAYS_SEARCH_USER_PATHS = NO;')
