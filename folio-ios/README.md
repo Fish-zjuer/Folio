@@ -9,6 +9,9 @@
 - 模拟器测试使用独立的虚构教务/作业数据。注入必须同时满足 Debug、模拟器和显式 `--folio-simulator-qa` 参数。使用非持久的测试 WebKit 存储，与正常运行数据隔离；不传密码或模型密钥到 CI。
 - 页面截图使用真实 iOS WKWebView 的 snapshot；全机截图、键盘和翻页由 XCUITest 生成，附模拟器录像。不是浏览器设备尺寸模拟图，也不是重新绘制的设计稿。
 - 模拟器不等同真机：性能、后台通知、相机及真实学校会话仍待有设备的测试者验收。
+- iOS 适配脚本只修正 WebKit 对工作台 flex/aspect-ratio 的宽度计算：四格与便签板两侧对齐、保持方形，小屏可纵向滚动。没有改原网页 CSS 或重画美术。
+- 公开天气/资讯沿用原网页请求，仅放行原有 Open-Meteo / Hacker News 指定路径。模拟器用固定缓存，额外阻止并记录外网请求；学校和模型访问不因此放开。
+- Xcode16.4 / iOS18.5 的 Swift WebKit 运行库存在[官方记录的模拟器问题](https://developer.apple.com/forums/thread/785964)。CI 对这一组合使用最低部署18.4的兼容设置；项目声明的iOS17支持尚未验证，不能以该次通过声称已支持。
 
 ## 无苹果设备的验证流程
 
@@ -21,6 +24,14 @@ GitHub Actions 使用公开仓库标准 `macos-15` runner，自动选择已安�
 5. 用 XCUITest 实际输入、弹出键盘、左右滑动和点击菜单，导出截图、录像、`.xcresult` 和 JSON。
 
 CI 产物在对应 Actions 运行的 Artifacts 中，保留7天。`ci-result.json` 是整体结论；`screens/report.json` 是网页检查，不能单独替代 UI 测试是否通过。失败也上传日志和截图。
+
+`ios-review-compact/regular` 是便于下载的小型截图/JSON包；`ios-webview-compact/regular` 还包含完整录像、日志和Xcode结果。下载两份review包到同一目录后，可以生成离线图集：
+
+```sh
+python3 tools/make_gallery.py Reports/review
+```
+
+将下载目录命名为 `ios-webview-compact` 和 `ios-webview-regular`（工具也接受 `compact` / `regular`），然后在 Windows 浏览器打开生成的 `index.html`。
 
 ## 在 macOS 上复现
 

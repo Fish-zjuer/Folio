@@ -71,12 +71,8 @@ run('xcrun','simctl','bootstatus',device_id,'-b',timeout=300)
 run('xcrun','simctl','status_bar',device_id,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
 run('xcrun','simctl','install',device_id,str(app))
 run('codesign','--verify','--deep',str(app))
-print('Native startup preflight',flush=True)
-run('xcrun','simctl','launch',device_id,'app.folio.ios.validation')
-time.sleep(4)
-run('xcrun','simctl','io',device_id,'screenshot',str(out/'native-startup.png'))
-try:run('xcrun','simctl','terminate',device_id,'app.folio.ios.validation')
-except subprocess.CalledProcessError:pass
+# XCUITest owns app launch. A separate cold simctl launch can hang on shared
+# runners and adds no coverage beyond the real UI test's required launch.
 video=subprocess.Popen(['xcrun','simctl','io',device_id,'recordVideo','--codec=h264',str(out/'simulator.mp4')],stdout=subprocess.DEVNULL,stderr=(out/'video.log').open('w'))
 try:
     code=logged('ui-tests',base+['-parallel-testing-enabled','NO','-resultBundlePath',str(out/'Folio.xcresult'),'test-without-building'])
@@ -84,6 +80,8 @@ finally:
     video.send_signal(2)
     try:video.wait(timeout=30)
     except subprocess.TimeoutExpired:video.terminate()
+    try:run('xcrun','simctl','io',device_id,'screenshot',str(out/'native-final.png'),timeout=30)
+    except (subprocess.CalledProcessError,subprocess.TimeoutExpired):pass
     try:
         container=Path(run('xcrun','simctl','get_app_container',device_id,'app.folio.ios.validation','data').strip())
         if (container/'Documents/FolioQA').is_dir():shutil.copytree(container/'Documents/FolioQA',out/'screens',dirs_exist_ok=True)

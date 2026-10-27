@@ -51,6 +51,6 @@ jobs:
             folio-ios/Reports/${{ matrix.size }}/attachments/
             folio-ios/Reports/${{ matrix.size }}/ci-result.json
             folio-ios/Reports/${{ matrix.size }}/web-assets-manifest.json
-            folio-ios/Reports/${{ matrix.size }}/native-startup.png
+            folio-ios/Reports/${{ matrix.size }}/native-final.png
           retention-days: 7
           if-no-files-found: warn
