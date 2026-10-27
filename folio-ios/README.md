@@ -1,13 +1,16 @@
-# Folio iOS · 原网页验证工程
+# Folio iOS · 原网页宿主与设备测试包
 
 这一阶段验证「现有网页能否在 iOS 原样承载」，不重画页面。Swift/UIKit + WKWebView 加载 `../folio-prototype` 的同一份 HTML/CSS/JS/SVG。`prepare_assets.py` 与 Android 使用同一份资源清单，逐字节复制并核验实际 `.app` 中的资源。网页与 Android 源码不受本工程修改。
 
 2026-10-27：iPhone SE（第三代）和 iPhone 16 Pro 的真实 iOS18.5 模拟器已通过页面及 UIKit 交互验证，各79项网页检查、19张页面截图和4张全机交互截图。具体提交、CI结果与限制见[验证记录](VALIDATION-2026-10-27.md)。
 
-## 当前边界
+后续设备包、原生服务和真实桥接检查见[设备验证记录](DEVICE-VALIDATION-2026-10-27.md)。
 
-- 这是模拟器验证工程，不是完成迁移的 iOS 客户端，也不是可分发的 TestFlight 安装包。
-- 验证版只提供网页容器、本地静态资源服务、桥接入口及窗口颜色；账号/SSO、AI 原生网络代理、凭据保管、原生记录仓库、通知、文件导入导出等尚未接入。不支持的操作明确失败。
+## 当前边界与测试包
+
+- 已增加 iPhoneOS / arm64 的 Release 归档与未签名 IPA。用户目前无 Apple Developer Program 账号，设备包需要由协助者签名后才可安装；没有上传 TestFlight。见[签名交接及测试说明](DEVICE-TESTING.md)。
+- 已实现学校账号原生输入与 Keychain 保存、CAS/业务会话和官网 Cookie 共享、原有教务请求协议、模型配置与 HTTPS 代理、四类学习记录加密及版本冲突检查、原子批量导入、iCal/ZIP/同步文件系统保存、本地通知与点击跳转。真实学校及第三方模型仍待测试者验证，不以模拟器夹具代表真实服务成功。
+- iOS 每次安排最近60条本地提醒，打开应用时续排；说明已在 iOS 适配层显示。不支持读取其他App使用时长，未实现的操作明确报错。日记与录音入口继续隐藏。
 - 模拟器测试使用独立的虚构教务/作业数据。注入必须同时满足 Debug、模拟器和显式 `--folio-simulator-qa` 参数。使用非持久的测试 WebKit 存储，与正常运行数据隔离；不传密码或模型密钥到 CI。
 - 页面截图使用真实 iOS WKWebView 的 snapshot；全机截图、键盘和翻页由 XCUITest 生成，附模拟器录像。不是浏览器设备尺寸模拟图，也不是重新绘制的设计稿。
 - 模拟器不等同真机：性能、后台通知、相机及真实学校会话仍待有设备的测试者验收。
@@ -25,7 +28,9 @@ GitHub Actions 使用公开仓库标准 `macos-15` runner，自动选择已安�
 4. 检查同源 iframe、IndexedDB、crypto、布局溢出、运行异常、便签贴出/收回与 AI 待确认写入边界。
 5. 用 XCUITest 实际输入、弹出键盘、左右滑动和点击菜单，导出截图、录像、`.xcresult` 和 JSON。
 
-CI 产物在对应 Actions 运行的 Artifacts 中，保留7天。`ci-result.json` 是整体结论；`screens/report.json` 是网页检查，不能单独替代 UI 测试是否通过。失败也上传日志和截图。
+CI 产物在对应 Actions 运行的 Artifacts 中，截图保留7天、设备包保留14天。`ci-result.json` 是整体结论；`screens/report.json` 同时列出网页和原生检查，不能单独替代 UI 测试是否通过。失败也上传日志和截图。
+
+`ios-device-unsigned` 包含真正的 arm64 IPA、SHA256、`device-verification.json`、资源清单和签名说明。流程校验 Mach-O 平台为 iPhoneOS、原155资源一致、Release不含模拟器夹具；它没有描述文件或 Apple 签名。
 
 `ios-review-compact/regular` 是便于下载的小型截图/JSON包；`ios-webview-compact/regular` 还包含完整录像、日志和Xcode结果。下载两份review包到同一目录后，可以生成离线图集：
 
@@ -44,6 +49,6 @@ python3 tools/generate_project.py
 python3 tools/ci_run.py --size regular
 ```
 
-正常运行前使用全新的 `Generated/` 目录执行 `prepare_assets.py`（不带 `--qa`），然后打开 `Folio.xcodeproj`。项目不包含签名配置、证书或账号。TestFlight 会在原生能力接入及真机测试阶段另行处理。
+设备构建在新检出目录运行 `python3 tools/package_device.py`。正常 Xcode 运行前使用全新的 `Generated/` 目录执行 `prepare_assets.py`（不带 `--qa`）、`swift tools/render_icon.swift`、`python3 tools/generate_project.py`，然后打开 `Folio.xcodeproj` 配置自己的合法签名。项目不包含证书或账号。
 
 本机 Windows 只可验证资源复制、JS 测试逻辑和项目文件生成；只有云端成功结果才算实际 Xcode 编译与 iOS 模拟器验收。许可和品牌沿用根仓库的 GPL-3.0-only、NOTICE 与第三方声明，原美术资源不作修改。

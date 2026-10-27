@@ -21,7 +21,7 @@ for size in ['compact', 'regular']:
     meta = json.loads((folder/'ci-result.json').read_text(encoding='utf-8'))
     status = '通过' if meta['passed'] else '未通过'
     details = html.escape(folder.relative_to(root).as_posix(), quote=True)
-    summaries.append(f'<p><strong>{html.escape(meta["device"])} · {status}</strong> · 网页检查 {meta["webChecks"]} 项 · {html.escape(meta["runtime"])} · <a href="{details}/ci-result.json">整体结果</a> · <a href="{details}/screens/report.json">网页检查详情</a></p>')
+    summaries.append(f'<p><strong>{html.escape(meta["device"])} · {status}</strong> · 网页检查 {meta["webChecks"]} 项 · 原生检查 {meta.get("nativeChecks",0)} 项 · {html.escape(meta["runtime"])} · <a href="{details}/ci-result.json">整体结果</a> · <a href="{details}/screens/report.json">检查详情</a></p>')
     for image in sorted((folder/'screens').glob('*.png')):
         theme, _, page = image.stem.partition('-')
         label = titles.get(page, page)
@@ -43,7 +43,7 @@ page = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="vi
 <title>Folio · iOS 原网页验收</title><style>
 body{margin:0;padding:28px;background:#f3f1ed;color:#242521;font:15px/1.6 system-ui}header{max-width:1100px;margin:auto}h1{font-size:28px;line-height:1.3}p{color:#65645e}nav{display:flex;gap:8px;margin:24px 0;flex-wrap:wrap}button{border:1px solid #dedbd4;border-radius:12px;background:#fff;padding:9px 16px;cursor:pointer}main{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;max-width:1400px;margin:auto}figure{margin:0;padding:12px;background:#fff;border:1px solid #e2dfd8;border-radius:18px}img{display:block;width:100%;height:auto;border-radius:10px;background:#eceae5}figcaption{margin:12px 2px 2px;font-size:13px;color:#666}a{color:inherit}figure[hidden]{display:none}</style>
 <header><h1>iOS 原网页 · 模拟器验收</h1><p>真实 iOS WKWebView 截图；使用虚构测试数据。沿用现有网页资源，没有重新绘制页面。点击图片可查看原图。</p>
-<p>本轮验证界面和基础交互。学校真实登录、原生通知、性能和 TestFlight 分发仍待后续接入与真机验收。</p>'''
+<p>本轮验证界面和基础交互；新设备包另有原生桥接检查。真实学校登录、通知投递、性能与签名分发仍需实体设备验收。未签名IPA不能直接安装。</p>'''
 page += ''.join(summaries)
 page += '''<nav><button onclick="filter('all')">全部</button><button onclick="filter('light')">浅色</button><button onclick="filter('dark')">深色</button><button onclick="filter('input')">真实键盘与手势</button><button onclick="filter('compact')">紧凑尺寸</button><button onclick="filter('regular')">常规尺寸</button></nav></header><main>'''
 page += ''.join(cards)
