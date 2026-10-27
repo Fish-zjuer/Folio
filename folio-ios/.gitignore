@@ -1,0 +1,7 @@
+Generated/
+Build/
+BuildDevice/
+Reports/
+*.xcuserstate
+xcuserdata/
+__pycache__/
