@@ -17,6 +17,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  device:
+    name: Unsigned iPhone device package
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Build arm64 Release archive and unsigned IPA
+        run: python3 folio-ios/tools/package_device.py
+      - name: Upload device package and signing handoff
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-device-unsigned
+          path: |
+            folio-ios/Reports/device/*.ipa
+            folio-ios/Reports/device/*.sha256
+            folio-ios/Reports/device/*.json
+            folio-ios/Reports/device/*.md
+            folio-ios/Reports/device/build.log
+          retention-days: 14
+          if-no-files-found: error
   simulator:
     name: iPhone ${{ matrix.size }}
     runs-on: macos-15

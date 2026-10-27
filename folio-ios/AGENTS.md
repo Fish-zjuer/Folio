@@ -6,5 +6,7 @@ Do not rewrite, restyle or modify the established web/Android app for this exper
 Generated/ is a disposable copy, never a second source of truth. Verify hashes.
 Simulator fixture injection is DEBUG + simulator + explicit launch argument only.
 No school credentials, provider keys, signing certificates or personal data in CI.
-This is a visual/interaction validation stage, not a finished iOS backend or TestFlight build.
+The user expanded this stage to native bridges and an unsigned arm64 device IPA.
+Do not claim unsigned artifacts install directly or that TestFlight/signing has happened.
+Keep real-device/SSO/provider testing distinct from isolated simulator fixtures.
 Unimplemented native operations must fail honestly; never return fabricated success.

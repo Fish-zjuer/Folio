@@ -24,6 +24,7 @@ for file in sorted((ROOT/'Folio').glob('*.swift')):
 resources=[]
 for path in ['Generated/WebAssets','Generated/QA','Folio/HostAssets']:
     r=ref(path,path,'folder');children.append(r);resources.append(buildfile(path,r))
+path='Generated/AppIcons.xcassets';r=ref(path,path,'folder.assetcatalog');children.append(r);resources.append(buildfile(path,r))
 children.append(ref('Info.plist','Folio/Info.plist','text.plist.xml'))
 testref=ref('test','FolioUITests/FolioSmokeTests.swift','sourcecode.swift');children.append(testref)
 appProduct=obj('appProduct','{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Folio.app; sourceTree = BUILT_PRODUCTS_DIR;}')
@@ -34,7 +35,7 @@ def phase(name, isa, files): return obj(name,'{isa = '+isa+'; buildActionMask = 
 appPhases=[phase('sources','PBXSourcesBuildPhase',sources),phase('frameworks','PBXFrameworksBuildPhase',[]),phase('resources','PBXResourcesBuildPhase',resources)]
 testPhases=[phase('testSources','PBXSourcesBuildPhase',[buildfile('test',testref)]),phase('testFrameworks','PBXFrameworksBuildPhase',[]),phase('testResources','PBXResourcesBuildPhase',[])]
 common='CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; CODE_SIGN_STYLE = Automatic; ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");'
-appConfig=configs('app',common+' PRODUCT_BUNDLE_IDENTIFIER = app.folio.ios.validation; PRODUCT_NAME = "$(TARGET_NAME)"; INFOPLIST_FILE = Folio/Info.plist;')
+appConfig=configs('app',common+' PRODUCT_BUNDLE_IDENTIFIER = app.folio.ios.validation; PRODUCT_NAME = "$(TARGET_NAME)"; INFOPLIST_FILE = Folio/Info.plist; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;')
 testConfig=configs('test',common+' PRODUCT_BUNDLE_IDENTIFIER = app.folio.ios.validation.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TEST_TARGET_NAME = Folio;')
 projectConfig=configs('project','ALWAYS_SEARCH_USER_PATHS = NO;')
 proxy=obj('proxy','{isa = PBXContainerItemProxy; containerPortal = '+ident('project')+'; proxyType = 1; remoteGlobalIDString = '+ident('app')+'; remoteInfo = Folio;}')

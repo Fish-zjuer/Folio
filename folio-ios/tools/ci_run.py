@@ -24,6 +24,7 @@ def logged(name, command, timeout=900):
     return result.returncode
 
 run(sys.executable, 'tools/prepare_assets.py', '--qa')
+run('swift', 'tools/render_icon.swift')
 run(sys.executable, 'tools/generate_project.py')
 (out/'xcode.txt').write_text(run('xcodebuild', '-version'), encoding='utf-8')
 catalog = json.loads(run('xcrun', 'simctl', 'list', 'devices', 'available', '--json'))['devices']
@@ -95,6 +96,7 @@ finally:
 report_path=out/'screens/report.json'
 report=json.loads(report_path.read_text(encoding='utf-8')) if report_path.is_file() else {}
 result={'passed':code==0 and report.get('passed') is True,'uiTestExitCode':code,'webChecks':len(report.get('checks',[])),
+        'nativeChecks':len(report.get('nativeChecks',[])),
         'screenshots':len(report.get('screenshots',[])),'device':device['name'],'runtime':device['runtime'],
         'simulator':True,'fixtureData':True,'commit':os.environ.get('GITHUB_SHA','')}
 (out/'ci-result.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(result),flush=True)

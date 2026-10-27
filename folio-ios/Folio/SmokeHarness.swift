@@ -7,6 +7,7 @@ final class SmokeHarness {
     private unowned let controller: FolioViewController
     private var results: [[String: Any]] = []
     private var images: [String] = []
+    private var nativeChecks: [JSON] = []
     private let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("FolioQA")
 
     init(controller: FolioViewController) { self.controller = controller }
@@ -34,6 +35,7 @@ final class SmokeHarness {
     func run() async {
         do {
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            nativeChecks = try await NativeSmokeTests.run(controller: controller)
             guard let scriptURL = Bundle.main.url(forResource: "qa-tests", withExtension: "js", subdirectory: "QA") else { throw NSError(domain: "FolioQA", code: 1) }
             let script = try String(contentsOf: scriptURL, encoding: .utf8)
             _ = try await js(script + "\nreturn await FolioIOSQA.prepare();")
@@ -73,7 +75,7 @@ final class SmokeHarness {
         let value: [String: Any] = ["engine": "iOS WKWebView", "simulator": true, "fixtureData": true,
                                   "passed": error == nil, "error": error ?? "", "checks": results,
                                   "screenshots": images, "web": webReport,
-                                  "systemVersion": UIDevice.current.systemVersion,
+                                  "nativeChecks": nativeChecks, "systemVersion": UIDevice.current.systemVersion,
                                   "viewport": ["width": controller.web.bounds.width, "height": controller.web.bounds.height]]
         try JSONSerialization.data(withJSONObject: value, options: [.prettyPrinted, .sortedKeys]).write(to: folder.appendingPathComponent("report.json"), options: .atomic)
     }

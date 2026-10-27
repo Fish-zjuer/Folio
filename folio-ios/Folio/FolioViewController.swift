@@ -8,6 +8,8 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
     let qaStatus = UILabel()
     private(set) var simulatorQA = false
     private var darkChrome = false
+    private lazy var services = NativeServices(controller: self)
+    private var requests: [String: Task<Void, Never>] = [:]
     override var preferredStatusBarStyle: UIStatusBarStyle { darkChrome ? .lightContent : .darkContent }
 
     override func viewDidLoad() {
@@ -16,6 +18,7 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
         simulatorQA = ProcessInfo.processInfo.arguments.contains("--folio-simulator-qa")
         #endif
         view.backgroundColor = UIColor(red: 249/255, green: 249/255, blue: 247/255, alpha: 1)
+        NotificationCenter.default.addObserver(self, selector: #selector(openPendingReminder), name: .init("FolioOpenReminder"), object: nil)
         let content = WKUserContentController()
         content.add(self, name: "folio")
         if simulatorQA { content.add(self, name: "qa") }
@@ -81,29 +84,46 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
         guard message.frameInfo.isMainFrame, trusted(message.frameInfo.request.url), let body = message.body as? [String: Any] else { return }
         if message.name == "qa", simulatorQA { qaStatus.text = body["status"] as? String; return }
         guard let id = body["id"] as? String, id.count < 100, let operation = body["operation"] as? String, let payload = body["payload"] as? String,
-              payload.utf8.count <= 4_000_000, let bytes = payload.data(using: .utf8), let input = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any] else { return }
-        var result: [String: Any]
-        switch operation {
-        case "cancel": return
-        case "config.get": result = ["ok": true, "data": ["models": [], "model": "", "baseUrl": "", "hasKey": false]]
-        case "school.account.get": result = ["ok": true, "data": ["hasPassword": false, "authenticated": false]]
-        case "app.chrome":
+              payload.utf8.count <= 70_000_000, let bytes = payload.data(using: .utf8), let input = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any] else { return }
+        if operation == "cancel" { services.cancel(id); requests[id]?.cancel(); return }
+        if operation == "app.chrome" {
+            let theme = input.text("theme", "system")
+            overrideUserInterfaceStyle = theme == "dark" ? .dark : theme == "light" ? .light : .unspecified
             if let color = input["resolvedColor"] as? String, color.count == 7, color.first == "#", let rgb = UInt32(color.dropFirst(), radix: 16) {
                 let red = CGFloat((rgb >> 16) & 255)/255, green = CGFloat((rgb >> 8) & 255)/255, blue = CGFloat(rgb & 255)/255
                 view.backgroundColor = UIColor(red: red, green: green, blue: blue, alpha: 1)
                 darkChrome = red*0.2126 + green*0.7152 + blue*0.0722 < 0.5
                 setNeedsStatusBarAppearanceUpdate()
             }
-            result = ["ok": true, "data": [:]]
-        case "app.notify": result = ["ok": true, "data": ["foreground": UIApplication.shared.applicationState == .active]]
-        case "app.notification.status": result = ["ok": true, "data": ["allowed": false]]
-        case "app.reminders.status": result = ["ok": true, "data": ["enabled": false, "allowed": false, "exact": false, "pending": 0]]
-        case "app.reminders.sync" where input["enabled"] as? Bool != true:
-            result = ["ok": true, "data": ["enabled": false, "allowed": false, "pending": 0]]
-        default: result = ["ok": false, "error": "iOS验证版尚未接入此原生功能（\(operation)）"]
+            reply(id, ["ok": true, "data": JSON()]); return
         }
+        guard requests[id] == nil else { return }
+        requests[id] = Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            defer { self.requests.removeValue(forKey: id) }
+            do { let value = try await self.services.perform(id, operation, input); if !Task.isCancelled { self.reply(id, ["ok": true, "data": value]) } }
+            catch { if !Task.isCancelled { self.reply(id, ["ok": false, "error": error.localizedDescription]) } }
+        }
+    }
+
+    private func reply(_ id: String, _ result: JSON) {
+        guard trusted(web.url) else { return }
         guard let data = try? JSONSerialization.data(withJSONObject: ["id": id, "result": result], options: [.sortedKeys]), let json = String(data: data, encoding: .utf8) else { return }
         web.evaluateJavaScript("(()=>{const r=\(json);window.FolioNative?.receive(r.id,r.result)})()", completionHandler: nil)
+    }
+
+    func dispatch(_ name: String, detail: JSON = [:]) {
+        guard trusted(web?.url), let data = try? jsonBytes(["name": name, "detail": detail]), let json = String(data: data, encoding: .utf8) else { return }
+        web.evaluateJavaScript("(()=>{const e=\(json);window.dispatchEvent(new CustomEvent(e.name,{detail:e.detail}))})()", completionHandler: nil)
+    }
+    func resume() { dispatch("folio-native-resume"); openPendingReminder() }
+    @objc private func openPendingReminder() {
+        guard trusted(web?.url), let id = UserDefaults.standard.string(forKey: "pendingReminder") else { return }
+        UserDefaults.standard.removeObject(forKey: "pendingReminder"); dispatch("folio-open-reminder", detail: ["itemId": id])
+    }
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle { dispatch("folio-system-theme", detail: ["dark": traitCollection.userInterfaceStyle == .dark]) }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -113,6 +133,8 @@ final class FolioViewController: UIViewController, WKScriptMessageHandler, WKNav
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        dispatch("folio-native-ready")
+        openPendingReminder()
         #if DEBUG && targetEnvironment(simulator)
         if simulatorQA && !startedQA {
             startedQA = true
