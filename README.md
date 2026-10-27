@@ -24,6 +24,7 @@
 
 - `folio-prototype/`：HTML、CSS、原生 JavaScript 前端，无 npm 构建步骤。
 - `folio-android/`：Java 宿主、系统 WebView、本机 HTTP 服务；学校连接、加密凭据保管、AI 请求、公开数据及用量统计桥接。
+- `folio-ios/`：独立的 UIKit/WKWebView 验证工程，复用原网页资源；两种 iPhone 模拟器已通过界面与基础交互检查，原生业务尚未接入。见[验证记录](folio-ios/VALIDATION-2026-10-27.md)，当前发布包仍仅限 Android。
 - AI 模型由用户配置 Base URL、模型和 API Key。APK 不内置大模型，也不捆绑 Flutter 引擎。
 
 ## 本地预览

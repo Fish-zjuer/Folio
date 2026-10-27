@@ -2,6 +2,8 @@
 
 这一阶段验证「现有网页能否在 iOS 原样承载」，不重画页面。Swift/UIKit + WKWebView 加载 `../folio-prototype` 的同一份 HTML/CSS/JS/SVG。`prepare_assets.py` 与 Android 使用同一份资源清单，逐字节复制并核验实际 `.app` 中的资源。网页与 Android 源码不受本工程修改。
 
+2026-10-27：iPhone SE（第三代）和 iPhone 16 Pro 的真实 iOS18.5 模拟器已通过页面及 UIKit 交互验证，各79项网页检查、19张页面截图和4张全机交互截图。具体提交、CI结果与限制见[验证记录](VALIDATION-2026-10-27.md)。
+
 ## 当前边界
 
 - 这是模拟器验证工程，不是完成迁移的 iOS 客户端，也不是可分发的 TestFlight 安装包。
@@ -32,6 +34,7 @@ python3 tools/make_gallery.py Reports/review
 ```
 
 将下载目录命名为 `ios-webview-compact` 和 `ios-webview-regular`（工具也接受 `compact` / `regular`），然后在 Windows 浏览器打开生成的 `index.html`。
+图集也包含 XCUITest 的真实键盘、滑动后工作台与菜单截图，链接到每台设备的整体结果及网页检查详情。
 
 ## 在 macOS 上复现
 
