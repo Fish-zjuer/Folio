@@ -18,11 +18,24 @@ func color(_ hex: String) -> CGColor {
 context.setFillColor(color(source.substring(with: paths[0].range(at: 1)))); context.fill(CGRect(x: 0, y: 0, width: size, height: size))
 context.translateBy(x: 0, y: CGFloat(size)); context.scaleBy(x: CGFloat(size) / 72, y: -CGFloat(size) / 72); context.translateBy(x: -18, y: -18)
 for match in paths.dropFirst() {
-    let points = source.substring(with: match.range(at: 2)).split(whereSeparator: { !$0.isNumber && $0 != "." && $0 != "-" }).compactMap { Double($0) }
-    guard points.count == 8 else { fatalError("Unsupported icon path") }
-    context.beginPath(); context.move(to: CGPoint(x: points[0], y: points[1]))
-    for i in stride(from: 2, to: points.count, by: 2) { context.addLine(to: CGPoint(x: points[i], y: points[i+1])) }
-    context.closePath(); context.setFillColor(color(source.substring(with: match.range(at: 1)))); context.fillPath()
+    let text = source.substring(with: match.range(at: 2)) as NSString
+    let tokenizer = try NSRegularExpression(pattern: "[MLHVZ]|-?[0-9]+(?:\\.[0-9]+)?")
+    let tokens = tokenizer.matches(in: text as String, range: NSRange(location: 0, length: text.length)).map { text.substring(with: $0.range) }
+    var i = 0, x = 0.0, y = 0.0
+    func number() -> Double { guard i < tokens.count, let n = Double(tokens[i]) else { fatalError("Unsupported SVG coordinate") }; i += 1; return n }
+    context.beginPath()
+    while i < tokens.count {
+        let command = tokens[i]; i += 1
+        switch command {
+        case "M": x = number(); y = number(); context.move(to: CGPoint(x: x, y: y))
+        case "L": x = number(); y = number(); context.addLine(to: CGPoint(x: x, y: y))
+        case "V": y = number(); context.addLine(to: CGPoint(x: x, y: y))
+        case "H": x = number(); context.addLine(to: CGPoint(x: x, y: y))
+        case "Z": context.closePath()
+        default: fatalError("Unsupported icon command")
+        }
+    }
+    context.setFillColor(color(source.substring(with: match.range(at: 1)))); context.fillPath()
 }
 let catalog = root.appendingPathComponent("Generated/AppIcons.xcassets"), folder = catalog.appendingPathComponent("AppIcon.appiconset")
 try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

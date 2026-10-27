@@ -78,7 +78,11 @@ private final class HTTPExchange: NSObject, URLSessionDataDelegate {
     func browserCompleted() async { generation += 1; await importBrowserCookies() }
     private func accept(_ cookie: HTTPCookie) {
         jar.removeAll { $0.name == cookie.name && $0.domain == cookie.domain && $0.path == cookie.path }
-        if cookie.expiresDate.map({ $0 > Date() }) ?? true, !cookie.value.isEmpty { jar.append(cookie) }
+        if Self.live(cookie), !cookie.value.isEmpty { jar.append(cookie) }
+    }
+    nonisolated private static func live(_ cookie: HTTPCookie) -> Bool {
+        if let age = cookie.properties?[.maximumAge], let number = Double(String(describing: age)), number <= 0 { return false }
+        return cookie.expiresDate.map { $0 > Date() } ?? true
     }
     private func cookies(_ url: URL) -> [HTTPCookie] {
         jar.filter { c in
@@ -111,10 +115,12 @@ private final class HTTPExchange: NSObject, URLSessionDataDelegate {
             guard !cancelled.contains(id), !school || epoch == generation else { throw FolioFailure("学校账号已改变，请重新同步") }
             let fields = response.allHeaderFields.reduce(into: [String: String]()) { result, pair in result[String(describing: pair.key)] = String(describing: pair.value) }
             let received = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
-            let issued = url.host == "zjuam.zju.edu.cn" && url.path == "/cas/login" && method == "POST" ? received.last { $0.name == "iPlanetDirectoryPro" && !$0.value.isEmpty && ($0.expiresDate.map { $0 > Date() } ?? true) }?.value : nil
+            let issued = url.host == "zjuam.zju.edu.cn" && url.path == "/cas/login" && method == "POST" ? received.last { $0.name == "iPlanetDirectoryPro" && !$0.value.isEmpty && Self.live($0) }?.value : nil
             if school && Self.schoolHost(url.host) {
                 for cookie in received where Self.schoolHost(cookie.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))) {
                     guard epoch == generation else { throw FolioFailure("学校账号已改变") }
+                    let domain = cookie.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")), host = url.host ?? ""
+                    guard host == domain || host.hasSuffix("." + domain) else { continue }
                     accept(cookie); await cookieStore.setCookie(cookie)
                 }
                 guard epoch == generation else { throw FolioFailure("学校账号已改变") }
