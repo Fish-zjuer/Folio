@@ -6,6 +6,8 @@
 
 后续设备包、原生服务和真实桥接检查见[设备验证记录](DEVICE-VALIDATION-2026-10-27.md)。
 
+Folio 品牌包允许个人自签测试；未经 Fish 书面许可，不授权以 Folio 名称、图标或官方身份上架 App Store、通过 TestFlight 对外分发或收费经营，侵害依法享有的权利时保留追责权。GPL代码及合规更名衍生版的权利不受此品牌声明限制；详见[测试说明](DEVICE-TESTING.md#权利与品牌声明)。
+
 ## 当前边界与测试包
 
 - 已增加 iPhoneOS / arm64 的 Release 归档与未签名 IPA。用户目前无 Apple Developer Program 账号，设备包需要由协助者签名后才可安装；没有上传 TestFlight。见[签名交接及测试说明](DEVICE-TESTING.md)。

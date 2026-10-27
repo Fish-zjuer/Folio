@@ -10,6 +10,8 @@
 
 修复测试包 **0.23-test.16（2026-10-26，内部版本118）** 已修复 [#1 待贴作业无法提前挂上](https://github.com/Fish-zjuer/Folio/issues/1) 与 [#2 拖便签同时带动翻页](https://github.com/Fish-zjuer/Folio/issues/2)。原签名覆盖安装，下载见 [测试版 Release](https://github.com/Fish-zjuer/Folio/releases/tag/v0.23-test.16)；修改与验证见 [说明](folio-android/RELEASE-0.23-test.16.md)。稳定版仍为上方v1.0.1。
 
+**iOS实验测试包0.1.0 / build2**：[下载未签名IPA和签名资料](https://github.com/Fish-zjuer/Folio/releases/tag/ios-v0.1.0-test.2)。目前须测试者自行签名，未提供TestFlight，真实学校/模型及实体设备场景仍待验收；具体范围见[测试说明](folio-ios/DEVICE-TESTING.md)。Folio品牌包允许个人自签测试，未经Fish书面许可不授权使用名称、图标或官方身份上架App Store、通过TestFlight对外分发或收费；GPL代码权利保留，见[品牌政策](TRADEMARK.md)。
+
 ## 许可与署名
 
 - 代码：**GPL-3.0-only**，见 [LICENSE](LICENSE)。

@@ -1,6 +1,21 @@
 # Folio iOS 测试包 · 签名交接
 
-这是 iPhoneOS / arm64 的 Release 设备构建，原网页与美术资源随包携带。文件名明确带 `unsigned`：目前没有 Apple 开发者账号或分发证书，**IPA 尚未签名，不能直接安装，也不是 TestFlight 下载包**。不要把模拟器 App 当成设备安装包。
+这是 iPhoneOS / arm64 的 Release 设备构建，原网页与美术资源随包携带。文件名明确带 `unsigned`：本项目目前没有用于分发的 Apple 签名或描述文件，**IPA 尚未签名，不能直接安装，也不是 TestFlight 下载包**。不要把模拟器 App 当成设备安装包。
+
+普通 Apple 账号可以用于免费个人开发签名，不要求购买 Apple Developer Program 会员；免费描述文件有效期为7天，并有设备数量等限制。TestFlight 分发属于另一条流程。参见 [Apple账号与免费测试限制](https://developer.apple.com/help/account/basics/about-your-developer-account)。
+
+## 个人自签安装（Windows 或 Mac）
+
+可使用 [Sideloadly官网](https://sideloadly.io/)提供的工具，按其[官方FAQ](https://sideloadly.io/faq)操作。本项目没有实测该第三方工具安装当前IPA，具体兼容性以实际结果为准。
+
+1. 在电脑安装 Sideloadly；需要 Apple 设备驱动时，按其官方说明安装相应组件。
+2. 用数据线连接目标 iPhone，解锁并信任电脑。
+3. 将 `folio-ios-0.1.0-build.2-unsigned.ipa` 导入工具，选择目标设备，用签名者自己的 Apple 账号完成签名和安装。不要把账号密码或验证码发到本仓库。
+4. 若出现“未受信任的开发者”，到“设置 → 通用 → VPN与设备管理”中找到签名账号并信任。
+5. 若系统要求开发者模式，到“设置 → 隐私与安全性 → 开发者模式”开启，按提示重启并再次确认。参见 [Apple开发者模式说明](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)。
+6. 免费签名到期后需续签；更新时保持同一签名账号和Bundle ID，并先备份本地数据，避免因删除应用丢失记录。
+
+签名只覆盖相应描述文件中登记的设备，不会把本包变成任何人都能安装的通用包。测试者不必在手机iCloud中登录签名者的账号。
 
 ## 交给签名协助者
 
@@ -12,6 +27,14 @@
 有 Mac 的协助者也可从同一提交复现：`python3 tools/prepare_assets.py`、`swift tools/render_icon.swift`、`python3 tools/generate_project.py`，在 Xcode 打开 `Folio.xcodeproj` 后选择其团队与 Bundle ID 签名。请使用新检出目录，避免把带模拟器夹具的 Generated 目录带入设备构建。
 
 官方签名步骤见 [Apple：设备测试分发](https://developer.apple.com/documentation/xcode/distributing-your-app-to-registered-devices) 和 [Apple：测试与发行](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases)。
+
+## 权利与品牌声明
+
+Folio 原始设计及依法享有的相关权利归 Fish 所有。Folio 名称、图标及官方发行身份不随代码许可一并授权。
+
+本次允许个人自签、安装和测试。未经 Fish 书面许可，不得以 Folio 名称、图标或官方身份重新签名、打包后上架 App Store、通过 TestFlight 对外分发或收费经营；不得冒充官方或声称获得 Fish 背书。Fish 保留就侵害其依法享有权利的行为，要求下架、向平台投诉及依法追究责任的权利。可转发官方仓库与Release链接。
+
+以上保留品牌权利，不撤回或缩减 GPL-3.0 授予的代码和受覆盖二进制的使用、修改、再分发及收费权利。合规采用不同名称、图标并明确非官方身份的 GPL 衍生版，仍按相应许可处理。详见根目录 `LICENSE`、`NOTICE.md`、`TRADEMARK.md`。
 
 ## 首轮测试范围
 
