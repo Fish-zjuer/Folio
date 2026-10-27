@@ -41,3 +41,16 @@ jobs:
           path: folio-ios/Reports/${{ matrix.size }}/
           retention-days: 7
           if-no-files-found: error
+      - name: Upload a small screenshot and JSON review bundle
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ios-review-${{ matrix.size }}
+          path: |
+            folio-ios/Reports/${{ matrix.size }}/screens/
+            folio-ios/Reports/${{ matrix.size }}/attachments/
+            folio-ios/Reports/${{ matrix.size }}/ci-result.json
+            folio-ios/Reports/${{ matrix.size }}/web-assets-manifest.json
+            folio-ios/Reports/${{ matrix.size }}/native-startup.png
+          retention-days: 7
+          if-no-files-found: warn

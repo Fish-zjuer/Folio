@@ -53,9 +53,19 @@ final class SmokeHarness {
             controller.qaStatus.text = "passed|home"
             _ = try await js("FolioIOSQA.enableNavigationStatus();return true;")
         } catch {
+            let nativeError = error as NSError
+            let detail = nativeError.userInfo["WKJavaScriptExceptionMessage"] as? String
+                ?? nativeError.userInfo["WKJavaScriptExceptionMessageKey"] as? String
+                ?? nativeError.localizedDescription
+            var partial: [String: Any] = [:]
+            if let json = try? await js("return JSON.stringify(window.FolioIOSQA?.result() || {errors:window.__folioIOSDiagnostics?.errors||[]});") as? String,
+               let bytes = json.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: bytes) as? [String: Any] {
+                partial = value
+                results = value["checks"] as? [[String: Any]] ?? []
+            }
             try? await screenshot("failure")
-            try? save(error: error.localizedDescription, webReport: [:])
-            controller.qaStatus.text = "failed|\(error.localizedDescription)"
+            try? save(error: detail, webReport: partial)
+            controller.qaStatus.text = "failed|\(detail)"
         }
     }
 
